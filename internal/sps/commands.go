@@ -2,7 +2,6 @@ package sps
 
 import (
 	"context"
-	"fmt"
 )
 
 // Command is a common part of all subcommands.
@@ -11,11 +10,14 @@ type Command struct {
 	CriticalCtx context.Context
 }
 
-type Server struct {
+type ServerCommand struct {
 	Command
 }
 
-func (cmd *Server) Execute([]string) error {
-	fmt.Println("hello world!")
-	return nil
+func (cmd *ServerCommand) Execute([]string) error {
+	server := Server{
+		Addr: ":8080",
+		Api:  &Api{},
+	}
+	return server.Start()
 }

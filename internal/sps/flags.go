@@ -6,6 +6,6 @@ type Global struct {
 }
 
 type Flags struct {
-	Global *Global `group:"Global Options"`
-	Server *Server `command:"server" description:"Start server"`
+	Global *Global        `group:"Global Options"`
+	Server *ServerCommand `command:"server" description:"Start server"`
 }
