@@ -4,6 +4,7 @@ build: sps
 
 sps:
 	export CGO_ENABLED=0
-	go build -ldflags=${LDFLAGS} mkuznets.com/go/sps/cmd/sps
+	mkdir -p bin
+	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
 
 .PHONY: sps build
