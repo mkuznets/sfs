@@ -20,6 +20,16 @@ func NewController(store Store) Controller {
 	return &controllerImpl{store: store}
 }
 
+// GetChannel godoc
+//
+//	@Summary	Get channel by ID
+//	@Tags		Channels
+//	@Produce	json
+//	@Param		id	path		string	true	"Channel ID"
+//	@Success	200	{array}		ChannelResponse
+//	@Failure	404	{object}	ErrorResponse
+//	@Failure	500	{object}	ErrorResponse
+//	@Router		/channels/{id} [get]
 func (c *controllerImpl) GetChannel(ctx context.Context, id string) (*ChannelResponse, error) {
 	model, err := c.store.GetChannel(ctx, id)
 	if err != nil {

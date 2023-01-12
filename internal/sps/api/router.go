@@ -4,6 +4,11 @@ import (
 	"github.com/go-chi/chi"
 )
 
+// NewRouter ...
+//
+//	@title		Simple Podcast Server REST API
+//	@version	0.1
+//	@BasePath	/api
 func NewRouter(handler Handler) chi.Router {
 	r := chi.NewRouter()
 	r.Route("/channels", func(r chi.Router) {

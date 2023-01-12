@@ -1,0 +1,109 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Simple Podcast Server REST API",
+        "contact": {},
+        "version": "0.1"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/channels/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channels"
+                ],
+                "summary": "Get channel by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Channel ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ChannelResponse"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ChannelResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "ch_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                },
+                "title": {
+                    "type": "string",
+                    "x-order": "1",
+                    "example": "Bored Owls Online Radio"
+                },
+                "link": {
+                    "type": "string",
+                    "x-order": "3",
+                    "example": "https://example.com"
+                },
+                "authors": {
+                    "type": "string",
+                    "x-order": "4",
+                    "example": "The Owl"
+                },
+                "description": {
+                    "type": "string",
+                    "x-order": "5",
+                    "example": "Bored owls talk about whatever happens to be on their minds"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-order": "6",
+                    "example": "2023-01-01T01:02:03.456Z"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-order": "7",
+                    "example": "2023-01-01T01:02:03.456Z"
+                }
+            }
+        },
+        "ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

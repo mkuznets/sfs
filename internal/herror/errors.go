@@ -75,14 +75,16 @@ func Internal(message string, a ...interface{}) Error {
 	return newErrorf(nil, http.StatusInternalServerError, message, a...)
 }
 
+type Response struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}
+
 func RenderJson(w http.ResponseWriter, r *http.Request, err error) {
 	switch v := err.(type) {
 	case Error:
 		render.Status(r, v.Status())
-		render.JSON(w, r, map[string]interface{}{
-			"error":   http.StatusText(v.Status()),
-			"message": v.Message(),
-		})
+		render.JSON(w, r, Response{Error: http.StatusText(v.Status()), Message: v.Message()})
 	default:
 		log.Err(err).Msg("internal error")
 		RenderJson(w, r, Wrapf(err, "internal server error"))
