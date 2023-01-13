@@ -25,12 +25,19 @@ func RandomChannelId() string {
 }
 
 type Episode struct {
-	Id        string      `bun:"id"`
-	ChannelId string      `bun:"channel_id"`
-	Title     string      `bun:"title"`
-	CreatedAt types.Time  `bun:"created_at"`
-	UpdatedAt types.Time  `bun:"updated_at"`
-	DeletedAt *types.Time `bun:"deleted_at"`
+	bun.BaseModel `bun:"table:episodes,alias:ep"`
+
+	Id          string      `bun:"id,pk"`
+	ChannelId   string      `bun:"channel_id"`
+	Title       string      `bun:"title"`
+	Description string      `bun:"description"`
+	Link        string      `bun:"link"`
+	Authors     string      `bun:"authors"`
+	FileId      string      `bun:"file_id"`
+	File        *File       `bun:"rel:belongs-to,join:file_id=id"`
+	CreatedAt   types.Time  `bun:"created_at"`
+	UpdatedAt   types.Time  `bun:"updated_at"`
+	DeletedAt   *types.Time `bun:"deleted_at"`
 }
 
 func RandomEpisodeId() string {
@@ -40,7 +47,7 @@ func RandomEpisodeId() string {
 type File struct {
 	bun.BaseModel `bun:"table:files,alias:f"`
 
-	Id          string      `bun:"id"`
+	Id          string      `bun:"id,pk"`
 	UserId      string      `bun:"user_id"`
 	Url         string      `bun:"url"`
 	Size        int64       `bun:"size"`

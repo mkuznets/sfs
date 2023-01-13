@@ -19,6 +19,8 @@ type Handler interface {
 	CreateChannel(w http.ResponseWriter, r *http.Request)
 	ListChannels(w http.ResponseWriter, r *http.Request)
 	UploadFile(w http.ResponseWriter, r *http.Request)
+	CreateEpisode(w http.ResponseWriter, r *http.Request)
+	ListEpisodes(w http.ResponseWriter, r *http.Request)
 }
 
 type handlerImpl struct {
@@ -111,6 +113,49 @@ func (h *handlerImpl) UploadFile(w http.ResponseWriter, r *http.Request) {
 		Msg("uploading file")
 
 	response, err := h.c.UploadFile(ctx, user.Id(), file)
+	if err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, response)
+}
+
+func (h *handlerImpl) CreateEpisode(w http.ResponseWriter, r *http.Request) {
+	user, err := auth.GetUser(r)
+	if err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+
+	channelId := chi.URLParam(r, "channelId")
+
+	var resource CreateEpisodeRequest
+	if err := render.DecodeJSON(r.Body, &resource); err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+
+	response, err := h.c.CreateEpisode(r.Context(), user.Id(), channelId, &resource)
+	if err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, response)
+}
+
+func (h *handlerImpl) ListEpisodes(w http.ResponseWriter, r *http.Request) {
+	user, err := auth.GetUser(r)
+	if err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+	channelId := chi.URLParam(r, "channelId")
+
+	response, err := h.c.ListEpisodes(r.Context(), user.Id(), channelId)
 	if err != nil {
 		herror.RenderJson(w, r, err)
 		return

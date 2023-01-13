@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"io"
+	"mkuznets.com/go/sps/internal/herror"
 	"mkuznets.com/go/sps/internal/types"
 	"os"
 	"time"
@@ -13,6 +14,8 @@ type Controller interface {
 	CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*ChannelResponse, error)
 	ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error)
 	UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error)
+	CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*EpisodeResponse, error)
+	ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error)
 }
 
 type controllerImpl struct {
@@ -139,4 +142,94 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 	return &UploadResponse{
 		Id: model.Id,
 	}, nil
+}
+
+func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*EpisodeResponse, error) {
+	channel, err := c.store.GetChannel(ctx, channelId)
+	if err != nil {
+		return nil, err
+	}
+	if channel.UserId != userId {
+		return nil, herror.NotFound("channel not found")
+	}
+
+	file, err := c.store.GetFile(ctx, r.FileId)
+	if err != nil {
+		return nil, err
+	}
+	if file.UserId != userId {
+		return nil, herror.NotFound("file not found")
+	}
+
+	model := &Episode{
+		Id:          RandomEpisodeId(),
+		ChannelId:   channelId,
+		Title:       r.Title,
+		Link:        r.Link,
+		Authors:     r.Authors,
+		Description: r.Description,
+		FileId:      r.FileId,
+		CreatedAt:   types.NewTime(time.Now()),
+		UpdatedAt:   types.NewTime(time.Now()),
+	}
+
+	if err := c.store.CreateEpisode(ctx, model); err != nil {
+		return nil, err
+	}
+
+	response := &EpisodeResponse{
+		Id: model.Id,
+		File: &FileResponse{
+			Id:          file.Id,
+			Url:         file.Url,
+			Size:        file.Size,
+			ContentType: file.ContentType,
+		},
+		ChannelId:   model.ChannelId,
+		Title:       model.Title,
+		Link:        model.Link,
+		Authors:     model.Authors,
+		Description: model.Description,
+		CreatedAt:   model.CreatedAt,
+		UpdatedAt:   model.UpdatedAt,
+	}
+
+	return response, nil
+}
+
+func (c *controllerImpl) ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error) {
+	channel, err := c.store.GetChannel(ctx, channelId)
+	if err != nil {
+		return nil, err
+	}
+	if channel.UserId != userId {
+		return nil, herror.NotFound("channel not found")
+	}
+
+	episodes, err := c.store.ListEpisodesWithFiles(ctx, channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	response := make([]*EpisodeResponse, 0)
+	for _, episode := range episodes {
+		response = append(response, &EpisodeResponse{
+			Id: episode.Id,
+			File: &FileResponse{
+				Id:          episode.File.Id,
+				Url:         episode.File.Url,
+				Size:        episode.File.Size,
+				ContentType: episode.File.ContentType,
+			},
+			ChannelId:   episode.ChannelId,
+			Title:       episode.Title,
+			Link:        episode.Link,
+			Authors:     episode.Authors,
+			Description: episode.Description,
+			CreatedAt:   episode.CreatedAt,
+			UpdatedAt:   episode.UpdatedAt,
+		})
+	}
+
+	return response, nil
 }

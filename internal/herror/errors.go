@@ -71,6 +71,10 @@ func Unauthorised(message string, a ...interface{}) Error {
 	return newErrorf(nil, http.StatusUnauthorized, message, a...)
 }
 
+func Forbidden(message string, a ...interface{}) Error {
+	return newErrorf(nil, http.StatusForbidden, message, a...)
+}
+
 func Internal(message string, a ...interface{}) Error {
 	return newErrorf(nil, http.StatusInternalServerError, message, a...)
 }
