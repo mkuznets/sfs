@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"io"
 	"mkuznets.com/go/sps/internal/types"
+	"os"
 	"time"
 )
 
@@ -10,14 +12,19 @@ type Controller interface {
 	GetChannel(ctx context.Context, id string) (*ChannelResponse, error)
 	CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*ChannelResponse, error)
 	ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error)
+	UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error)
 }
 
 type controllerImpl struct {
-	store Store
+	uploader Uploader
+	store    Store
 }
 
-func NewController(store Store) Controller {
-	return &controllerImpl{store: store}
+func NewController(store Store, uploader Uploader) Controller {
+	return &controllerImpl{
+		store:    store,
+		uploader: uploader,
+	}
 }
 
 // GetChannel godoc
@@ -59,7 +66,6 @@ func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r Cre
 		Description: r.Description,
 		CreatedAt:   types.NewTime(time.Now()),
 		UpdatedAt:   types.NewTime(time.Now()),
-		DeletedAt:   nil,
 	}
 
 	if err := c.store.CreateChannel(ctx, model); err != nil {
@@ -99,4 +105,38 @@ func (c *controllerImpl) ListChannels(ctx context.Context, userId string) ([]*Ch
 	}
 
 	return response, nil
+}
+
+func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error) {
+	tmpFile, err := os.CreateTemp("", "tmpUpload")
+	defer func() {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := c.uploader.Upload(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+
+	model := &File{
+		Id:          RandomFileId(),
+		UserId:      userId,
+		Url:         info.Url,
+		Size:        info.Size,
+		ContentType: info.ContentType,
+		CreatedAt:   types.NewTime(time.Now()),
+		UpdatedAt:   types.NewTime(time.Now()),
+	}
+	if err := c.store.CreateFile(ctx, model); err != nil {
+		return nil, err
+	}
+
+	return &UploadResponse{
+		Id: model.Id,
+	}, nil
 }

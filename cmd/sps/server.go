@@ -30,6 +30,7 @@ func (c *ServerCommand) Init(app *App) error {
 			api.NewHandler(
 				api.NewController(
 					api.NewStore(db),
+					api.NewUploader(),
 				),
 			),
 		),

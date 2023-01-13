@@ -36,3 +36,20 @@ type Episode struct {
 func RandomEpisodeId() string {
 	return "ep_" + ksuid.New().String()
 }
+
+type File struct {
+	bun.BaseModel `bun:"table:files,alias:f"`
+
+	Id          string      `bun:"id"`
+	UserId      string      `bun:"user_id"`
+	Url         string      `bun:"url"`
+	Size        int64       `bun:"size"`
+	ContentType string      `bun:"content_type"`
+	CreatedAt   types.Time  `bun:"created_at"`
+	UpdatedAt   types.Time  `bun:"updated_at"`
+	DeletedAt   *types.Time `bun:"deleted_at"`
+}
+
+func RandomFileId() string {
+	return "file_" + ksuid.New().String()
+}

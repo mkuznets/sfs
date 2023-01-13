@@ -12,6 +12,7 @@ type Store interface {
 	GetChannel(ctx context.Context, id string) (*Channel, error)
 	ListChannels(ctx context.Context, userId string) ([]*Channel, error)
 	ListEpisodesByChannel(ctx context.Context, channelId, userId string) ([]*Episode, error)
+	CreateFile(ctx context.Context, file *File) error
 }
 
 type storeImpl struct {
@@ -54,4 +55,9 @@ func (s *storeImpl) ListChannels(ctx context.Context, userId string) ([]*Channel
 
 func (s *storeImpl) ListEpisodesByChannel(ctx context.Context, channelId, userId string) ([]*Episode, error) {
 	return nil, nil
+}
+
+func (s *storeImpl) CreateFile(ctx context.Context, file *File) error {
+	_, err := s.db.NewInsert().Model(file).Exec(ctx)
+	return err
 }

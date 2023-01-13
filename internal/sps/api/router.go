@@ -17,5 +17,9 @@ func NewRouter(handler Handler) chi.Router {
 		r.Post("/", handler.CreateChannel)
 	})
 
+	r.Route("/files", func(r chi.Router) {
+		r.Post("/", handler.UploadFile)
+	})
+
 	return r
 }

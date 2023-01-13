@@ -6,6 +6,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"mkuznets.com/go/sps/docs"
 	"mkuznets.com/go/sps/internal/sps/auth"
+	"mkuznets.com/go/sps/internal/sps/rlog"
 	"net/http"
 	"time"
 )
@@ -20,6 +21,8 @@ func (s *Server) Start() error {
 	router := chi.NewRouter()
 	router.Use(middleware.Timeout(30 * time.Second))
 	router.Use(middleware.Recoverer)
+	router.Use(rlog.RequestID)
+	router.Use(rlog.Logger())
 	router.Use(auth.FakeAuth("usr_2K97HIyQThUf7K7AB7xdOZGAoyw"))
 
 	swaggerSpecs := http.StripPrefix("/swagger", http.FileServer(http.FS(docs.SwaggerFiles))).ServeHTTP

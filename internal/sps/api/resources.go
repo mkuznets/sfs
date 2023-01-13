@@ -24,3 +24,7 @@ type ChannelResponse struct {
 
 // Only used in Swagger docs.
 type _ herror.Response // @name ErrorResponse
+
+type UploadResponse struct {
+	Id string `json:"id" example:"file_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
+} // @name UploadResponse
