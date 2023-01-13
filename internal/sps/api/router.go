@@ -14,6 +14,7 @@ func NewRouter(handler Handler) chi.Router {
 	r.Route("/channels", func(r chi.Router) {
 		r.Route("/{channelId}", func(r chi.Router) {
 			r.Get(`/`, handler.GetChannel)
+			r.Get(`/feed`, handler.GetFeed)
 			r.Route(`/episodes`, func(r chi.Router) {
 				r.Post(`/`, handler.CreateEpisode)
 				r.Get(`/`, handler.ListEpisodes)

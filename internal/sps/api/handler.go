@@ -16,6 +16,7 @@ const (
 
 type Handler interface {
 	GetChannel(w http.ResponseWriter, r *http.Request)
+	GetFeed(w http.ResponseWriter, r *http.Request)
 	CreateChannel(w http.ResponseWriter, r *http.Request)
 	ListChannels(w http.ResponseWriter, r *http.Request)
 	UploadFile(w http.ResponseWriter, r *http.Request)
@@ -42,6 +43,25 @@ func (h *handlerImpl) GetChannel(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, response)
+}
+
+func (h *handlerImpl) GetFeed(w http.ResponseWriter, r *http.Request) {
+	user, err := auth.GetUser(r)
+	if err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+
+	channelId := chi.URLParam(r, "channelId")
+
+	response, err := h.c.GetFeed(r.Context(), user.Id(), channelId)
+	if err != nil {
+		herror.RenderJson(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.XML(w, r, response)
 }
 
 func (h *handlerImpl) CreateChannel(w http.ResponseWriter, r *http.Request) {
