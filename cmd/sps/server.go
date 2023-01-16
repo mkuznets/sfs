@@ -8,12 +8,14 @@ import (
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"mkuznets.com/go/sps/internal/sps"
 	"mkuznets.com/go/sps/internal/sps/api"
+	"mkuznets.com/go/sps/internal/sps/feed"
 	_ "modernc.org/sqlite"
 	"time"
 )
 
 type ServerCommand struct {
-	server *sps.Server
+	server      *sps.Server
+	feedService feed.Service
 }
 
 func (c *ServerCommand) Init(app *App) error {
@@ -24,21 +26,32 @@ func (c *ServerCommand) Init(app *App) error {
 	db := bun.NewDB(sqldb, sqlitedialect.New())
 	db.AddQueryHook(&hook{})
 
+	store := api.NewStore(db)
+
 	c.server = &sps.Server{
 		Addr: ":8080",
 		ApiRouter: api.NewRouter(
 			api.NewHandler(
 				api.NewController(
-					api.NewStore(db),
+					store,
 					api.NewUploader(),
 				),
 			),
 		),
 	}
+
+	c.feedService = feed.NewService(feed.NewController(store))
+
 	return nil
 }
 
 func (c *ServerCommand) Execute([]string) error {
+	ctx := context.Background()
+
+	go func() {
+		c.feedService.Start(ctx)
+	}()
+
 	return c.server.Start()
 }
 

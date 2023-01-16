@@ -9,19 +9,26 @@ import (
 type Channel struct {
 	bun.BaseModel `bun:"table:channels,alias:ch"`
 
-	Id          string      `bun:"id"`
-	UserId      string      `bun:"user_id"`
-	Title       string      `bun:"title"`
-	Link        string      `bun:"link"`
-	Authors     string      `bun:"authors"`
-	Description string      `bun:"description"`
-	CreatedAt   types.Time  `bun:"created_at"`
-	UpdatedAt   types.Time  `bun:"updated_at"`
-	DeletedAt   *types.Time `bun:"deleted_at"`
+	Id          string     `bun:"id,pk"`
+	UserId      string     `bun:"user_id"`
+	Title       string     `bun:"title"`
+	Link        string     `bun:"link"`
+	Authors     string     `bun:"authors"`
+	Description string     `bun:"description"`
+	CreatedAt   types.Time `bun:"created_at"`
+	UpdatedAt   types.Time `bun:"updated_at"`
+	DeletedAt   types.Time `bun:"deleted_at"`
+	Feed        Feed       `bun:"embed:feed_"`
 }
 
 func RandomChannelId() string {
 	return "ch_" + ksuid.New().String()
+}
+
+type Feed struct {
+	Content     []byte     `bun:"content"`
+	Url         string     `bun:"url"`
+	PublishedAt types.Time `bun:"published_at"`
 }
 
 type Episode struct {

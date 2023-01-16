@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/uptrace/bun"
 	"mkuznets.com/go/sps/internal/herror"
+	"mkuznets.com/go/sps/internal/types"
 )
 
 type Store interface {
@@ -15,6 +16,8 @@ type Store interface {
 	CreateEpisode(ctx context.Context, episode *Episode) error
 	CreateFile(ctx context.Context, file *File) error
 	GetFile(ctx context.Context, id string) (*File, error)
+	GetChannelsIdsToUpdateFeeds(ctx context.Context) ([]string, error)
+	UpdateChannelFeeds(ctx context.Context, channels []*Channel) error
 }
 
 type storeImpl struct {
@@ -69,6 +72,19 @@ func (s *storeImpl) ListEpisodesWithFiles(ctx context.Context, channelId string)
 
 func (s *storeImpl) CreateEpisode(ctx context.Context, episode *Episode) error {
 	_, err := s.db.NewInsert().Model(episode).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.NewUpdate().
+		Model(&Channel{}).
+		Set("updated_at = ?", types.NewTimeNow()).
+		Where("id = ?", episode.ChannelId).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -89,4 +105,31 @@ func (s *storeImpl) GetFile(ctx context.Context, id string) (*File, error) {
 		return nil, err
 	}
 	return &file, nil
+}
+
+func (s *storeImpl) GetChannelsIdsToUpdateFeeds(ctx context.Context) ([]string, error) {
+	ids := make([]string, 0)
+	err := s.db.NewSelect().
+		ColumnExpr("id").
+		Model((*Channel)(nil)).
+		Where("feed_published_at IS NULL OR feed_published_at < updated_at").
+		Scan(ctx, &ids)
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+func (s *storeImpl) UpdateChannelFeeds(ctx context.Context, channels []*Channel) error {
+	values := s.db.NewValues(&channels).Column("id", "feed_content", "feed_published_at", "feed_url")
+	_, err := s.db.NewUpdate().
+		With("_data", values).
+		Model((*Channel)(nil)).
+		TableExpr("_data").
+		Set("feed_content = _data.feed_content").
+		Set("feed_published_at = _data.feed_published_at").
+		Set("feed_url = _data.feed_url").
+		Where("ch.id = _data.id").
+		Exec(ctx)
+	return err
 }

@@ -2,18 +2,16 @@ package api
 
 import (
 	"context"
+	"encoding/xml"
 	"io"
-	"mkuznets.com/go/sps/internal/feed"
 	"mkuznets.com/go/sps/internal/herror"
 	"mkuznets.com/go/sps/internal/types"
 	"os"
-	"sort"
-	"time"
 )
 
 type Controller interface {
 	GetChannel(ctx context.Context, id string) (*ChannelResponse, error)
-	GetFeed(ctx context.Context, userId, channelId string) (*feed.Podcast, error)
+	GetChannelFeed(ctx context.Context, channelId string) ([]byte, error)
 	CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*ChannelResponse, error)
 	ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error)
 	UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error)
@@ -62,66 +60,12 @@ func (c *controllerImpl) GetChannel(ctx context.Context, id string) (*ChannelRes
 	return response, nil
 }
 
-func (c *controllerImpl) GetFeed(ctx context.Context, userId, channelId string) (*feed.Podcast, error) {
+func (c *controllerImpl) GetChannelFeed(ctx context.Context, channelId string) ([]byte, error) {
 	channel, err := c.store.GetChannel(ctx, channelId)
 	if err != nil {
 		return nil, err
 	}
-	if channel.UserId != userId {
-		return nil, herror.NotFound("channel not found")
-	}
-
-	episodes, err := c.store.ListEpisodesWithFiles(ctx, channelId)
-	if err != nil {
-		return nil, err
-	}
-	if len(episodes) == 0 {
-		return nil, herror.Validation("no episodes")
-	}
-
-	sort.Slice(episodes, func(i, j int) bool {
-		return episodes[i].CreatedAt.After(episodes[j].CreatedAt.Time)
-	})
-
-	publishedAt := episodes[0].CreatedAt.Time
-
-	podcast := &feed.Podcast{
-		Version: "2.0",
-		Itunes:  "http://www.itunes.com/dtds/podcast-1.0.dtd",
-		Channel: &feed.Channel{
-			Title:         channel.Title,
-			Link:          channel.Link,
-			Description:   channel.Description,
-			LastBuildDate: time.Now().Format(time.RFC1123Z),
-			PubDate:       publishedAt.Format(time.RFC1123Z),
-			IAuthor:       channel.Authors,
-		},
-	}
-
-	var items []*feed.Item
-	for _, episode := range episodes {
-		items = append(items, &feed.Item{
-			Guid: feed.Guid{
-				IsPermaLink: false,
-				Text:        episode.Id,
-			},
-			PubDate: episode.CreatedAt.Format(time.RFC1123Z),
-			Title:   episode.Title,
-			Link:    episode.Link,
-			Description: &feed.Description{
-				Text: episode.Description,
-			},
-			IAuthor: episode.Authors,
-			Enclosure: &feed.Enclosure{
-				URL:    episode.File.Url,
-				Length: episode.File.Size,
-				Type:   episode.File.ContentType,
-			},
-		})
-	}
-	podcast.Channel.Items = items
-
-	return podcast, nil
+	return channel.Feed.Content, nil
 }
 
 func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*ChannelResponse, error) {
@@ -132,8 +76,20 @@ func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r Cre
 		Link:        r.Link,
 		Authors:     r.Authors,
 		Description: r.Description,
-		CreatedAt:   types.NewTime(time.Now()),
-		UpdatedAt:   types.NewTime(time.Now()),
+		CreatedAt:   types.NewTimeNow(),
+		UpdatedAt:   types.NewTimeNow(),
+	}
+
+	podcast := ChannelToPodcast(model, nil)
+	feed, err := xml.Marshal(podcast)
+	if err != nil {
+		return nil, err
+	}
+
+	model.Feed = Feed{
+		Content:     feed,
+		Url:         "",
+		PublishedAt: types.NewTimeNow(),
 	}
 
 	if err := c.store.CreateChannel(ctx, model); err != nil {
@@ -197,8 +153,8 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 		Url:         info.Url,
 		Size:        info.Size,
 		ContentType: info.ContentType,
-		CreatedAt:   types.NewTime(time.Now()),
-		UpdatedAt:   types.NewTime(time.Now()),
+		CreatedAt:   types.NewTimeNow(),
+		UpdatedAt:   types.NewTimeNow(),
 	}
 	if err := c.store.CreateFile(ctx, model); err != nil {
 		return nil, err
@@ -234,8 +190,8 @@ func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId st
 		Authors:     r.Authors,
 		Description: r.Description,
 		FileId:      r.FileId,
-		CreatedAt:   types.NewTime(time.Now()),
-		UpdatedAt:   types.NewTime(time.Now()),
+		CreatedAt:   types.NewTimeNow(),
+		UpdatedAt:   types.NewTimeNow(),
 	}
 
 	if err := c.store.CreateEpisode(ctx, model); err != nil {

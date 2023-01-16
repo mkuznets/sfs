@@ -16,4 +16,13 @@ fmt:
 server: sps
 	bin/sps server
 
+db-up: sps
+	bin/sps db up
+
+db-down: sps
+	bin/sps db down
+
+db-status: sps
+	bin/sps db status
+
 .PHONY: sps build swagger

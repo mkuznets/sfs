@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"mkuznets.com/go/sps/internal/herror"
 	"mkuznets.com/go/sps/internal/sps/auth"
@@ -46,22 +47,19 @@ func (h *handlerImpl) GetChannel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlerImpl) GetFeed(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.GetUser(r)
+	id := chi.URLParam(r, "channelId")
+
+	content, err := h.c.GetChannelFeed(r.Context(), id)
 	if err != nil {
 		herror.RenderJson(w, r, err)
 		return
 	}
 
-	channelId := chi.URLParam(r, "channelId")
-
-	response, err := h.c.GetFeed(r.Context(), user.Id(), channelId)
-	if err != nil {
-		herror.RenderJson(w, r, err)
-		return
+	w.Header().Add("Content-Type", "application/rss+xml; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(content); err != nil {
+		log.Debug().Err(err).Msg("failed to write response")
 	}
-
-	render.Status(r, http.StatusOK)
-	render.XML(w, r, response)
 }
 
 func (h *handlerImpl) CreateChannel(w http.ResponseWriter, r *http.Request) {

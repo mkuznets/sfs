@@ -15,7 +15,7 @@ type Global struct {
 
 type Db struct {
 	Driver string `long:"driver" description:"Database driver" default:"sqlite"`
-	Dsn    string `long:"dsn" description:"Database Dsn" default:"file:./data/sps.db?cache=shared&mode=rwc&_fk=1"`
+	Dsn    string `long:"dsn" description:"Database Dsn" default:"file:./data/sps.db?cache=shared&mode=rwc&_pragma=journal_mode(WAL)"`
 }
 
 type App struct {
