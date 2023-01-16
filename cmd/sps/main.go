@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jessevdk/go-flags"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"
@@ -14,15 +15,16 @@ type Global struct {
 }
 
 type Db struct {
-	Driver string `long:"driver" description:"Database driver" default:"sqlite"`
-	Dsn    string `long:"dsn" description:"Database Dsn" default:"file:./data/sps.db?cache=shared&mode=rwc&_pragma=journal_mode(WAL)"`
+	Driver string `long:"driver" env:"DRIVER" description:"Database driver" default:"sqlite" required:"true"`
+	Dsn    string `long:"dsn" env:"DSN" description:"Database DSN" required:"true"`
 }
 
 type App struct {
-	Global *Global        `group:"Global Options"`
-	Db     *Db            `group:"Database Options"`
-	Dbm    *DbCommand     `command:"db" description:"Database migration"`
-	Server *ServerCommand `command:"server" description:"Start the server"`
+	GlobalOpts *Global `group:"Global Options"`
+	DbOpts     *Db     `group:"Database Options" namespace:"db" env-namespace:"DB"`
+
+	DbCmd     *DbCommand     `command:"db" description:"Database migration"`
+	ServerCmd *ServerCommand `command:"server" description:"Start the server"`
 }
 
 type Command interface {
@@ -45,7 +47,7 @@ func handleError(err error) {
 	return
 }
 
-func setupLogger() {
+func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{
 		Out:        os.Stderr,
 		TimeFormat: "2006-01-02 15:04:05",
@@ -55,10 +57,13 @@ func setupLogger() {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		panic(err)
+	}
+
 	var app App
 	var parser = flags.NewParser(&app, flags.Default)
 	parser.CommandHandler = func(command flags.Commander, args []string) error {
-		setupLogger()
 		c := command.(Command)
 		handleError(c.Init(&app))
 		handleError(c.Execute(args))

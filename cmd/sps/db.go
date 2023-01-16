@@ -12,7 +12,7 @@ type DbCommand struct {
 }
 
 func (c *DbCommand) Init(app *App) error {
-	db, err := store.NewBunDb(app.Db.Driver, app.Db.Dsn)
+	db, err := store.NewBunDb(app.DbOpts.Driver, app.DbOpts.Dsn)
 	if err != nil {
 		return err
 	}
