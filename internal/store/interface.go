@@ -1,10 +1,24 @@
-package api
+package store
 
 import (
-	"github.com/segmentio/ksuid"
+	"context"
 	"github.com/uptrace/bun"
 	"mkuznets.com/go/sps/internal/types"
 )
+
+type Store interface {
+	CreateChannel(ctx context.Context, channel *Channel) error
+	GetChannel(ctx context.Context, id string) (*Channel, error)
+	ListChannels(ctx context.Context, userId string) ([]*Channel, error)
+	GetChannelsIdsToUpdateFeeds(ctx context.Context) ([]string, error)
+	UpdateChannelFeeds(ctx context.Context, channels []*Channel) error
+
+	CreateEpisode(ctx context.Context, episode *Episode) error
+	ListEpisodesWithFiles(ctx context.Context, channelId string) ([]*Episode, error)
+
+	CreateFile(ctx context.Context, file *File) error
+	GetFile(ctx context.Context, id string) (*File, error)
+}
 
 type Channel struct {
 	bun.BaseModel `bun:"table:channels,alias:ch"`
@@ -19,10 +33,6 @@ type Channel struct {
 	UpdatedAt   types.Time `bun:"updated_at"`
 	DeletedAt   types.Time `bun:"deleted_at"`
 	Feed        Feed       `bun:"embed:feed_"`
-}
-
-func RandomChannelId() string {
-	return "ch_" + ksuid.New().String()
 }
 
 type Feed struct {
@@ -47,10 +57,6 @@ type Episode struct {
 	DeletedAt   *types.Time `bun:"deleted_at"`
 }
 
-func RandomEpisodeId() string {
-	return "ep_" + ksuid.New().String()
-}
-
 type File struct {
 	bun.BaseModel `bun:"table:files,alias:f"`
 
@@ -62,8 +68,4 @@ type File struct {
 	CreatedAt   types.Time  `bun:"created_at"`
 	UpdatedAt   types.Time  `bun:"updated_at"`
 	DeletedAt   *types.Time `bun:"deleted_at"`
-}
-
-func RandomFileId() string {
-	return "file_" + ksuid.New().String()
 }

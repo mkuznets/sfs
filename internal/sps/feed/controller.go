@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"mkuznets.com/go/sps/internal/rss"
-	"mkuznets.com/go/sps/internal/sps/api"
+	"mkuznets.com/go/sps/internal/store"
 	"mkuznets.com/go/sps/internal/types"
 	"sort"
 	"time"
@@ -16,10 +16,10 @@ type Controller interface {
 }
 
 type controllerImpl struct {
-	store api.Store
+	store store.Store
 }
 
-func NewController(store api.Store) Controller {
+func NewController(store store.Store) Controller {
 	return &controllerImpl{
 		store: store,
 	}
@@ -85,13 +85,13 @@ func (c *controllerImpl) Update(ctx context.Context, channelId string) error {
 		return err
 	}
 
-	channel.Feed = api.Feed{
+	channel.Feed = store.Feed{
 		Content:     content,
 		Url:         "",
 		PublishedAt: types.NewTimeNow(),
 	}
 
-	if err := c.store.UpdateChannelFeeds(ctx, []*api.Channel{channel}); err != nil {
+	if err := c.store.UpdateChannelFeeds(ctx, []*store.Channel{channel}); err != nil {
 		return err
 	}
 

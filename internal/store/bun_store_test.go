@@ -1,4 +1,4 @@
-package api_test
+package store_test
 
 import (
 	"context"
@@ -7,23 +7,23 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
-	"mkuznets.com/go/sps/internal/sps/api"
+	"mkuznets.com/go/sps/internal/store"
 	"mkuznets.com/go/sps/internal/types"
 	"testing"
 	"time"
 )
 
-func mockedStore(t *testing.T) (api.Store, sqlmock.Sqlmock) {
+func mockedStore(t *testing.T) (store.Store, sqlmock.Sqlmock) {
 	sqldb, sqlMock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
 	db := bun.NewDB(sqldb, sqlitedialect.New())
-	return api.NewStore(db), sqlMock
+	return store.NewBunStore(db), sqlMock
 }
 
 var testTime = types.NewTime(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
 
 func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
-	store, sqlMock := mockedStore(t)
+	st, sqlMock := mockedStore(t)
 
 	sqlMock.
 		ExpectExec(`WITH "_data" ("id", "feed_content", "feed_published_at", "feed_url") ` +
@@ -37,10 +37,10 @@ func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 			`WHERE (ch.id = _data.id)`).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
-	channels := []*api.Channel{
+	channels := []*store.Channel{
 		{
 			Id: "ch_123",
-			Feed: api.Feed{
+			Feed: store.Feed{
 				Content:     []byte("<xml></xml>"),
 				Url:         "https://example.com/feed1.xml",
 				PublishedAt: testTime,
@@ -48,7 +48,7 @@ func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 		},
 		{
 			Id: "ch_456",
-			Feed: api.Feed{
+			Feed: store.Feed{
 				Content:     []byte("<xml></xml>"),
 				Url:         "https://example.com/feed2.xml",
 				PublishedAt: testTime,
@@ -56,11 +56,11 @@ func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 		},
 	}
 
-	err := store.UpdateChannelFeeds(context.Background(), channels)
+	err := st.UpdateChannelFeeds(context.Background(), channels)
 	require.NoError(t, err)
 
 	assert.NoError(t, sqlMock.ExpectationsWereMet())
 
-	//event := hook.Events[0]
+	//event := bunHook.Events[0]
 	//assert.Equal(t, query, event.Query)
 }

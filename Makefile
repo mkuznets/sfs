@@ -25,4 +25,7 @@ db-down: sps
 db-status: sps
 	bin/sps db status
 
+test:
+	go test -v ./...
+
 .PHONY: sps build swagger

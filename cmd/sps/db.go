@@ -2,27 +2,21 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/sqlitedialect"
-	"github.com/uptrace/bun/migrate"
-	"mkuznets.com/go/sps/internal/migrator"
-	ssql "mkuznets.com/go/sps/sql"
+	"mkuznets.com/go/sps/internal/store"
 	_ "modernc.org/sqlite"
 )
 
 type DbCommand struct {
-	m migrator.Migrator
+	m store.Migrator
 }
 
 func (c *DbCommand) Init(app *App) error {
-	sqldb, err := sql.Open(app.Db.Driver, app.Db.Dsn)
+	db, err := store.NewBunDb(app.Db.Driver, app.Db.Dsn)
 	if err != nil {
 		return err
 	}
-	db := bun.NewDB(sqldb, sqlitedialect.New())
-	c.m = migrator.New(migrate.NewMigrator(db, ssql.Migrations, migrate.WithMarkAppliedOnSuccess(true)))
+	c.m = store.NewBunMigrator(db)
 	return nil
 }
 

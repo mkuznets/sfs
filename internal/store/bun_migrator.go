@@ -1,9 +1,11 @@
-package migrator
+package store
 
 import (
 	"context"
 	"fmt"
+	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
+	sqlFs "mkuznets.com/go/sps/sql"
 )
 
 type Migrator interface {
@@ -21,9 +23,9 @@ type migrator struct {
 	bm *migrate.Migrator
 }
 
-func New(m *migrate.Migrator) Migrator {
+func NewBunMigrator(db *bun.DB) Migrator {
 	return &migrator{
-		bm: m,
+		bm: migrate.NewMigrator(db, sqlFs.Migrations, migrate.WithMarkAppliedOnSuccess(true)),
 	}
 }
 

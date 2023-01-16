@@ -2,10 +2,11 @@ package api
 
 import (
 	"mkuznets.com/go/sps/internal/rss"
+	"mkuznets.com/go/sps/internal/store"
 	"time"
 )
 
-func ChannelToPodcast(channel *Channel, episodes []*Episode) *rss.Podcast {
+func ChannelToPodcast(channel *store.Channel, episodes []*store.Episode) *rss.Podcast {
 	//goland:noinspection HttpUrlsUsage
 	podcast := &rss.Podcast{
 		Version: "2.0",

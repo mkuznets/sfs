@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"io"
 	"mkuznets.com/go/sps/internal/herror"
+	"mkuznets.com/go/sps/internal/store"
 	"mkuznets.com/go/sps/internal/types"
 	"os"
 )
@@ -20,14 +21,16 @@ type Controller interface {
 }
 
 type controllerImpl struct {
-	uploader Uploader
-	store    Store
+	uploader  Uploader
+	store     store.Store
+	idService IdService
 }
 
-func NewController(store Store, uploader Uploader) Controller {
+func NewController(store store.Store, uploader Uploader, idService IdService) Controller {
 	return &controllerImpl{
-		store:    store,
-		uploader: uploader,
+		store:     store,
+		uploader:  uploader,
+		idService: idService,
 	}
 }
 
@@ -69,8 +72,8 @@ func (c *controllerImpl) GetChannelFeed(ctx context.Context, channelId string) (
 }
 
 func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*ChannelResponse, error) {
-	model := &Channel{
-		Id:          RandomChannelId(),
+	model := &store.Channel{
+		Id:          c.idService.Channel(),
 		UserId:      userId,
 		Title:       r.Title,
 		Link:        r.Link,
@@ -86,7 +89,7 @@ func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r Cre
 		return nil, err
 	}
 
-	model.Feed = Feed{
+	model.Feed = store.Feed{
 		Content:     feed,
 		Url:         "",
 		PublishedAt: types.NewTimeNow(),
@@ -147,8 +150,8 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 		return nil, err
 	}
 
-	model := &File{
-		Id:          RandomFileId(),
+	model := &store.File{
+		Id:          c.idService.File(),
 		UserId:      userId,
 		Url:         info.Url,
 		Size:        info.Size,
@@ -182,8 +185,8 @@ func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId st
 		return nil, herror.NotFound("file not found")
 	}
 
-	model := &Episode{
-		Id:          RandomEpisodeId(),
+	model := &store.Episode{
+		Id:          c.idService.Episode(),
 		ChannelId:   channelId,
 		Title:       r.Title,
 		Link:        r.Link,
