@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
-	"mkuznets.com/go/sps/internal/sps/auth"
+	"mkuznets.com/go/sps/internal/auth"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/ynits"
 	"mkuznets.com/go/sps/internal/ytils/yrender"

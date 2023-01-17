@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"mkuznets.com/go/sps/internal/api"
+	"mkuznets.com/go/sps/internal/feed"
 	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/sps"
-	"mkuznets.com/go/sps/internal/sps/api"
-	"mkuznets.com/go/sps/internal/sps/feed"
 	"mkuznets.com/go/sps/internal/store"
 	_ "modernc.org/sqlite"
 )
@@ -39,20 +39,13 @@ func (c *ServerCommand) Init(app *App) error {
 
 	fileStorage := files.NewS3Storage(c.AwsOpts.EndpointUrl, c.AwsOpts.Bucket, c.AwsOpts.KeyID, c.AwsOpts.SecretKey, c.AwsOpts.UrlPrefix)
 	bunStore := store.NewBunStore(db)
+
 	feedController := feed.NewController(bunStore, fileStorage)
+	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), feedController)
 
 	c.server = &sps.Server{
-		Addr: c.ServerOpts.Addr,
-		ApiRouter: api.NewRouter(
-			api.NewHandler(
-				api.NewController(
-					bunStore,
-					fileStorage,
-					api.NewIdService(),
-					feedController,
-				),
-			),
-		),
+		Addr:      c.ServerOpts.Addr,
+		ApiRouter: api.New(api.NewHandler(apiController)).Router(),
 	}
 
 	c.feedService = feed.NewService(feedController)

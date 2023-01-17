@@ -8,7 +8,7 @@ sps: swagger
 	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
 
 swagger:
-	swag init -g internal/sps/api/router.go
+	swag init -g internal/api/api.go
 
 fmt:
 	swag fmt

@@ -5,8 +5,8 @@ import (
 	"github.com/go-chi/chi/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"mkuznets.com/go/sps/docs"
-	"mkuznets.com/go/sps/internal/sps/auth"
-	"mkuznets.com/go/sps/internal/sps/rlog"
+	"mkuznets.com/go/sps/internal/auth"
+	"mkuznets.com/go/sps/internal/rlog"
 	"net/http"
 	"time"
 )
