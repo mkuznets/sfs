@@ -9,6 +9,7 @@ type IdService interface {
 	Channel(context.Context) string
 	Episode(context.Context) string
 	File(context.Context) string
+	User(context.Context) string
 }
 
 type idService struct{}
@@ -31,4 +32,8 @@ func (s *idService) Episode(_ context.Context) string {
 
 func (s *idService) File(_ context.Context) string {
 	return "file_" + randomId()
+}
+
+func (s *idService) User(_ context.Context) string {
+	return "usr_" + randomId()
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/uptrace/bun"
+	"mkuznets.com/go/sps/internal/ytils/ycrypto"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/ytime"
 )
@@ -69,7 +70,7 @@ func (s *bunStore) CreateEpisode(ctx context.Context, episode *Episode) error {
 
 	_, err = s.db.NewUpdate().
 		Model(&Channel{}).
-		Set("updated_at = ?", ytime.NewTimeNow()).
+		Set("updated_at = ?", ytime.Now()).
 		Where("id = ?", episode.ChannelId).
 		Exec(ctx)
 	if err != nil {
@@ -122,4 +123,29 @@ func (s *bunStore) UpdateChannelFeeds(ctx context.Context, channels []*Channel) 
 		Where("ch.id = _data.id").
 		Exec(ctx)
 	return err
+}
+
+func (s *bunStore) CreateUser(ctx context.Context, user *User) error {
+	_, err := s.db.NewInsert().Model(user).Exec(ctx)
+	return err
+}
+
+func (s *bunStore) GetUserByAccountNumber(ctx context.Context, accountNumber string) (*User, error) {
+	accountNumberHashed, err := ycrypto.HashPassword(accountNumber, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var user User
+	err = s.db.NewSelect().Model(&user).
+		Where("account_number = ?", accountNumberHashed).
+		Scan(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, yerr.NotFound("user not found")
+		}
+		return nil, err
+	}
+
+	return &user, nil
 }

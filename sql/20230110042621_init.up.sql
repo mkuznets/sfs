@@ -20,9 +20,15 @@ create unique index channels_title_unique on channels (user_id, title) where del
 
 create table users
 (
-    id    text primary key not null check (substring(id, 1, 4) = 'usr_'),
-    email text
+    id             text primary key not null check (substring(id, 1, 4) = 'usr_'),
+    account_number text             not null,
+
+    created_at     integer          not null check (created_at > 0),
+    updated_at     integer          not null check (updated_at > 0),
+    deleted_at     integer check (deleted_at is null or deleted_at > 0)
 ) strict;
+
+create index users_account_number_idx on users (account_number);
 
 create table episodes
 (

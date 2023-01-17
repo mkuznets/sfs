@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mkuznets.com/go/sps/internal/auth"
 	"mkuznets.com/go/sps/internal/feed"
 	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/store"
+	"mkuznets.com/go/sps/internal/ytils/ycrypto"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/yrand"
 	"mkuznets.com/go/sps/internal/ytils/ytime"
@@ -19,6 +21,8 @@ type Controller interface {
 	UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error)
 	CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*IdResponse, error)
 	ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error)
+	CreateUser(ctx context.Context) (*CreateUserResponse, error)
+	GenerateUserTokenByAccountNumber(ctx context.Context, accountNumber string) (string, error)
 }
 
 type controllerImpl struct {
@@ -26,14 +30,16 @@ type controllerImpl struct {
 	store          store.Store
 	idService      IdService
 	feedController feed.Controller
+	authService    auth.Service
 }
 
-func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController feed.Controller) Controller {
+func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController feed.Controller, authService auth.Service) Controller {
 	return &controllerImpl{
 		store:          store,
 		fileStorage:    fileStorage,
 		idService:      idService,
 		feedController: feedController,
+		authService:    authService,
 	}
 }
 
@@ -75,8 +81,8 @@ func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r Cre
 		Link:        r.Link,
 		Authors:     r.Authors,
 		Description: r.Description,
-		CreatedAt:   ytime.NewTimeNow(),
-		UpdatedAt:   ytime.NewTimeNow(),
+		CreatedAt:   ytime.Now(),
+		UpdatedAt:   ytime.Now(),
 	}
 
 	if err := c.store.CreateChannel(ctx, model); err != nil {
@@ -140,8 +146,8 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 		Size:      info.Size,
 		Hash:      info.Hash.String(),
 		MimeType:  info.Mime.Value,
-		CreatedAt: ytime.NewTimeNow(),
-		UpdatedAt: ytime.NewTimeNow(),
+		CreatedAt: ytime.Now(),
+		UpdatedAt: ytime.Now(),
 	}
 	if err := c.store.CreateFile(ctx, model); err != nil {
 		return nil, err
@@ -177,8 +183,8 @@ func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId st
 		Authors:     r.Authors,
 		Description: r.Description,
 		FileId:      r.FileId,
-		CreatedAt:   ytime.NewTimeNow(),
-		UpdatedAt:   ytime.NewTimeNow(),
+		CreatedAt:   ytime.Now(),
+		UpdatedAt:   ytime.Now(),
 	}
 
 	if err := c.store.CreateEpisode(ctx, model); err != nil {
@@ -225,4 +231,37 @@ func (c *controllerImpl) ListEpisodes(ctx context.Context, userId, channelId str
 	}
 
 	return response, nil
+}
+
+func (c *controllerImpl) CreateUser(ctx context.Context) (*CreateUserResponse, error) {
+	id := c.idService.User(ctx)
+
+	accountNumber := auth.RandomAccountNumber()
+	accountNumberHashed, err := ycrypto.HashPassword(accountNumber, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	model := &store.User{
+		Id:            id,
+		AccountNumber: accountNumberHashed,
+		CreatedAt:     ytime.Now(),
+		UpdatedAt:     ytime.Now(),
+	}
+
+	if err := c.store.CreateUser(ctx, model); err != nil {
+		return nil, err
+	}
+
+	return &CreateUserResponse{
+		AccountNumber: accountNumber,
+	}, nil
+}
+
+func (c *controllerImpl) GenerateUserTokenByAccountNumber(ctx context.Context, accountNumber string) (string, error) {
+	user, err := c.store.GetUserByAccountNumber(ctx, accountNumber)
+	if err != nil {
+		return "", err
+	}
+	return c.authService.Token(user.Id)
 }

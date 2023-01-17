@@ -60,3 +60,12 @@ type _ yerr.Response // @name ErrorResponse
 type UploadResponse struct {
 	Id string `json:"id" example:"file_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
 } // @name UploadResponse
+
+type CreateUserResponse struct {
+	AccountNumber string `json:"account_number" example:"4242424242424242" extensions:"x-order=1"`
+} // @name CreateUserResponse
+
+type LoginRequest struct {
+	AccountNumber string `json:"account_number" example:"4242424242424242" extensions:"x-order=0"`
+	RedirectUrl   string `json:"redirect_url" example:"https://example.com" extensions:"x-order=1"`
+}

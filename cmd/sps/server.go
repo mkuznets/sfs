@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"mkuznets.com/go/sps/internal/api"
+	"mkuznets.com/go/sps/internal/auth"
 	"mkuznets.com/go/sps/internal/feed"
 	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/sps"
@@ -13,6 +14,7 @@ import (
 type ServerCommand struct {
 	ServerOpts Server `group:"Server Options" namespace:"server" env-namespace:"SERVER"`
 	AwsOpts    Aws    `group:"AWS Options" namespace:"aws" env-namespace:"AWS"`
+	JwtOpts    Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT"`
 
 	server      *sps.Server
 	feedService feed.Service
@@ -31,21 +33,28 @@ type Aws struct {
 	UrlPrefix   string `long:"url-prefix" env:"URL_PREFIX" description:"Optional URL prefix that will be used to generate URLs to the uploaded files"`
 }
 
+type Jwt struct {
+	PublicKey  string `long:"public-key" env:"PUBLIC_KEY" description:"RSA public key" required:"true"`
+	PrivateKey string `long:"private-key" env:"PRIVATE_KEY" description:"RSA private key" required:"true"`
+}
+
 func (c *ServerCommand) Init(app *App) error {
 	db, err := store.NewBunDb(app.DbOpts.Driver, app.DbOpts.Dsn)
 	if err != nil {
 		return err
 	}
 
+	authService := auth.New(c.JwtOpts.PrivateKey, c.JwtOpts.PublicKey)
+
 	fileStorage := files.NewS3Storage(c.AwsOpts.EndpointUrl, c.AwsOpts.Bucket, c.AwsOpts.KeyID, c.AwsOpts.SecretKey, c.AwsOpts.UrlPrefix)
 	bunStore := store.NewBunStore(db)
 
 	feedController := feed.NewController(bunStore, fileStorage)
-	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), feedController)
+	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), feedController, authService)
 
 	c.server = &sps.Server{
 		Addr:      c.ServerOpts.Addr,
-		ApiRouter: api.New(api.NewHandler(apiController)).Router(),
+		ApiRouter: api.New(authService, api.NewHandler(apiController)).Router(),
 	}
 
 	c.feedService = feed.NewService(feedController)

@@ -34,10 +34,10 @@ func (t *Time) Scan(src interface{}) error {
 	return nil
 }
 
-func NewTime(t time.Time) Time {
+func New(t time.Time) Time {
 	return Time{t}
 }
 
-func NewTimeNow() Time {
-	return NewTime(time.Now())
+func Now() Time {
+	return New(time.Now())
 }

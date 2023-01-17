@@ -18,6 +18,8 @@ type Handler interface {
 	UploadFile(w http.ResponseWriter, r *http.Request)
 	CreateEpisode(w http.ResponseWriter, r *http.Request)
 	ListEpisodes(w http.ResponseWriter, r *http.Request)
+	CreateUser(w http.ResponseWriter, r *http.Request)
+	LoginUser(w http.ResponseWriter, r *http.Request)
 }
 
 type handlerImpl struct {
@@ -154,4 +156,30 @@ func (h *handlerImpl) ListEpisodes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	yrender.Json(w, r, http.StatusOK, response)
+}
+
+func (h *handlerImpl) CreateUser(w http.ResponseWriter, r *http.Request) {
+	response, err := h.c.CreateUser(r.Context())
+	if err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	yrender.Json(w, r, http.StatusOK, response)
+}
+
+func (h *handlerImpl) LoginUser(w http.ResponseWriter, r *http.Request) {
+	var resource LoginRequest
+	if err := yrender.DecodeJson(r.Body, &resource); err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	token, err := h.c.GenerateUserTokenByAccountNumber(r.Context(), resource.AccountNumber)
+	if err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	yrender.Json(w, r, http.StatusOK, token)
 }

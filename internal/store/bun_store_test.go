@@ -20,7 +20,7 @@ func mockedStore(t *testing.T) (store.Store, sqlmock.Sqlmock) {
 	return store.NewBunStore(db), sqlMock
 }
 
-var testTime = ytime.NewTime(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
+var testTime = ytime.New(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
 
 func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 	st, sqlMock := mockedStore(t)

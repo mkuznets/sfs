@@ -18,6 +18,9 @@ type Store interface {
 
 	CreateFile(ctx context.Context, file *File) error
 	GetFile(ctx context.Context, id string) (*File, error)
+
+	CreateUser(ctx context.Context, user *User) error
+	GetUserByAccountNumber(ctx context.Context, accountNumber string) (*User, error)
 }
 
 type Channel struct {
@@ -67,6 +70,16 @@ type File struct {
 	Size      int64       `bun:"size"`
 	Hash      string      `bun:"hash"`
 	MimeType  string      `bun:"mime_type"`
+	CreatedAt ytime.Time  `bun:"created_at"`
+	UpdatedAt ytime.Time  `bun:"updated_at"`
+	DeletedAt *ytime.Time `bun:"deleted_at"`
+}
+
+type User struct {
+	bun.BaseModel `bun:"table:users,alias:u"`
+	Id            string `bun:"id,pk"`
+	AccountNumber string `bun:"account_number"`
+
 	CreatedAt ytime.Time  `bun:"created_at"`
 	UpdatedAt ytime.Time  `bun:"updated_at"`
 	DeletedAt *ytime.Time `bun:"deleted_at"`

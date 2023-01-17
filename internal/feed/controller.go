@@ -45,7 +45,7 @@ func (c *controllerImpl) Update(ctx context.Context, channelId string) error {
 	sort.Slice(episodes, func(i, j int) bool {
 		return episodes[i].CreatedAt.After(episodes[j].CreatedAt.Time)
 	})
-	
+
 	podcast := ChannelToPodcast(channel, episodes)
 
 	content, err := xml.Marshal(podcast)
@@ -61,7 +61,7 @@ func (c *controllerImpl) Update(ctx context.Context, channelId string) error {
 
 	channel.Feed = store.Feed{
 		Url:         upload.Url,
-		PublishedAt: ytime.NewTimeNow(),
+		PublishedAt: ytime.Now(),
 	}
 
 	if err := c.store.UpdateChannelFeeds(ctx, []*store.Channel{channel}); err != nil {

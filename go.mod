@@ -21,6 +21,7 @@ require (
 	github.com/swaggo/swag v1.8.9
 	github.com/uptrace/bun v1.1.9
 	github.com/uptrace/bun/dialect/sqlitedialect v1.1.9
+	golang.org/x/crypto v0.5.0
 	modernc.org/sqlite v1.20.2
 )
 
