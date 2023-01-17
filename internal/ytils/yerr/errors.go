@@ -1,9 +1,9 @@
-package herror
+package yerr
 
 import (
 	"fmt"
-	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
+	"mkuznets.com/go/sps/internal/ytils/yrender"
 	"net/http"
 )
 
@@ -13,6 +13,7 @@ type Error interface {
 	Message() string
 	WithStatus(int) Error
 	WithError(error) Error
+	Unwrap() error
 }
 
 type errorImpl struct {
@@ -87,10 +88,12 @@ type Response struct {
 func RenderJson(w http.ResponseWriter, r *http.Request, err error) {
 	switch v := err.(type) {
 	case Error:
-		render.Status(r, v.Status())
-		render.JSON(w, r, Response{Error: http.StatusText(v.Status()), Message: v.Message()})
+		if v.Status() >= 500 {
+			log.Ctx(r.Context()).Error().Err(v.Unwrap()).Msg("server error")
+		}
+		yrender.Json(w, r, v.Status(), Response{Error: http.StatusText(v.Status()), Message: v.Message()})
 	default:
-		log.Err(err).Msg("internal error")
+		log.Ctx(r.Context()).Err(err).Msg("internal error")
 		RenderJson(w, r, Wrapf(err, "internal server error"))
 	}
 }

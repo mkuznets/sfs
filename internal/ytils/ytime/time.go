@@ -1,4 +1,4 @@
-package types
+package ytime
 
 import (
 	"database/sql/driver"
@@ -40,8 +40,4 @@ func NewTime(t time.Time) Time {
 
 func NewTimeNow() Time {
 	return NewTime(time.Now())
-}
-
-func NewTimeZero() Time {
-	return NewTime(time.Time{})
 }

@@ -42,7 +42,7 @@ func prepareDsn(driver, dsn string) (string, error) {
 		query.Add("_pragma", "synchronous('NORMAL')")
 		query.Add("_pragma", "writable_schema('OFF')")
 		query.Add("_pragma", "encoding('UTF-8')")
-		query.Add("_pragma", "foreign_keys(1)")
+		//query.Add("_pragma", "foreign_keys(1)")
 	}
 	u.RawQuery = query.Encode()
 

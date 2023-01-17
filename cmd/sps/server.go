@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/sps"
 	"mkuznets.com/go/sps/internal/sps/api"
 	"mkuznets.com/go/sps/internal/sps/feed"
@@ -24,10 +24,11 @@ type Server struct {
 }
 
 type Aws struct {
-	Region    string `long:"region" env:"REGION" description:"region id" required:"true"`
-	KeyID     string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" required:"true"`
-	SecretKey string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" required:"true"`
-	Bucket    string `long:"s3-bucket" env:"S3_BUCKET" description:"S3 bucket name" required:"true"`
+	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" required:"true"`
+	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" required:"true"`
+	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" required:"true"`
+	Bucket      string `long:"s3-bucket" env:"S3_BUCKET" description:"S3 bucket name" required:"true"`
+	UrlPrefix   string `long:"url-prefix" env:"URL_PREFIX" description:"Optional URL prefix that will be used to generate URLs to the uploaded files"`
 }
 
 func (c *ServerCommand) Init(app *App) error {
@@ -36,9 +37,9 @@ func (c *ServerCommand) Init(app *App) error {
 		return err
 	}
 
+	fileStorage := files.NewS3Storage(c.AwsOpts.EndpointUrl, c.AwsOpts.Bucket, c.AwsOpts.KeyID, c.AwsOpts.SecretKey, c.AwsOpts.UrlPrefix)
 	bunStore := store.NewBunStore(db)
-
-	fmt.Println(c.ServerOpts.Addr)
+	feedController := feed.NewController(bunStore, fileStorage)
 
 	c.server = &sps.Server{
 		Addr: c.ServerOpts.Addr,
@@ -46,14 +47,15 @@ func (c *ServerCommand) Init(app *App) error {
 			api.NewHandler(
 				api.NewController(
 					bunStore,
-					api.NewUploader(),
+					fileStorage,
 					api.NewIdService(),
+					feedController,
 				),
 			),
 		),
 	}
 
-	c.feedService = feed.NewService(feed.NewController(bunStore))
+	c.feedService = feed.NewService(feedController)
 
 	return nil
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/types"
+	"mkuznets.com/go/sps/internal/ytils/ytime"
 	"testing"
 	"time"
 )
@@ -20,18 +20,17 @@ func mockedStore(t *testing.T) (store.Store, sqlmock.Sqlmock) {
 	return store.NewBunStore(db), sqlMock
 }
 
-var testTime = types.NewTime(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
+var testTime = ytime.NewTime(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
 
 func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 	st, sqlMock := mockedStore(t)
 
 	sqlMock.
-		ExpectExec(`WITH "_data" ("id", "feed_content", "feed_published_at", "feed_url") ` +
+		ExpectExec(`WITH "_data" ("id", "feed_published_at", "feed_url") ` +
 			`AS (VALUES ` +
-			`('ch_123', X'3c786d6c3e3c2f786d6c3e', 1641035533000, 'https://example.com/feed1.xml'), ` +
-			`('ch_456', X'3c786d6c3e3c2f786d6c3e', 1641035533000, 'https://example.com/feed2.xml')) ` +
-			`UPDATE "channels" AS "ch" SET feed_content = _data.feed_content, ` +
-			`feed_published_at = _data.feed_published_at, ` +
+			`('ch_123', 1641035533000, 'https://example.com/feed1.xml'), ` +
+			`('ch_456', 1641035533000, 'https://example.com/feed2.xml')) ` +
+			`UPDATE "channels" AS "ch" SET feed_published_at = _data.feed_published_at, ` +
 			`feed_url = _data.feed_url ` +
 			`FROM _data ` +
 			`WHERE (ch.id = _data.id)`).
@@ -41,7 +40,6 @@ func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 		{
 			Id: "ch_123",
 			Feed: store.Feed{
-				Content:     []byte("<xml></xml>"),
 				Url:         "https://example.com/feed1.xml",
 				PublishedAt: testTime,
 			},
@@ -49,7 +47,6 @@ func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 		{
 			Id: "ch_456",
 			Feed: store.Feed{
-				Content:     []byte("<xml></xml>"),
 				Url:         "https://example.com/feed2.xml",
 				PublishedAt: testTime,
 			},

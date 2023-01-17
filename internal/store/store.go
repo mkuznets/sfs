@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/sps/internal/types"
+	"mkuznets.com/go/sps/internal/ytils/ytime"
 )
 
 type Store interface {
@@ -29,16 +29,15 @@ type Channel struct {
 	Link        string     `bun:"link"`
 	Authors     string     `bun:"authors"`
 	Description string     `bun:"description"`
-	CreatedAt   types.Time `bun:"created_at"`
-	UpdatedAt   types.Time `bun:"updated_at"`
-	DeletedAt   types.Time `bun:"deleted_at"`
+	CreatedAt   ytime.Time `bun:"created_at"`
+	UpdatedAt   ytime.Time `bun:"updated_at"`
+	DeletedAt   ytime.Time `bun:"deleted_at"`
 	Feed        Feed       `bun:"embed:feed_"`
 }
 
 type Feed struct {
-	Content     []byte     `bun:"content"`
 	Url         string     `bun:"url"`
-	PublishedAt types.Time `bun:"published_at"`
+	PublishedAt ytime.Time `bun:"published_at"`
 }
 
 type Episode struct {
@@ -52,20 +51,23 @@ type Episode struct {
 	Authors     string      `bun:"authors"`
 	FileId      string      `bun:"file_id"`
 	File        *File       `bun:"rel:belongs-to,join:file_id=id"`
-	CreatedAt   types.Time  `bun:"created_at"`
-	UpdatedAt   types.Time  `bun:"updated_at"`
-	DeletedAt   *types.Time `bun:"deleted_at"`
+	CreatedAt   ytime.Time  `bun:"created_at"`
+	UpdatedAt   ytime.Time  `bun:"updated_at"`
+	DeletedAt   *ytime.Time `bun:"deleted_at"`
 }
 
 type File struct {
 	bun.BaseModel `bun:"table:files,alias:f"`
 
-	Id          string      `bun:"id,pk"`
-	UserId      string      `bun:"user_id"`
-	Url         string      `bun:"url"`
-	Size        int64       `bun:"size"`
-	ContentType string      `bun:"content_type"`
-	CreatedAt   types.Time  `bun:"created_at"`
-	UpdatedAt   types.Time  `bun:"updated_at"`
-	DeletedAt   *types.Time `bun:"deleted_at"`
+	Id        string      `bun:"id,pk"`
+	UserId    string      `bun:"user_id"`
+	EpisodeId string      `bun:"episode_id"`
+	UploadId  string      `bun:"upload_id"`
+	UploadUrl string      `bun:"upload_url"`
+	Size      int64       `bun:"size"`
+	Hash      string      `bun:"hash"`
+	MimeType  string      `bun:"mime_type"`
+	CreatedAt ytime.Time  `bun:"created_at"`
+	UpdatedAt ytime.Time  `bun:"updated_at"`
+	DeletedAt *ytime.Time `bun:"deleted_at"`
 }

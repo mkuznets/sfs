@@ -1,11 +1,14 @@
 package api
 
-import "github.com/segmentio/ksuid"
+import (
+	"context"
+	"github.com/segmentio/ksuid"
+)
 
 type IdService interface {
-	Channel() string
-	Episode() string
-	File() string
+	Channel(context.Context) string
+	Episode(context.Context) string
+	File(context.Context) string
 }
 
 type idService struct{}
@@ -14,14 +17,18 @@ func NewIdService() IdService {
 	return &idService{}
 }
 
-func (s *idService) Channel() string {
-	return "ch_" + ksuid.New().String()
+func randomId() string {
+	return ksuid.New().String()
 }
 
-func (s *idService) Episode() string {
-	return "ep_" + ksuid.New().String()
+func (s *idService) Channel(_ context.Context) string {
+	return "ch_" + randomId()
 }
 
-func (s *idService) File() string {
-	return "file_" + ksuid.New().String()
+func (s *idService) Episode(_ context.Context) string {
+	return "ep_" + randomId()
+}
+
+func (s *idService) File(_ context.Context) string {
+	return "file_" + randomId()
 }

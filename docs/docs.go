@@ -69,9 +69,13 @@ const docTemplate = `{
                     "x-order": "0",
                     "example": "ch_2K9BWVNuo3sG4yM322fbP3mB6ls"
                 },
+                "feed_url": {
+                    "type": "string",
+                    "x-order": "1"
+                },
                 "title": {
                     "type": "string",
-                    "x-order": "1",
+                    "x-order": "2",
                     "example": "Bored Owls Online Radio"
                 },
                 "link": {

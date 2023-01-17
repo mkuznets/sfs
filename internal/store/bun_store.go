@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/sps/internal/herror"
-	"mkuznets.com/go/sps/internal/types"
+	"mkuznets.com/go/sps/internal/ytils/yerr"
+	"mkuznets.com/go/sps/internal/ytils/ytime"
 )
 
 // bunStore implements the Store interface.
@@ -31,7 +31,7 @@ func (s *bunStore) GetChannel(ctx context.Context, id string) (*Channel, error) 
 		Scan(ctx)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, herror.NotFound("channel not found")
+			return nil, yerr.NotFound("channel not found")
 		}
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *bunStore) CreateEpisode(ctx context.Context, episode *Episode) error {
 
 	_, err = s.db.NewUpdate().
 		Model(&Channel{}).
-		Set("updated_at = ?", types.NewTimeNow()).
+		Set("updated_at = ?", ytime.NewTimeNow()).
 		Where("id = ?", episode.ChannelId).
 		Exec(ctx)
 	if err != nil {
@@ -91,7 +91,7 @@ func (s *bunStore) GetFile(ctx context.Context, id string) (*File, error) {
 		Scan(ctx)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, herror.NotFound("file not found")
+			return nil, yerr.NotFound("file not found")
 		}
 		return nil, err
 	}
@@ -112,12 +112,11 @@ func (s *bunStore) GetChannelsIdsToUpdateFeeds(ctx context.Context) ([]string, e
 }
 
 func (s *bunStore) UpdateChannelFeeds(ctx context.Context, channels []*Channel) error {
-	values := s.db.NewValues(&channels).Column("id", "feed_content", "feed_published_at", "feed_url")
+	values := s.db.NewValues(&channels).Column("id", "feed_published_at", "feed_url")
 	_, err := s.db.NewUpdate().
 		With("_data", values).
 		Model((*Channel)(nil)).
 		TableExpr("_data").
-		Set("feed_content = _data.feed_content").
 		Set("feed_published_at = _data.feed_published_at").
 		Set("feed_url = _data.feed_url").
 		Where("ch.id = _data.id").

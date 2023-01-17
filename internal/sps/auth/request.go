@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
-	"mkuznets.com/go/sps/internal/herror"
+	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ var ctxUserKey = contextKey("User")
 func GetUser(r *http.Request) (User, error) {
 	user := r.Context().Value(ctxUserKey)
 	if user == nil {
-		return nil, herror.Unauthorised("unauthorised")
+		return nil, yerr.Unauthorised("unauthorised")
 	}
 	if u, ok := user.(User); ok {
 		return u, nil

@@ -27,7 +27,10 @@ func (s *serviceImpl) Start(ctx context.Context) {
 			if err != nil {
 				log.Err(err).Msg("failed to get channel ids")
 			}
-			log.Debug().Strs("ids", ids).Msg("updating channel feeds")
+
+			if len(ids) > 0 {
+				log.Debug().Strs("ids", ids).Msg("updating channel feeds")
+			}
 
 			for _, id := range ids {
 				if err := s.c.Update(ctx, id); err != nil {

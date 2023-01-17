@@ -1,13 +1,14 @@
 package feed
 
 import (
+	"bytes"
 	"context"
 	"encoding/xml"
-	"mkuznets.com/go/sps/internal/rss"
+	"fmt"
+	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/types"
+	"mkuznets.com/go/sps/internal/ytils/ytime"
 	"sort"
-	"time"
 )
 
 type Controller interface {
@@ -16,12 +17,14 @@ type Controller interface {
 }
 
 type controllerImpl struct {
-	store store.Store
+	store       store.Store
+	fileStorage files.Storage
 }
 
-func NewController(store store.Store) Controller {
+func NewController(store store.Store, fileStorage files.Storage) Controller {
 	return &controllerImpl{
-		store: store,
+		store:       store,
+		fileStorage: fileStorage,
 	}
 }
 
@@ -42,53 +45,23 @@ func (c *controllerImpl) Update(ctx context.Context, channelId string) error {
 	sort.Slice(episodes, func(i, j int) bool {
 		return episodes[i].CreatedAt.After(episodes[j].CreatedAt.Time)
 	})
-
-	//goland:noinspection HttpUrlsUsage
-	podcast := &rss.Podcast{
-		Version: "2.0",
-		Itunes:  "http://www.itunes.com/dtds/podcast-1.0.dtd",
-		Channel: &rss.Channel{
-			Title:         channel.Title,
-			Link:          channel.Link,
-			Description:   channel.Description,
-			LastBuildDate: time.Now().Format(time.RFC1123Z),
-			PubDate:       channel.UpdatedAt.Format(time.RFC1123Z),
-			IAuthor:       channel.Authors,
-		},
-	}
-
-	var items []*rss.Item
-	for _, episode := range episodes {
-		items = append(items, &rss.Item{
-			Guid: rss.Guid{
-				IsPermaLink: false,
-				Text:        episode.Id,
-			},
-			PubDate: episode.CreatedAt.Format(time.RFC1123Z),
-			Title:   episode.Title,
-			Link:    episode.Link,
-			Description: &rss.Description{
-				Text: episode.Description,
-			},
-			IAuthor: episode.Authors,
-			Enclosure: &rss.Enclosure{
-				URL:    episode.File.Url,
-				Length: episode.File.Size,
-				Type:   episode.File.ContentType,
-			},
-		})
-	}
-	podcast.Channel.Items = items
+	
+	podcast := ChannelToPodcast(channel, episodes)
 
 	content, err := xml.Marshal(podcast)
 	if err != nil {
 		return err
 	}
 
+	path := fmt.Sprintf("rss/%s/feed.xml", channel.Id)
+	upload, err := c.fileStorage.Upload(ctx, path, bytes.NewReader(content))
+	if err != nil {
+		return err
+	}
+
 	channel.Feed = store.Feed{
-		Content:     content,
-		Url:         "",
-		PublishedAt: types.NewTimeNow(),
+		Url:         upload.Url,
+		PublishedAt: ytime.NewTimeNow(),
 	}
 
 	if err := c.store.UpdateChannelFeeds(ctx, []*store.Channel{channel}); err != nil {

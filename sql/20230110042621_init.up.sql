@@ -7,7 +7,6 @@ create table channels
     authors           text                       not null,
     description       text                       not null,
 
-    feed_content      blob,
     feed_url          text                       not null,
     feed_published_at integer check (feed_published_at is null or feed_published_at > 0),
 
@@ -36,19 +35,22 @@ create table episodes
     authors     text                          not null,
     created_at  integer                       not null check (created_at > 0),
     updated_at  integer                       not null check (updated_at > 0),
-    deleted_at  integer
+    deleted_at  integer check (deleted_at is null or deleted_at > 0)
 ) strict;
 
-create index episodes_channel_id_idx on episodes (channel_id);
+create index episodes_channel_id_idx on episodes (channel_id) where deleted_at is null;
 
 create table files
 (
-    id                 text primary key           not null check (substring(id, 1, 5) = 'file_'),
-    user_id            text references users (id) not null,
-    url                text                       not null,
-    size               integer                    not null check (size > 0),
-    content_type text                       not null,
-    created_at         integer                    not null check (created_at > 0),
-    updated_at         integer                    not null check (updated_at > 0),
-    deleted_at         integer
+    id         text primary key           not null check (substring(id, 1, 5) = 'file_'),
+    user_id    text references users (id) not null,
+    episode_id text references episodes (id),
+    size       integer                    not null check (size > 0),
+    mime_type  text                       not null,
+    hash       text                       not null,
+    upload_url text                       not null,
+    upload_id  text                       not null,
+    created_at integer                    not null check (created_at > 0),
+    updated_at integer                    not null check (updated_at > 0),
+    deleted_at integer check (deleted_at is null or deleted_at > 0)
 ) strict;

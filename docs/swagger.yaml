@@ -15,6 +15,9 @@ definitions:
         example: Bored owls talk about whatever happens to be on their minds
         type: string
         x-order: "5"
+      feed_url:
+        type: string
+        x-order: "1"
       id:
         example: ch_2K9BWVNuo3sG4yM322fbP3mB6ls
         type: string
@@ -26,7 +29,7 @@ definitions:
       title:
         example: Bored Owls Online Radio
         type: string
-        x-order: "1"
+        x-order: "2"
       updated_at:
         example: "2023-01-01T01:02:03.456Z"
         format: date-time

@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
-	"mkuznets.com/go/sps/internal/herror"
+	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"net/http"
 	"time"
 )
@@ -30,21 +30,21 @@ func (j *Jwt) Validator() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := request.BearerExtractor{}.ExtractToken(r)
 			if err != nil {
-				herror.RenderJson(w, r, herror.Unauthorised("valid auth header is required").WithError(err))
+				yerr.RenderJson(w, r, yerr.Unauthorised("valid auth header is required").WithError(err))
 				return
 			}
 
 			var claims jwt.RegisteredClaims
 			if _, err := jwt.ParseWithClaims(tokenString, &claims, j.keyFunc); err != nil {
-				herror.RenderJson(w, r, herror.Unauthorised("invalid token").WithError(err))
+				yerr.RenderJson(w, r, yerr.Unauthorised("invalid token").WithError(err))
 				return
 			}
 			if !claims.VerifyExpiresAt(time.Now().Add(-expirationLimit), true) {
-				herror.RenderJson(w, r, herror.Unauthorised("token expired"))
+				yerr.RenderJson(w, r, yerr.Unauthorised("token expired"))
 				return
 			}
 			if !claims.VerifyIssuedAt(time.Now().Add(-expirationLimit), true) {
-				herror.RenderJson(w, r, herror.Unauthorised("token expired"))
+				yerr.RenderJson(w, r, yerr.Unauthorised("token expired"))
 				return
 			}
 
