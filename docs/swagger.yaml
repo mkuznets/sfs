@@ -36,6 +36,46 @@ definitions:
         type: string
         x-order: "7"
     type: object
+  CreateChannelRequest:
+    properties:
+      authors:
+        example: The Owl
+        type: string
+      description:
+        example: Bored owls talk about whatever happens to be on their minds
+        type: string
+      link:
+        example: https://example.com
+        type: string
+        x-order: "1"
+      title:
+        example: Bored Owls Online Radio
+        type: string
+        x-order: "0"
+    type: object
+  CreateEpisodeRequest:
+    properties:
+      authors:
+        example: The Owl
+        type: string
+        x-order: "3"
+      description:
+        example: Bored owls talk about whatever happens to be on their minds
+        type: string
+        x-order: "4"
+      file_id:
+        example: file_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "0"
+      link:
+        example: https://example.com
+        type: string
+        x-order: "2"
+      title:
+        example: Bored Owls Online Radio
+        type: string
+        x-order: "1"
+    type: object
   ErrorResponse:
     properties:
       error:
@@ -43,13 +83,77 @@ definitions:
       message:
         type: string
     type: object
+  IdResponse:
+    properties:
+      id:
+        type: string
+    type: object
 info:
   contact: {}
   title: Simple Podcast Server REST API
   version: "0.1"
 paths:
+  /channels:
+    get:
+      operationId: ListChannels
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/IdResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
+      summary: List channels of the current user
+      tags:
+      - Channels
+    post:
+      consumes:
+      - application/json
+      operationId: CreateChannel
+      parameters:
+      - description: CreateChannel request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/IdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
+      summary: Create a new channel
+      tags:
+      - Channels
   /channels/{id}:
     get:
+      operationId: GetChannel
       parameters:
       - description: Channel ID
         in: path
@@ -62,9 +166,11 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/ChannelResponse'
-            type: array
+            $ref: '#/definitions/ChannelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -73,7 +179,145 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
       summary: Get channel by ID
       tags:
       - Channels
+  /channels/{id}/episodes:
+    get:
+      operationId: ListEpisodes
+      parameters:
+      - description: Channel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/IdResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
+      summary: List episoded of the given channel
+      tags:
+      - Episodes
+    post:
+      consumes:
+      - application/json
+      operationId: CreateEpisode
+      parameters:
+      - description: Channel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: CreateEpisode request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateEpisodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/IdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
+      summary: Create a new episode
+      tags:
+      - Episodes
+  /files:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: UploadFile
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/IdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
+      summary: Uploads a new audio file
+      tags:
+      - Files
+  /users:
+    post:
+      consumes:
+      - application/json
+      operationId: CreateUser
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/IdResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Users
+securityDefinitions:
+  Authentication:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -22,7 +22,7 @@ type Controller interface {
 	CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*IdResponse, error)
 	ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error)
 	CreateUser(ctx context.Context) (*CreateUserResponse, error)
-	GenerateUserTokenByAccountNumber(ctx context.Context, accountNumber string) (string, error)
+	Login(ctx context.Context, req *LoginRequest) (string, error)
 }
 
 type controllerImpl struct {
@@ -43,16 +43,19 @@ func NewController(store store.Store, fileStorage files.Storage, idService IdSer
 	}
 }
 
-// GetChannel godoc
+// GetChannel returns the channel response for the given ID.
 //
+//	@ID			GetChannel
 //	@Summary	Get channel by ID
 //	@Tags		Channels
 //	@Produce	json
 //	@Param		id	path		string	true	"Channel ID"
-//	@Success	200	{array}		ChannelResponse
+//	@Success	200	{object}	ChannelResponse
+//	@Failure	400	{object}	ErrorResponse
 //	@Failure	404	{object}	ErrorResponse
 //	@Failure	500	{object}	ErrorResponse
 //	@Router		/channels/{id} [get]
+//	@Security	Authentication
 func (c *controllerImpl) GetChannel(ctx context.Context, id string) (*ChannelResponse, error) {
 	model, err := c.store.GetChannel(ctx, id)
 	if err != nil {
@@ -73,6 +76,20 @@ func (c *controllerImpl) GetChannel(ctx context.Context, id string) (*ChannelRes
 	return response, nil
 }
 
+// CreateChannel creates a new channel with the given parameters and returns a response with the channel ID.
+//
+//	@ID			CreateChannel
+//	@Summary	Create a new channel
+//	@Tags		Channels
+//	@Accept		json
+//	@Produce	json
+//	@Param		request	body		CreateChannelRequest	true	"CreateChannel request"
+//	@Success	200		{object}	IdResponse
+//	@Failure	400		{object}	ErrorResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
+//	@Router		/channels [post]
+//	@Security	Authentication
 func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*IdResponse, error) {
 	model := &store.Channel{
 		Id:          c.idService.Channel(ctx),
@@ -99,6 +116,17 @@ func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r Cre
 	return response, nil
 }
 
+// ListChannels returns a list of channels of the given user.
+//
+//	@ID			ListChannels
+//	@Summary	List channels of the current user
+//	@Tags		Channels
+//	@Produce	json
+//	@Success	200	{object}	IdResponse
+//	@Failure	401	{object}	ErrorResponse
+//	@Failure	500	{object}	ErrorResponse
+//	@Router		/channels [get]
+//	@Security	Authentication
 func (c *controllerImpl) ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error) {
 	channels, err := c.store.ListChannels(ctx, userId)
 	if err != nil {
@@ -121,6 +149,20 @@ func (c *controllerImpl) ListChannels(ctx context.Context, userId string) ([]*Ch
 	return response, nil
 }
 
+// UploadFile uploads a new audio file and returns a response with the file ID.
+//
+//	@ID			UploadFile
+//	@Summary	Uploads a new audio file
+//	@Tags		Files
+//	@Accept		multipart/form-data
+//	@Produce	json
+//	@Param		file	formData	file	true	"File to upload"
+//	@Success	200		{object}	IdResponse
+//	@Failure	400		{object}	ErrorResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
+//	@Router		/files [post]
+//	@Security	Authentication
 func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error) {
 	info, err := files.Info(f)
 	if err != nil {
@@ -158,6 +200,22 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 	}, nil
 }
 
+// CreateEpisode creates a new episode with the given parameters and returns a response with the new episode ID.
+//
+//	@ID			CreateEpisode
+//	@Summary	Create a new episode
+//	@Tags		Episodes
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string					true	"Channel ID"
+//	@Param		request	body		CreateEpisodeRequest	true	"CreateEpisode request"
+//	@Success	200		{object}	IdResponse
+//	@Failure	400		{object}	ErrorResponse
+//	@Failure	404		{object}	ErrorResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
+//	@Router		/channels/{id}/episodes [post]
+//	@Security	Authentication
 func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*IdResponse, error) {
 	channel, err := c.store.GetChannel(ctx, channelId)
 	if err != nil {
@@ -196,6 +254,19 @@ func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId st
 	}, nil
 }
 
+// ListEpisodes returns a list of episodes of the given channel.
+//
+//	@ID			ListEpisodes
+//	@Summary	List episoded of the given channel
+//	@Tags		Episodes
+//	@Produce	json
+//	@Param		id		path		string					true	"Channel ID"
+//	@Success	200	{object}	IdResponse
+//	@Failure	404	{object}	ErrorResponse
+//	@Failure	401	{object}	ErrorResponse
+//	@Failure	500	{object}	ErrorResponse
+//	@Router		/channels/{id}/episodes [get]
+//	@Security	Authentication
 func (c *controllerImpl) ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error) {
 	channel, err := c.store.GetChannel(ctx, channelId)
 	if err != nil {
@@ -233,6 +304,16 @@ func (c *controllerImpl) ListEpisodes(ctx context.Context, userId, channelId str
 	return response, nil
 }
 
+// CreateUser registers a new user and returns a response with the new account number.
+//
+//	@ID			CreateUser
+//	@Summary	Register a new user
+//	@Tags		Users
+//	@Accept		json
+//	@Produce	json
+//	@Success	200		{object}	IdResponse
+//	@Failure	500		{object}	ErrorResponse
+//	@Router		/users [post]
 func (c *controllerImpl) CreateUser(ctx context.Context) (*CreateUserResponse, error) {
 	id := c.idService.User(ctx)
 
@@ -258,8 +339,8 @@ func (c *controllerImpl) CreateUser(ctx context.Context) (*CreateUserResponse, e
 	}, nil
 }
 
-func (c *controllerImpl) GenerateUserTokenByAccountNumber(ctx context.Context, accountNumber string) (string, error) {
-	user, err := c.store.GetUserByAccountNumber(ctx, accountNumber)
+func (c *controllerImpl) Login(ctx context.Context, req *LoginRequest) (string, error) {
+	user, err := c.store.GetUserByAccountNumber(ctx, req.AccountNumber)
 	if err != nil {
 		return "", err
 	}

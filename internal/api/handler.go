@@ -175,7 +175,7 @@ func (h *handlerImpl) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.c.GenerateUserTokenByAccountNumber(r.Context(), resource.AccountNumber)
+	token, err := h.c.Login(r.Context(), &resource)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return

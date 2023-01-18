@@ -9,9 +9,11 @@ sps: swagger
 
 swagger:
 	swag init -g internal/api/api.go
+	swagger generate client --spec docs/swagger.json --name sps --strict-responders --target ./api
 
 fmt:
-	swag fmt
+	go fmt ./...
+	swag fmt --exclude internal/api/resources.go
 
 server: sps
 	bin/sps server

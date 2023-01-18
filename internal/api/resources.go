@@ -22,7 +22,7 @@ type CreateEpisodeRequest struct {
 	Link        string `json:"link" example:"https://example.com" extensions:"x-order=2"`
 	Authors     string `json:"authors" example:"The Owl" extensions:"x-order=3"`
 	Description string `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=4"`
-} // @name CreateChannelRequest
+} // @name CreateEpisodeRequest
 
 type ChannelResponse struct {
 	Id          string     `json:"id" example:"ch_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
@@ -52,7 +52,7 @@ type FileResponse struct {
 	Url         string `json:"url" example:"https://example.com/file.mp3" extensions:"x-order=1"`
 	Size        int64  `json:"size" example:"123456" extensions:"x-order=2"`
 	ContentType string `json:"content_type" example:"audio/mpeg" extensions:"x-order=3"`
-}
+} // @name FileResponse
 
 // Only used in Swagger docs.
 type _ yerr.Response // @name ErrorResponse

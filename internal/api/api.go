@@ -21,9 +21,12 @@ func New(authService auth.Service, handler Handler) Api {
 
 // Router ...
 //
-//	@title		Simple Podcast Server REST API
-//	@version	0.1
-//	@BasePath	/api
+//	@title						Simple Podcast Server REST API
+//	@version					0.1
+//	@BasePath					/api
+//	@securityDefinitions.apikey	Authentication
+//	@in							header
+//	@name						Authorization
 func (a *apiImpl) Router() chi.Router {
 	r := chi.NewRouter()
 
