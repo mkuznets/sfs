@@ -43,7 +43,7 @@ func (h *handlerImpl) GetChannel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlerImpl) CreateChannel(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.GetUser(r)
+	user, err := auth.RequireUser(r)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -65,7 +65,7 @@ func (h *handlerImpl) CreateChannel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlerImpl) ListChannels(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.GetUser(r)
+	user, err := auth.RequireUser(r)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -81,7 +81,7 @@ func (h *handlerImpl) ListChannels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlerImpl) UploadFile(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.GetUser(r)
+	user, err := auth.RequireUser(r)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -118,7 +118,7 @@ func (h *handlerImpl) UploadFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlerImpl) CreateEpisode(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.GetUser(r)
+	user, err := auth.RequireUser(r)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -142,7 +142,7 @@ func (h *handlerImpl) CreateEpisode(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlerImpl) ListEpisodes(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.GetUser(r)
+	user, err := auth.RequireUser(r)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return

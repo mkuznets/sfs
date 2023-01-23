@@ -14,6 +14,7 @@ type Store interface {
 	UpdateChannelFeeds(ctx context.Context, channels []*Channel) error
 
 	CreateEpisode(ctx context.Context, episode *Episode) error
+	GetEpisode(ctx context.Context, id string) (*Episode, error)
 	ListEpisodesWithFiles(ctx context.Context, channelId string) ([]*Episode, error)
 
 	CreateFile(ctx context.Context, file *File) error

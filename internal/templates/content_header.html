@@ -1,0 +1,31 @@
+<div class="flex items-center">
+    <div class="flex-1">
+        <div class="breadcrumbs">
+            <ul>
+                <li>
+                    <a href="/" hx-get="/" hx-push-url="true" hx-target="#content"><i
+                            class="fa-regular fa-folder-open mr-2"></i>Podcasts</a>
+                </li>
+                {{range $item := .}}
+                <li>
+                    {{if .Href}}<a href="{{.Href}}">{{end}}
+                    <i class="{{$item.Icon}} mr-2"></i> {{$item.Text}}
+                    {{if .Href}}</a>{{end}}
+                </li>
+                {{end}}
+            </ul>
+        </div>
+    </div>
+
+    <div id="ch-actions" class="flex-none">
+        <ul class="menu-actions">
+            <li><a><i class="fa-solid fa-plus"></i></a></li>
+            <li id="delete-selected" class="disabled">
+                <button type="submit" form="delete-selected-form">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </li>
+        </ul>
+    </div>
+
+</div>

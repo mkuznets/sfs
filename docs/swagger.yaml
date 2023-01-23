@@ -90,7 +90,7 @@ definitions:
     type: object
 info:
   contact: {}
-  title: Simple Podcast Server REST API
+  title: Simple EpisodesPage Server REST API
   version: "0.1"
 paths:
   /channels:
@@ -216,7 +216,7 @@ paths:
       - Authentication: []
       summary: List episoded of the given channel
       tags:
-      - Episodes
+      - EpisodesPage
     post:
       consumes:
       - application/json
@@ -260,7 +260,7 @@ paths:
       - Authentication: []
       summary: Create a new episode
       tags:
-      - Episodes
+      - EpisodesPage
   /files:
     post:
       consumes:

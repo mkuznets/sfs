@@ -8,6 +8,7 @@ import (
 	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/sps"
 	"mkuznets.com/go/sps/internal/store"
+	"mkuznets.com/go/sps/internal/ui"
 	_ "modernc.org/sqlite"
 )
 
@@ -55,6 +56,7 @@ func (c *ServerCommand) Init(app *App) error {
 	c.server = &sps.Server{
 		Addr:      c.ServerOpts.Addr,
 		ApiRouter: api.New(authService, api.NewHandler(apiController)).Router(),
+		UiRouter:  ui.New(authService, ui.NewHandler(ui.NewController(apiController), apiController)).Router(),
 	}
 
 	c.feedService = feed.NewService(feedController)

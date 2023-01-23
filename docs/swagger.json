@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Simple Podcast Server REST API",
+        "title": "Simple EpisodesPage Server REST API",
         "contact": {},
         "version": "0.1"
     },
@@ -162,7 +162,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Episodes"
+                    "EpisodesPage"
                 ],
                 "summary": "List episoded of the given channel",
                 "operationId": "ListEpisodes",
@@ -215,7 +215,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Episodes"
+                    "EpisodesPage"
                 ],
                 "summary": "Create a new episode",
                 "operationId": "CreateEpisode",

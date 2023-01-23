@@ -171,7 +171,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Episodes"
+                    "EpisodesPage"
                 ],
                 "summary": "List episoded of the given channel",
                 "operationId": "ListEpisodes",
@@ -224,7 +224,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Episodes"
+                    "EpisodesPage"
                 ],
                 "summary": "Create a new episode",
                 "operationId": "CreateEpisode",
@@ -500,7 +500,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "Simple Podcast Server REST API",
+	Title:            "Simple EpisodesPage Server REST API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

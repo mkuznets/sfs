@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	Token(id string) (string, error)
+	Token(id, AccountNumber string) (string, error)
 	Middleware() func(next http.Handler) http.Handler
 }
 
@@ -27,14 +27,20 @@ type authService struct {
 
 type User interface {
 	Id() string
+	AccountNumber() string
 }
 
 type userImpl struct {
-	id string
+	id            string
+	accountNumber string
 }
 
 func (u *userImpl) Id() string {
 	return u.id
+}
+
+func (u *userImpl) AccountNumber() string {
+	return u.accountNumber
 }
 
 func New(privateKey, publicKey string) Service {
@@ -46,7 +52,8 @@ func New(privateKey, publicKey string) Service {
 
 type claims struct {
 	jwt.RegisteredClaims
-	UserId string `json:"uid"`
+	UserId        string `json:"uid"`
+	AccountNumber string `json:"an"`
 }
 
 func (s *authService) parsedPrivateKey() (*rsa.PrivateKey, error) {
@@ -76,7 +83,7 @@ func (s *authService) parsedPrivateKey() (*rsa.PrivateKey, error) {
 	return nil, fmt.Errorf("RSA private key expected")
 }
 
-func (s *authService) Token(id string) (string, error) {
+func (s *authService) Token(id, accountNumber string) (string, error) {
 	privateKey, err := s.parsedPrivateKey()
 	if err != nil {
 		return "", err
@@ -87,7 +94,8 @@ func (s *authService) Token(id string) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(365 * 24 * time.Hour)),
 		},
-		UserId: id,
+		UserId:        id,
+		AccountNumber: accountNumber,
 	}
 
 	jwtEncoder := jwt.NewWithClaims(jwt.SigningMethodRS256, cs)
@@ -108,11 +116,37 @@ func (s *authService) keyFunc(_ *jwt.Token) (interface{}, error) {
 	return jwt.ParseRSAPublicKeyFromPEM(pemRaw)
 }
 
+type cookieExtractor struct{}
+
+func (e cookieExtractor) ExtractToken(req *http.Request) (string, error) {
+	cookie, err := req.Cookie("JWT")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return "", request.ErrNoTokenInRequest
+		}
+		return "", err
+	}
+
+	return cookie.Value, nil
+}
+
 func (s *authService) Middleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenString, err := request.BearerExtractor{}.ExtractToken(r)
+			//next.ServeHTTP(w, withUser(r, &userImpl{"usr_2KSyw8tLSG5f45luhvYR8c2dXyU"}))
+			//return
+
+			extractor := request.MultiExtractor{}
+			extractor = append(extractor, cookieExtractor{})
+			extractor = append(extractor, request.BearerExtractor{})
+
+			tokenString, err := extractor.ExtractToken(r)
 			if err != nil {
+				if err == request.ErrNoTokenInRequest {
+					next.ServeHTTP(w, r)
+					return
+				}
+
 				yerr.RenderJson(w, r, yerr.Unauthorised("valid auth header is required").WithError(err))
 				return
 			}
@@ -127,7 +161,7 @@ func (s *authService) Middleware() func(next http.Handler) http.Handler {
 				return
 			}
 
-			next.ServeHTTP(w, withUser(r, &userImpl{cs.UserId}))
+			next.ServeHTTP(w, withUser(r, &userImpl{id: cs.UserId, accountNumber: cs.AccountNumber}))
 		})
 	}
 }

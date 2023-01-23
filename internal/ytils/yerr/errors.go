@@ -93,7 +93,6 @@ func RenderJson(w http.ResponseWriter, r *http.Request, err error) {
 		}
 		yrender.Json(w, r, v.Status(), Response{Error: http.StatusText(v.Status()), Message: v.Message()})
 	default:
-		log.Ctx(r.Context()).Err(err).Msg("internal error")
-		RenderJson(w, r, Wrapf(err, "internal server error"))
+		RenderJson(w, r, Internal("Internal error").WithError(err))
 	}
 }

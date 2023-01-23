@@ -11,7 +11,7 @@ import (
 	"github.com/go-openapi/strfmt"
 
 	"mkuznets.com/go/sps/api/client/channels"
-	"mkuznets.com/go/sps/api/client/episodes"
+	"mkuznets.com/go/sps/api/client/episodes_page"
 	"mkuznets.com/go/sps/api/client/files"
 	"mkuznets.com/go/sps/api/client/users"
 )
@@ -59,7 +59,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Sps {
 	cli := new(Sps)
 	cli.Transport = transport
 	cli.Channels = channels.New(transport, formats)
-	cli.Episodes = episodes.New(transport, formats)
+	cli.EpisodesPage = episodes_page.New(transport, formats)
 	cli.Files = files.New(transport, formats)
 	cli.Users = users.New(transport, formats)
 	return cli
@@ -108,7 +108,7 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 type Sps struct {
 	Channels channels.ClientService
 
-	Episodes episodes.ClientService
+	EpisodesPage episodes_page.ClientService
 
 	Files files.ClientService
 
@@ -121,7 +121,7 @@ type Sps struct {
 func (c *Sps) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 	c.Channels.SetTransport(transport)
-	c.Episodes.SetTransport(transport)
+	c.EpisodesPage.SetTransport(transport)
 	c.Files.SetTransport(transport)
 	c.Users.SetTransport(transport)
 }

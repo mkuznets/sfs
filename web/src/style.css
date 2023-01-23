@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+div.app {
+    @apply container animate-none w-11/12 lg:w-2/5 mx-auto
+}
+
+.btn-user {
+    @apply btn btn-sm no-animation
+}
+
+ul.menu-actions {
+    @apply menu menu-horizontal
+}
+
+a.ch-tab {
+    @apply tab tab-bordered
+}
+
+table {
+    @apply table table-compact w-full overflow-x-auto
+}

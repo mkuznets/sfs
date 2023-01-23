@@ -149,3 +149,18 @@ func (s *bunStore) GetUserByAccountNumber(ctx context.Context, accountNumber str
 
 	return &user, nil
 }
+
+func (s *bunStore) GetEpisode(ctx context.Context, id string) (*Episode, error) {
+	var episode Episode
+	err := s.db.NewSelect().Model(&episode).
+		Where("id = ?", id).
+		Scan(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, yerr.NotFound("episode not found")
+		}
+		return nil, err
+	}
+	return &episode, nil
+
+}

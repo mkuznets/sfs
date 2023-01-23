@@ -21,7 +21,7 @@ func New(authService auth.Service, handler Handler) Api {
 
 // Router ...
 //
-//	@title						Simple Podcast Server REST API
+//	@title						Simple EpisodesPage Server REST API
 //	@version					0.1
 //	@BasePath					/api
 //	@securityDefinitions.apikey	Authentication

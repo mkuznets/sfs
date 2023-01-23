@@ -1,0 +1,20 @@
+<div class="tabs mb-2">
+    <a id="ch-tab-episodes" class="ch-tab tab-active">Login</a>
+    <a id="ch-tab-details" class="ch-tab">Register</a>
+</div>
+
+<div class="form-control w-full max-w-xs">
+    <form action="/login" hx-post="/login" method="post" hx-target="#login-error" class="w-full">
+        <div class="grid content-center items-center grid-cols-1 gap-1">
+            <label class="block content-center">
+                <span>Account number</span>
+                <input name="login" type="text" placeholder="00000000000000000000"
+                       class="mt-1 input input-bordered w-full max-w-xs"/>
+            </label>
+            <label class="block">
+                <input type="submit" value="Login" class="btn btn-sm"/>
+            </label>
+        </div>
+    </form>
+    <div id="login-error" class="text-error"></div>
+</div>

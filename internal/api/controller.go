@@ -19,6 +19,7 @@ type Controller interface {
 	CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*IdResponse, error)
 	ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error)
 	UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error)
+	GetEpisode(ctx context.Context, userId, episodeId string) (*EpisodeResponse, error)
 	CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*IdResponse, error)
 	ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error)
 	CreateUser(ctx context.Context) (*CreateUserResponse, error)
@@ -143,6 +144,7 @@ func (c *controllerImpl) ListChannels(ctx context.Context, userId string) ([]*Ch
 			Description: channel.Description,
 			CreatedAt:   channel.CreatedAt,
 			UpdatedAt:   channel.UpdatedAt,
+			FeedUrl:     channel.Feed.Url,
 		})
 	}
 
@@ -204,7 +206,7 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 //
 //	@ID			CreateEpisode
 //	@Summary	Create a new episode
-//	@Tags		Episodes
+//	@Tags		EpisodesPage
 //	@Accept		json
 //	@Produce	json
 //	@Param		id		path		string					true	"Channel ID"
@@ -258,7 +260,7 @@ func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId st
 //
 //	@ID			ListEpisodes
 //	@Summary	List episoded of the given channel
-//	@Tags		Episodes
+//	@Tags		EpisodesPage
 //	@Produce	json
 //	@Param		id		path		string					true	"Channel ID"
 //	@Success	200	{object}	IdResponse
@@ -344,5 +346,38 @@ func (c *controllerImpl) Login(ctx context.Context, req *LoginRequest) (string, 
 	if err != nil {
 		return "", err
 	}
-	return c.authService.Token(user.Id)
+	return c.authService.Token(user.Id, req.AccountNumber)
+}
+
+// GetEpisode returns the episode response for the given ID.
+func (c *controllerImpl) GetEpisode(ctx context.Context, userId, episodeId string) (*EpisodeResponse, error) {
+	episode, err := c.store.GetEpisode(ctx, episodeId)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := c.store.GetChannel(ctx, episode.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+	if channel.UserId != userId {
+		return nil, yerr.NotFound("episode not found")
+	}
+
+	return &EpisodeResponse{
+		Id: episode.Id,
+		File: &FileResponse{
+			Id:          episode.File.Id,
+			Url:         episode.File.UploadUrl,
+			Size:        episode.File.Size,
+			ContentType: episode.File.MimeType,
+		},
+		ChannelId:   episode.ChannelId,
+		Title:       episode.Title,
+		Link:        episode.Link,
+		Authors:     episode.Authors,
+		Description: episode.Description,
+		CreatedAt:   episode.CreatedAt,
+		UpdatedAt:   episode.UpdatedAt,
+	}, nil
 }

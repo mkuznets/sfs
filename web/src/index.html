@@ -1,0 +1,137 @@
+<!doctype html>
+<html data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<div class="app">
+    <div class="navbar">
+        <div class="flex-1">
+            <h1><a href="/" class="normal-case text-xl">Simple Podcast Service</a></h1>
+        </div>
+        <div class="flex-none gap-1" hx-get="/messages" hx-trigger="load" hx-swap="outerHTML">
+            <button class="btn-user">Login</button>
+            <button class="btn-user">Register</button>
+        </div>
+    </div>
+
+    <div class="flex gap-8 items-center">
+        <div class="flex-none">
+            <div class="breadcrumbs">
+                <ul>
+                    <li>
+                        <i class="fa-regular fa-folder-open mr-2"></i> Podcasts
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="ch-actions" class="flex-1">
+            <ul class="menu-actions">
+                <li><a><i class="fa-solid fa-plus"></i></a></li>
+                <li class="disabled"><a><i class="fa-solid fa-trash-can"></i></a></li>
+                <li class="disabled"><a><i class="fa-solid fa-ellipsis"></i></a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="table table-compact w-full">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Feed</th>
+                <th>Episodes</th>
+                <th>Last updated</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th>
+                    <label>
+                        <input type="checkbox" class="checkbox"/>
+                    </label>
+                </th>
+                <td>Cy Ganderton</td>
+                <td><i class="fa-solid fa-rss"></i></td>
+                <td>54</td>
+                <td>2023-01-17 18:38:40</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!--    -->
+
+
+    <div class="flex items-center">
+        <div class="flex-none">
+            <div class="breadcrumbs">
+                <ul>
+                    <li>
+                        <i class="fa-regular fa-folder-open mr-2"></i> Podcasts
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-rss mr-2"></i> Accidental Tech Podcast
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center">
+        <div class="flex-none">
+            <div class="tabs">
+                <a id="ch-tab-episodes" class="ch-tab tab-active">Episodes</a>
+                <a id="ch-tab-details" class="ch-tab">Details</a>
+            </div>
+        </div>
+
+        <div id="ep-actions" class="flex-1">
+            <ul class="menu-actions">
+                <li><a><i class="fa-solid fa-plus"></i></a></li>
+                <li class="disabled"><a><i class="fa-solid fa-trash-can"></i></a></li>
+                <li class="disabled"><a><i class="fa-solid fa-ellipsis"></i></a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="table table-compact w-full">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Feed</th>
+                <th>Episodes</th>
+                <th>Last updated</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th>
+                    <label>
+                        <input type="checkbox" class="checkbox"/>
+                    </label>
+                </th>
+                <td>Brice Swyre</td>
+                <td><i class="fa-solid fa-rss"></i></td>
+                <td>3</td>
+                <td>2023-01-17 18:38:40</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer class="footer footer-center p-4 text-base-content mt-16">
+        <div>
+            <p>Copyright © 2023</p>
+        </div>
+    </footer>
+</div>
+
+
+</body>
+</html>

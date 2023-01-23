@@ -14,6 +14,18 @@ var ctxUserKey = contextKey("User")
 func GetUser(r *http.Request) (User, error) {
 	user := r.Context().Value(ctxUserKey)
 	if user == nil {
+		return nil, nil
+	}
+	if u, ok := user.(User); ok {
+		return u, nil
+	} else {
+		return nil, fmt.Errorf("invalid user type")
+	}
+}
+
+func RequireUser(r *http.Request) (User, error) {
+	user := r.Context().Value(ctxUserKey)
+	if user == nil {
 		return nil, yerr.Unauthorised("unauthorised")
 	}
 	if u, ok := user.(User); ok {
