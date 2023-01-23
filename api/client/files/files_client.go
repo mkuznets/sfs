@@ -30,29 +30,28 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	UploadFile(params *UploadFileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*UploadFileOK, error)
+	UploadFiles(params *UploadFilesParams, opts ...ClientOption) (*UploadFilesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-UploadFile uploads a new audio file
+UploadFiles uploads new audio files
 */
-func (a *Client) UploadFile(params *UploadFileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*UploadFileOK, error) {
+func (a *Client) UploadFiles(params *UploadFilesParams, opts ...ClientOption) (*UploadFilesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewUploadFileParams()
+		params = NewUploadFilesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "UploadFile",
+		ID:                 "UploadFiles",
 		Method:             "POST",
-		PathPattern:        "/files",
+		PathPattern:        "/files/upload",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"multipart/form-data"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &UploadFileReader{formats: a.formats},
-		AuthInfo:           authInfo,
+		Reader:             &UploadFilesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -64,13 +63,13 @@ func (a *Client) UploadFile(params *UploadFileParams, authInfo runtime.ClientAut
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*UploadFileOK)
+	success, ok := result.(*UploadFilesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for UploadFile: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for UploadFiles: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

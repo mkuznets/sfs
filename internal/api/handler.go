@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
-	"mkuznets.com/go/sps/internal/auth"
+	"mkuznets.com/go/sps/internal/user"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/ynits"
 	"mkuznets.com/go/sps/internal/ytils/yrender"
@@ -12,14 +12,12 @@ import (
 )
 
 type Handler interface {
-	GetChannel(w http.ResponseWriter, r *http.Request)
-	CreateChannel(w http.ResponseWriter, r *http.Request)
-	ListChannels(w http.ResponseWriter, r *http.Request)
-	UploadFile(w http.ResponseWriter, r *http.Request)
-	CreateEpisode(w http.ResponseWriter, r *http.Request)
-	ListEpisodes(w http.ResponseWriter, r *http.Request)
-	CreateUser(w http.ResponseWriter, r *http.Request)
-	LoginUser(w http.ResponseWriter, r *http.Request)
+	GetFeeds(w http.ResponseWriter, r *http.Request)
+	CreateFeeds(w http.ResponseWriter, r *http.Request)
+	GetItems(w http.ResponseWriter, r *http.Request)
+	CreateItems(w http.ResponseWriter, r *http.Request)
+	UploadFiles(w http.ResponseWriter, r *http.Request)
+	GetRss(w http.ResponseWriter, r *http.Request)
 }
 
 type handlerImpl struct {
@@ -30,10 +28,16 @@ func NewHandler(c Controller) Handler {
 	return &handlerImpl{c}
 }
 
-func (h *handlerImpl) GetChannel(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "channelId")
+func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
+	u := user.MustGet(r)
 
-	response, err := h.c.GetChannel(r.Context(), id)
+	var req GetFeedsRequest
+	if err := yrender.DecodeJson(r.Body, &req); err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	response, err := h.c.GetFeeds(r.Context(), &req, u)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -42,36 +46,16 @@ func (h *handlerImpl) GetChannel(w http.ResponseWriter, r *http.Request) {
 	yrender.Json(w, r, http.StatusOK, response)
 }
 
-func (h *handlerImpl) CreateChannel(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.RequireUser(r)
-	if err != nil {
+func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
+	u := user.MustGet(r)
+
+	var req CreateFeedsRequest
+	if err := yrender.DecodeJson(r.Body, &req); err != nil {
 		yerr.RenderJson(w, r, err)
 		return
 	}
 
-	var resource CreateChannelRequest
-	if err := yrender.DecodeJson(r.Body, &resource); err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	response, err := h.c.CreateChannel(r.Context(), user.Id(), resource)
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	yrender.Json(w, r, http.StatusOK, response)
-}
-
-func (h *handlerImpl) ListChannels(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.RequireUser(r)
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	response, err := h.c.ListChannels(r.Context(), user.Id())
+	response, err := h.c.CreateFeeds(r.Context(), &req, u)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -80,12 +64,44 @@ func (h *handlerImpl) ListChannels(w http.ResponseWriter, r *http.Request) {
 	yrender.Json(w, r, http.StatusOK, response)
 }
 
-func (h *handlerImpl) UploadFile(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.RequireUser(r)
+func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
+	u := user.MustGet(r)
+
+	var req GetItemsRequest
+	if err := yrender.DecodeJson(r.Body, &req); err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	response, err := h.c.GetItems(r.Context(), &req, u)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
 	}
+
+	yrender.Json(w, r, http.StatusOK, response)
+}
+
+func (h *handlerImpl) CreateItems(w http.ResponseWriter, r *http.Request) {
+	u := user.MustGet(r)
+
+	var req CreateItemsRequest
+	if err := yrender.DecodeJson(r.Body, &req); err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	response, err := h.c.CreateItems(r.Context(), &req, u)
+	if err != nil {
+		yerr.RenderJson(w, r, err)
+		return
+	}
+
+	yrender.Json(w, r, http.StatusOK, response)
+}
+
+func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
+	u := user.MustGet(r)
 
 	ctx := r.Context()
 
@@ -94,21 +110,30 @@ func (h *handlerImpl) UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("file")
-	if err == http.ErrMissingFile {
-		yerr.RenderJson(w, r, yerr.Validation("no file provided"))
+	files := make([]multipart.File, 0)
+	for _, fileHeader := range r.MultipartForm.File["file"] {
+		file, err := fileHeader.Open()
+		if err != nil {
+			yerr.RenderJson(w, r, err)
+			return
+		}
+		files = append(files, file)
+	}
+
+	if len(files) == 0 {
+		yerr.RenderJson(w, r, yerr.Validation("no files provided"))
 		return
 	}
-	defer func(f multipart.File) {
-		_ = f.Close()
-	}(file)
 
-	log.Ctx(ctx).Debug().
-		Int64("size", header.Size).
-		Str("name", header.Filename).
-		Msg("uploading file")
+	defer func(fs []multipart.File) {
+		for _, f := range fs {
+			if err := f.Close(); err != nil {
+				log.Warn().Err(err).Msg("failed to close file")
+			}
+		}
+	}(files)
 
-	response, err := h.c.UploadFile(ctx, user.Id(), file)
+	response, err := h.c.UploadFiles(ctx, files, u)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
@@ -117,69 +142,14 @@ func (h *handlerImpl) UploadFile(w http.ResponseWriter, r *http.Request) {
 	yrender.Json(w, r, http.StatusOK, response)
 }
 
-func (h *handlerImpl) CreateEpisode(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.RequireUser(r)
+func (h *handlerImpl) GetRss(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "feedId")
+
+	response, err := h.c.GetRss(r.Context(), id)
 	if err != nil {
 		yerr.RenderJson(w, r, err)
 		return
 	}
 
-	channelId := chi.URLParam(r, "channelId")
-
-	var resource CreateEpisodeRequest
-	if err := yrender.DecodeJson(r.Body, &resource); err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	response, err := h.c.CreateEpisode(r.Context(), user.Id(), channelId, &resource)
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	yrender.Json(w, r, http.StatusOK, response)
-}
-
-func (h *handlerImpl) ListEpisodes(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.RequireUser(r)
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-	channelId := chi.URLParam(r, "channelId")
-
-	response, err := h.c.ListEpisodes(r.Context(), user.Id(), channelId)
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	yrender.Json(w, r, http.StatusOK, response)
-}
-
-func (h *handlerImpl) CreateUser(w http.ResponseWriter, r *http.Request) {
-	response, err := h.c.CreateUser(r.Context())
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	yrender.Json(w, r, http.StatusOK, response)
-}
-
-func (h *handlerImpl) LoginUser(w http.ResponseWriter, r *http.Request) {
-	var resource LoginRequest
-	if err := yrender.DecodeJson(r.Body, &resource); err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	token, err := h.c.Login(r.Context(), &resource)
-	if err != nil {
-		yerr.RenderJson(w, r, err)
-		return
-	}
-
-	yrender.Json(w, r, http.StatusOK, token)
+	yrender.Rss(w, r, http.StatusOK, response)
 }

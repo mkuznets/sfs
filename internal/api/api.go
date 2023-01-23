@@ -21,7 +21,7 @@ func New(authService auth.Service, handler Handler) Api {
 
 // Router ...
 //
-//	@title						Simple EpisodesPage Server REST API
+//	@title						Simple Feed Service HTTP API
 //	@version					0.1
 //	@BasePath					/api
 //	@securityDefinitions.apikey	Authentication
@@ -30,34 +30,22 @@ func New(authService auth.Service, handler Handler) Api {
 func (a *apiImpl) Router() chi.Router {
 	r := chi.NewRouter()
 
-	// Authenticated routes
 	r.Group(func(r chi.Router) {
-		r.Use(a.authService.Middleware())
-
-		r.Route("/channels", func(r chi.Router) {
-			r.Route("/{channelId}", func(r chi.Router) {
-				r.Get(`/`, a.handler.GetChannel)
-				r.Route(`/episodes`, func(r chi.Router) {
-					r.Post(`/`, a.handler.CreateEpisode)
-					r.Get(`/`, a.handler.ListEpisodes)
-				})
-			})
-			r.Get("/", a.handler.ListChannels)
-			r.Post("/", a.handler.CreateChannel)
+		r.Route("/feeds", func(r chi.Router) {
+			r.Post("/get", a.handler.GetFeeds)
+			r.Post("/create", a.handler.CreateFeeds)
 		})
-
+		r.Route(`/items`, func(r chi.Router) {
+			r.Post(`/get`, a.handler.GetItems)
+			r.Post(`/create`, a.handler.CreateItems)
+		})
 		r.Route("/files", func(r chi.Router) {
 			r.With(middleware.AllowContentType("multipart/form-data")).
-				Post("/", a.handler.UploadFile)
+				Post("/upload", a.handler.UploadFiles)
 		})
-
-		r.Get("/users/current", nil)
-	})
-
-	// Unauthenticated routes
-	r.Route("/users", func(r chi.Router) {
-		r.Post("/login", a.handler.LoginUser)
-		r.Post("/", a.handler.CreateUser)
+		r.Route("/rss", func(r chi.Router) {
+			r.Get("/{feedId}", a.handler.GetRss)
+		})
 	})
 
 	return r

@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
+	"mkuznets.com/go/sps/internal/user"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"net/http"
 	"time"
 )
 
 type Service interface {
-	Token(id, AccountNumber string) (string, error)
+	Token(id string) (string, error)
 	Middleware() func(next http.Handler) http.Handler
 }
 
@@ -25,22 +26,12 @@ type authService struct {
 	privateKeyCache *rsa.PrivateKey
 }
 
-type User interface {
-	Id() string
-	AccountNumber() string
+type jwtUser struct {
+	id string
 }
 
-type userImpl struct {
-	id            string
-	accountNumber string
-}
-
-func (u *userImpl) Id() string {
+func (u *jwtUser) Id() string {
 	return u.id
-}
-
-func (u *userImpl) AccountNumber() string {
-	return u.accountNumber
 }
 
 func New(privateKey, publicKey string) Service {
@@ -52,8 +43,7 @@ func New(privateKey, publicKey string) Service {
 
 type claims struct {
 	jwt.RegisteredClaims
-	UserId        string `json:"uid"`
-	AccountNumber string `json:"an"`
+	UserId string `json:"uid"`
 }
 
 func (s *authService) parsedPrivateKey() (*rsa.PrivateKey, error) {
@@ -83,7 +73,7 @@ func (s *authService) parsedPrivateKey() (*rsa.PrivateKey, error) {
 	return nil, fmt.Errorf("RSA private key expected")
 }
 
-func (s *authService) Token(id, accountNumber string) (string, error) {
+func (s *authService) Token(id string) (string, error) {
 	privateKey, err := s.parsedPrivateKey()
 	if err != nil {
 		return "", err
@@ -94,8 +84,7 @@ func (s *authService) Token(id, accountNumber string) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(365 * 24 * time.Hour)),
 		},
-		UserId:        id,
-		AccountNumber: accountNumber,
+		UserId: id,
 	}
 
 	jwtEncoder := jwt.NewWithClaims(jwt.SigningMethodRS256, cs)
@@ -133,9 +122,6 @@ func (e cookieExtractor) ExtractToken(req *http.Request) (string, error) {
 func (s *authService) Middleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			//next.ServeHTTP(w, withUser(r, &userImpl{"usr_2KSyw8tLSG5f45luhvYR8c2dXyU"}))
-			//return
-
 			extractor := request.MultiExtractor{}
 			extractor = append(extractor, cookieExtractor{})
 			extractor = append(extractor, request.BearerExtractor{})
@@ -161,7 +147,8 @@ func (s *authService) Middleware() func(next http.Handler) http.Handler {
 				return
 			}
 
-			next.ServeHTTP(w, withUser(r, &userImpl{id: cs.UserId, accountNumber: cs.AccountNumber}))
+			ctx := user.Ctx(r.Context(), &jwtUser{id: cs.UserId})
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

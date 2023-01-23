@@ -4,168 +4,292 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"mkuznets.com/go/sps/internal/auth"
-	"mkuznets.com/go/sps/internal/feed"
 	"mkuznets.com/go/sps/internal/files"
+	"mkuznets.com/go/sps/internal/rss"
 	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/ytils/ycrypto"
+	"mkuznets.com/go/sps/internal/user"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/yrand"
+	"mkuznets.com/go/sps/internal/ytils/yslice"
 	"mkuznets.com/go/sps/internal/ytils/ytime"
 )
 
 type Controller interface {
-	GetChannel(ctx context.Context, id string) (*ChannelResponse, error)
-	CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*IdResponse, error)
-	ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error)
-	UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error)
-	GetEpisode(ctx context.Context, userId, episodeId string) (*EpisodeResponse, error)
-	CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*IdResponse, error)
-	ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error)
-	CreateUser(ctx context.Context) (*CreateUserResponse, error)
-	Login(ctx context.Context, req *LoginRequest) (string, error)
+	GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error)
+	CreateFeeds(ctx context.Context, req *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error)
+	GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error)
+	CreateItems(ctx context.Context, req *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error)
+	UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error)
+	GetRss(ctx context.Context, id string) (string, error)
 }
 
 type controllerImpl struct {
-	fileStorage    files.Storage
-	store          store.Store
-	idService      IdService
-	feedController feed.Controller
-	authService    auth.Service
+	fileStorage   files.Storage
+	store         store.Store
+	idService     IdService
+	rssController rss.Controller
+	authService   auth.Service
 }
 
-func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController feed.Controller, authService auth.Service) Controller {
+func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController rss.Controller, authService auth.Service) Controller {
 	return &controllerImpl{
-		store:          store,
-		fileStorage:    fileStorage,
-		idService:      idService,
-		feedController: feedController,
-		authService:    authService,
+		store:         store,
+		fileStorage:   fileStorage,
+		idService:     idService,
+		rssController: feedController,
+		authService:   authService,
 	}
 }
 
-// GetChannel returns the channel response for the given ID.
+// GetFeeds returns a list of feeds matching the given parameters.
 //
-//	@ID			GetChannel
-//	@Summary	Get channel by ID
-//	@Tags		Channels
-//	@Produce	json
-//	@Param		id	path		string	true	"Channel ID"
-//	@Success	200	{object}	ChannelResponse
-//	@Failure	400	{object}	ErrorResponse
-//	@Failure	404	{object}	ErrorResponse
-//	@Failure	500	{object}	ErrorResponse
-//	@Router		/channels/{id} [get]
-//	@Security	Authentication
-func (c *controllerImpl) GetChannel(ctx context.Context, id string) (*ChannelResponse, error) {
-	model, err := c.store.GetChannel(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ChannelResponse{
-		Id:          model.Id,
-		Title:       model.Title,
-		Link:        model.Link,
-		Authors:     model.Authors,
-		Description: model.Description,
-		CreatedAt:   model.CreatedAt,
-		UpdatedAt:   model.UpdatedAt,
-		FeedUrl:     model.Feed.Url,
-	}
-
-	return response, nil
-}
-
-// CreateChannel creates a new channel with the given parameters and returns a response with the channel ID.
-//
-//	@ID			CreateChannel
-//	@Summary	Create a new channel
-//	@Tags		Channels
+//	@ID			GetFeeds
+//	@Summary	Get feeds matching the given parameters
+//	@Tags		Feeds
 //	@Accept		json
 //	@Produce	json
-//	@Param		request	body		CreateChannelRequest	true	"CreateChannel request"
-//	@Success	200		{object}	IdResponse
-//	@Failure	400		{object}	ErrorResponse
-//	@Failure	401		{object}	ErrorResponse
-//	@Failure	500		{object}	ErrorResponse
-//	@Router		/channels [post]
-//	@Security	Authentication
-func (c *controllerImpl) CreateChannel(ctx context.Context, userId string, r CreateChannelRequest) (*IdResponse, error) {
-	model := &store.Channel{
-		Id:          c.idService.Channel(ctx),
-		UserId:      userId,
-		Title:       r.Title,
-		Link:        r.Link,
-		Authors:     r.Authors,
-		Description: r.Description,
-		CreatedAt:   ytime.Now(),
-		UpdatedAt:   ytime.Now(),
-	}
-
-	if err := c.store.CreateChannel(ctx, model); err != nil {
-		return nil, err
-	}
-	if err := c.feedController.Update(ctx, model.Id); err != nil {
-		return nil, err
-	}
-
-	response := &IdResponse{
-		Id: model.Id,
-	}
-
-	return response, nil
-}
-
-// ListChannels returns a list of channels of the given user.
-//
-//	@ID			ListChannels
-//	@Summary	List channels of the current user
-//	@Tags		Channels
-//	@Produce	json
-//	@Success	200	{object}	IdResponse
+//	@Param		request	body		GetFeedsRequest	true	"Parameters for filtering feeds"
+//	@Success	200	{object}	GetFeedsResponse
 //	@Failure	401	{object}	ErrorResponse
 //	@Failure	500	{object}	ErrorResponse
-//	@Router		/channels [get]
-//	@Security	Authentication
-func (c *controllerImpl) ListChannels(ctx context.Context, userId string) ([]*ChannelResponse, error) {
-	channels, err := c.store.ListChannels(ctx, userId)
+//	@Router		/feeds/get [post]
+func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error) {
+
+	filter := store.FeedFilter{
+		Ids:     req.Ids,
+		UserIds: req.UserIds,
+	}
+	if len(filter.UserIds) == 0 {
+		filter.UserIds = []string{usr.Id()}
+	}
+
+	feeds, err := c.store.GetFeeds(ctx, &filter)
 	if err != nil {
 		return nil, err
 	}
 
-	response := make([]*ChannelResponse, 0)
-	for _, channel := range channels {
-		response = append(response, &ChannelResponse{
-			Id:          channel.Id,
-			Title:       channel.Title,
-			Link:        channel.Link,
-			Authors:     channel.Authors,
-			Description: channel.Description,
-			CreatedAt:   channel.CreatedAt,
-			UpdatedAt:   channel.UpdatedAt,
-			FeedUrl:     channel.Feed.Url,
+	items := make([]*FeedResource, 0)
+	for _, f := range feeds {
+		items = append(items, &FeedResource{
+			Id:          f.Id,
+			Title:       f.Title,
+			Link:        f.Link,
+			Authors:     f.Authors,
+			Description: f.Description,
+			CreatedAt:   f.CreatedAt,
+			UpdatedAt:   f.UpdatedAt,
 		})
 	}
 
-	return response, nil
+	return &GetFeedsResponse{Data: items}, nil
 }
 
-// UploadFile uploads a new audio file and returns a response with the file ID.
+// CreateFeeds creates new feeds with the given parameters.
 //
-//	@ID			UploadFile
-//	@Summary	Uploads a new audio file
-//	@Tags		Files
-//	@Accept		multipart/form-data
+//	@ID			CreateFeeds
+//	@Summary	Create new feeds
+//	@Tags		Feeds
+//	@Accept		json
 //	@Produce	json
-//	@Param		file	formData	file	true	"File to upload"
-//	@Success	200		{object}	IdResponse
+//	@Param		request	body		CreateFeedsRequest	true	"CreateFeeds request"
+//	@Success	200		{object}	CreateFeedsResponse
 //	@Failure	400		{object}	ErrorResponse
 //	@Failure	401		{object}	ErrorResponse
 //	@Failure	500		{object}	ErrorResponse
-//	@Router		/files [post]
-//	@Security	Authentication
-func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.ReadSeeker) (*UploadResponse, error) {
+//	@Router		/feeds/create [post]
+func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error) {
+	feeds := make([]*store.Feed, 0)
+	for _, i := range r.Data {
+		feeds = append(feeds, &store.Feed{
+			Id:          c.idService.Feed(ctx),
+			UserId:      usr.Id(),
+			Type:        "podcast",
+			Title:       i.Title,
+			Link:        i.Link,
+			Authors:     i.Authors,
+			Description: i.Description,
+			CreatedAt:   ytime.Now(),
+			UpdatedAt:   ytime.Now(),
+		})
+	}
+	if err := c.rssController.BuildFeedsRss(ctx, feeds); err != nil {
+		return nil, err
+	}
+
+	if err := c.store.CreateFeeds(ctx, feeds); err != nil {
+		return nil, err
+	}
+
+	items := make([]*CreateFeedsResultResource, 0)
+	for _, model := range feeds {
+		items = append(items, &CreateFeedsResultResource{Id: model.Id})
+	}
+
+	return &CreateFeedsResponse{Data: items}, nil
+}
+
+// GetItems returns a list of items matching the given parameters.
+//
+//	@ID			GetItems
+//	@Summary	Get items matching the given parameters
+//	@Tags		Items
+//	@Accept		json
+//	@Produce	json
+//	@Param		request	body		GetItemsRequest	true	"Parameters for filtering items"
+//	@Success	200	{object}	GetItemsResponse
+//	@Failure	401	{object}	ErrorResponse
+//	@Failure	500	{object}	ErrorResponse
+//	@Router		/items/get [post]
+func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error) {
+	filter := store.ItemFilter{
+		Ids:     req.Ids,
+		FeedIds: req.FeedIds,
+		UserIds: req.UserIds,
+	}
+	if len(filter.UserIds) == 0 {
+		filter.UserIds = []string{usr.Id()}
+	}
+
+	items, err := c.store.GetItems(ctx, &filter)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*ItemResource, 0)
+	for _, i := range items {
+		data = append(data, &ItemResource{
+			Id: i.Id,
+			File: &ItemFileResource{
+				Id:          i.File.Id,
+				Url:         i.File.UploadUrl,
+				Size:        i.File.Size,
+				ContentType: i.File.MimeType,
+			},
+			FeedId:      i.FeedId,
+			Title:       i.Title,
+			Link:        i.Link,
+			Authors:     i.Authors,
+			Description: i.Description,
+			CreatedAt:   i.CreatedAt,
+			UpdatedAt:   i.UpdatedAt,
+		})
+	}
+
+	return &GetItemsResponse{Data: data}, nil
+}
+
+// CreateItems creates new items and returns a response with their IDs.
+//
+//	@ID			CreateItems
+//	@Summary	Create new items and returns a response with their IDs
+//	@Tags		Items
+//	@Accept		json
+//	@Produce	json
+//	@Param		request	body		CreateItemsRequest	true	"CreateItems request"
+//	@Success	200		{object}	CreateItemsResponse
+//	@Failure	400		{object}	ErrorResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
+//	@Router		/items/create [post]
+func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error) {
+	items := make([]*store.Item, 0)
+
+	err := c.store.Tx(ctx, func(ctx context.Context) error {
+		var fs []*store.File
+
+		for _, i := range r.Data {
+			file, err := c.store.GetFileById(ctx, i.FileId)
+			if err != nil {
+				return err
+			}
+			if file.ItemId != "" {
+				return yerr.Validation("file already used")
+			}
+
+			item := &store.Item{
+				Id:          c.idService.Item(ctx),
+				FeedId:      i.FeedId,
+				Title:       i.Title,
+				Link:        i.Link,
+				Authors:     i.Authors,
+				Description: i.Description,
+				FileId:      i.FileId,
+				CreatedAt:   ytime.Now(),
+				UpdatedAt:   ytime.Now(),
+			}
+			items = append(items, item)
+
+			file.ItemId = item.Id
+			fs = append(fs, file)
+		}
+
+		if err := c.store.CreateItems(ctx, items); err != nil {
+			return err
+		}
+		if err := c.store.UpdateFiles(ctx, fs, "item_id"); err != nil {
+			return err
+		}
+
+		feedIds := yslice.Unique(yslice.Map(items, func(v *store.Item) string { return v.FeedId }))
+		if err := c.rssController.UpdateFeeds(ctx, feedIds); err != nil {
+			return err
+		}
+
+		//c.store.UpdateFiles()
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*CreateItemResultResource, 0)
+	for _, item := range items {
+		results = append(results, &CreateItemResultResource{Id: item.Id})
+	}
+
+	return &CreateItemsResponse{Data: results}, nil
+}
+
+// UploadFiles uploads new audio files and returns a response with the file IDs.
+//
+//	@ID			UploadFiles
+//	@Summary	Upload new audio files
+//	@Tags		Files
+//	@Accept		multipart/form-data
+//	@Produce	json
+//	@Param		file	formData	file	true	"File to upload (can be repeated multiple times)"
+//	@Success	200		{object}	UploadFilesResponse
+//	@Failure	400		{object}	ErrorResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
+//	@Router		/files/upload [post]
+func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error) {
+	results := make([]*UploadFileResultResource, 0)
+
+	for _, f := range fs {
+		result := &UploadFileResultResource{}
+		results = append(results, result)
+
+		model, err := c.uploadFile(ctx, f, usr)
+		if err != nil {
+			result.Error = err.Error()
+			continue
+		}
+		if err := c.store.CreateFile(ctx, model); err != nil {
+			result.Error = err.Error()
+			continue
+		}
+
+		result.Id = model.Id
+	}
+
+	return &UploadFilesResponse{Data: results}, nil
+}
+
+func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*store.File, error) {
 	info, err := files.Info(f)
 	if err != nil {
 		return nil, yerr.Internal("failed to get file info").WithError(err)
@@ -182,9 +306,9 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 		return nil, err
 	}
 
-	model := &store.File{
+	return &store.File{
 		Id:        fileId,
-		UserId:    userId,
+		UserId:    usr.Id(),
 		UploadUrl: upload.Url,
 		UploadId:  upload.Id,
 		Size:      info.Size,
@@ -192,192 +316,13 @@ func (c *controllerImpl) UploadFile(ctx context.Context, userId string, f io.Rea
 		MimeType:  info.Mime.Value,
 		CreatedAt: ytime.Now(),
 		UpdatedAt: ytime.Now(),
-	}
-	if err := c.store.CreateFile(ctx, model); err != nil {
-		return nil, err
-	}
-
-	return &UploadResponse{
-		Id: model.Id,
 	}, nil
 }
 
-// CreateEpisode creates a new episode with the given parameters and returns a response with the new episode ID.
-//
-//	@ID			CreateEpisode
-//	@Summary	Create a new episode
-//	@Tags		EpisodesPage
-//	@Accept		json
-//	@Produce	json
-//	@Param		id		path		string					true	"Channel ID"
-//	@Param		request	body		CreateEpisodeRequest	true	"CreateEpisode request"
-//	@Success	200		{object}	IdResponse
-//	@Failure	400		{object}	ErrorResponse
-//	@Failure	404		{object}	ErrorResponse
-//	@Failure	401		{object}	ErrorResponse
-//	@Failure	500		{object}	ErrorResponse
-//	@Router		/channels/{id}/episodes [post]
-//	@Security	Authentication
-func (c *controllerImpl) CreateEpisode(ctx context.Context, userId, channelId string, r *CreateEpisodeRequest) (*IdResponse, error) {
-	channel, err := c.store.GetChannel(ctx, channelId)
-	if err != nil {
-		return nil, err
-	}
-	if channel.UserId != userId {
-		return nil, yerr.NotFound("channel not found")
-	}
-
-	f, err := c.store.GetFile(ctx, r.FileId)
-	if err != nil {
-		return nil, err
-	}
-	if f.UserId != userId {
-		return nil, yerr.NotFound("file not found")
-	}
-
-	model := &store.Episode{
-		Id:          c.idService.Episode(ctx),
-		ChannelId:   channelId,
-		Title:       r.Title,
-		Link:        r.Link,
-		Authors:     r.Authors,
-		Description: r.Description,
-		FileId:      r.FileId,
-		CreatedAt:   ytime.Now(),
-		UpdatedAt:   ytime.Now(),
-	}
-
-	if err := c.store.CreateEpisode(ctx, model); err != nil {
-		return nil, err
-	}
-
-	return &IdResponse{
-		Id: model.Id,
-	}, nil
-}
-
-// ListEpisodes returns a list of episodes of the given channel.
-//
-//	@ID			ListEpisodes
-//	@Summary	List episoded of the given channel
-//	@Tags		EpisodesPage
-//	@Produce	json
-//	@Param		id		path		string					true	"Channel ID"
-//	@Success	200	{object}	IdResponse
-//	@Failure	404	{object}	ErrorResponse
-//	@Failure	401	{object}	ErrorResponse
-//	@Failure	500	{object}	ErrorResponse
-//	@Router		/channels/{id}/episodes [get]
-//	@Security	Authentication
-func (c *controllerImpl) ListEpisodes(ctx context.Context, userId, channelId string) ([]*EpisodeResponse, error) {
-	channel, err := c.store.GetChannel(ctx, channelId)
-	if err != nil {
-		return nil, err
-	}
-	if channel.UserId != userId {
-		return nil, yerr.NotFound("channel not found")
-	}
-
-	episodes, err := c.store.ListEpisodesWithFiles(ctx, channelId)
-	if err != nil {
-		return nil, err
-	}
-
-	response := make([]*EpisodeResponse, 0)
-	for _, episode := range episodes {
-		response = append(response, &EpisodeResponse{
-			Id: episode.Id,
-			File: &FileResponse{
-				Id:          episode.File.Id,
-				Url:         episode.File.UploadUrl,
-				Size:        episode.File.Size,
-				ContentType: episode.File.MimeType,
-			},
-			ChannelId:   episode.ChannelId,
-			Title:       episode.Title,
-			Link:        episode.Link,
-			Authors:     episode.Authors,
-			Description: episode.Description,
-			CreatedAt:   episode.CreatedAt,
-			UpdatedAt:   episode.UpdatedAt,
-		})
-	}
-
-	return response, nil
-}
-
-// CreateUser registers a new user and returns a response with the new account number.
-//
-//	@ID			CreateUser
-//	@Summary	Register a new user
-//	@Tags		Users
-//	@Accept		json
-//	@Produce	json
-//	@Success	200		{object}	IdResponse
-//	@Failure	500		{object}	ErrorResponse
-//	@Router		/users [post]
-func (c *controllerImpl) CreateUser(ctx context.Context) (*CreateUserResponse, error) {
-	id := c.idService.User(ctx)
-
-	accountNumber := auth.RandomAccountNumber()
-	accountNumberHashed, err := ycrypto.HashPassword(accountNumber, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	model := &store.User{
-		Id:            id,
-		AccountNumber: accountNumberHashed,
-		CreatedAt:     ytime.Now(),
-		UpdatedAt:     ytime.Now(),
-	}
-
-	if err := c.store.CreateUser(ctx, model); err != nil {
-		return nil, err
-	}
-
-	return &CreateUserResponse{
-		AccountNumber: accountNumber,
-	}, nil
-}
-
-func (c *controllerImpl) Login(ctx context.Context, req *LoginRequest) (string, error) {
-	user, err := c.store.GetUserByAccountNumber(ctx, req.AccountNumber)
+func (c *controllerImpl) GetRss(ctx context.Context, feedId string) (string, error) {
+	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, &store.FeedFilter{Ids: []string{feedId}}))
 	if err != nil {
 		return "", err
 	}
-	return c.authService.Token(user.Id, req.AccountNumber)
-}
-
-// GetEpisode returns the episode response for the given ID.
-func (c *controllerImpl) GetEpisode(ctx context.Context, userId, episodeId string) (*EpisodeResponse, error) {
-	episode, err := c.store.GetEpisode(ctx, episodeId)
-	if err != nil {
-		return nil, err
-	}
-
-	channel, err := c.store.GetChannel(ctx, episode.ChannelId)
-	if err != nil {
-		return nil, err
-	}
-	if channel.UserId != userId {
-		return nil, yerr.NotFound("episode not found")
-	}
-
-	return &EpisodeResponse{
-		Id: episode.Id,
-		File: &FileResponse{
-			Id:          episode.File.Id,
-			Url:         episode.File.UploadUrl,
-			Size:        episode.File.Size,
-			ContentType: episode.File.MimeType,
-		},
-		ChannelId:   episode.ChannelId,
-		Title:       episode.Title,
-		Link:        episode.Link,
-		Authors:     episode.Authors,
-		Description: episode.Description,
-		CreatedAt:   episode.CreatedAt,
-		UpdatedAt:   episode.UpdatedAt,
-	}, nil
+	return feed.Rss, nil
 }

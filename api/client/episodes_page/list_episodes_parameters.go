@@ -63,7 +63,7 @@ type ListEpisodesParams struct {
 
 	/* ID.
 
-	   Channel ID
+	   Feed ID
 	*/
 	ID string
 

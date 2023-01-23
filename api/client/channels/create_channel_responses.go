@@ -15,7 +15,7 @@ import (
 	"mkuznets.com/go/sps/api/models"
 )
 
-// CreateChannelReader is a Reader for the CreateChannel structure.
+// CreateChannelReader is a Reader for the CreateFeeds structure.
 type CreateChannelReader struct {
 	formats strfmt.Registry
 }

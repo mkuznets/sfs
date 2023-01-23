@@ -6,10 +6,10 @@ import (
 )
 
 type IdService interface {
-	Channel(context.Context) string
-	Episode(context.Context) string
+	Feed(context.Context) string
+	Item(context.Context) string
 	File(context.Context) string
-	User(context.Context) string
+	Rss(context.Context) string
 }
 
 type idService struct{}
@@ -22,18 +22,18 @@ func randomId() string {
 	return ksuid.New().String()
 }
 
-func (s *idService) Channel(_ context.Context) string {
-	return "ch_" + randomId()
+func (s *idService) Feed(_ context.Context) string {
+	return "feed_" + randomId()
 }
 
-func (s *idService) Episode(_ context.Context) string {
-	return "ep_" + randomId()
+func (s *idService) Item(_ context.Context) string {
+	return "item_" + randomId()
 }
 
 func (s *idService) File(_ context.Context) string {
 	return "file_" + randomId()
 }
 
-func (s *idService) User(_ context.Context) string {
-	return "usr_" + randomId()
+func (s *idService) Rss(_ context.Context) string {
+	return "rss_" + randomId()
 }

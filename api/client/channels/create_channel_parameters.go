@@ -65,7 +65,7 @@ type CreateChannelParams struct {
 
 	/* Request.
 
-	   CreateChannel request
+	   CreateFeeds request
 	*/
 	Request *models.CreateChannelRequest
 

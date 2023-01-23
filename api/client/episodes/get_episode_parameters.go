@@ -63,13 +63,13 @@ type GetEpisodeParams struct {
 
 	/* ChannelID.
 
-	   Channel ID
+	   Feed ID
 	*/
 	ChannelID string
 
 	/* ID.
 
-	   Episode ID
+	   Item ID
 	*/
 	ID string
 

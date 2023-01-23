@@ -15,7 +15,7 @@ import (
 	"mkuznets.com/go/sps/api/models"
 )
 
-// ListEpisodesReader is a Reader for the ListEpisodes structure.
+// ListEpisodesReader is a Reader for the GetItems structure.
 type ListEpisodesReader struct {
 	formats strfmt.Registry
 }

@@ -65,13 +65,13 @@ type CreateEpisodeParams struct {
 
 	/* ID.
 
-	   Channel ID
+	   Feed ID
 	*/
 	ID string
 
 	/* Request.
 
-	   CreateEpisode request
+	   CreateItems request
 	*/
 	Request *models.CreateEpisodeRequest
 

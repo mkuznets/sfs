@@ -16,3 +16,9 @@ func Json(w http.ResponseWriter, r *http.Request, status int, v interface{}) {
 	w.WriteHeader(status)
 	_, _ = w.Write(buf.Bytes())
 }
+
+func Rss(w http.ResponseWriter, r *http.Request, status int, v string) {
+	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
+	w.WriteHeader(status)
+	_, _ = w.Write([]byte(v))
+}

@@ -30,30 +30,30 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	CreateEpisode(params *CreateEpisodeParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateEpisodeOK, error)
+	CreateEpisodes(params *CreateEpisodesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateEpisodesOK, error)
 
-	ListEpisodes(params *ListEpisodesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*ListEpisodesOK, error)
+	GetEpisodes(params *GetEpisodesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEpisodesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-CreateEpisode creates a new episode
+CreateEpisodes creates a new episode
 */
-func (a *Client) CreateEpisode(params *CreateEpisodeParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateEpisodeOK, error) {
+func (a *Client) CreateEpisodes(params *CreateEpisodesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateEpisodesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewCreateEpisodeParams()
+		params = NewCreateEpisodesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "CreateEpisode",
+		ID:                 "CreateItems",
 		Method:             "POST",
 		PathPattern:        "/channels/{id}/episodes",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &CreateEpisodeReader{formats: a.formats},
+		Reader:             &CreateEpisodesReader{formats: a.formats},
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
@@ -66,33 +66,33 @@ func (a *Client) CreateEpisode(params *CreateEpisodeParams, authInfo runtime.Cli
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*CreateEpisodeOK)
+	success, ok := result.(*CreateEpisodesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for CreateEpisode: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for CreateItems: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-ListEpisodes lists episoded of the given channel
+GetEpisodes lists episoded of the given channel
 */
-func (a *Client) ListEpisodes(params *ListEpisodesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*ListEpisodesOK, error) {
+func (a *Client) GetEpisodes(params *GetEpisodesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetEpisodesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewListEpisodesParams()
+		params = NewGetEpisodesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "ListEpisodes",
+		ID:                 "GetItems",
 		Method:             "GET",
 		PathPattern:        "/channels/{id}/episodes",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &ListEpisodesReader{formats: a.formats},
+		Reader:             &GetEpisodesReader{formats: a.formats},
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
@@ -105,13 +105,13 @@ func (a *Client) ListEpisodes(params *ListEpisodesParams, authInfo runtime.Clien
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*ListEpisodesOK)
+	success, ok := result.(*GetEpisodesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for ListEpisodes: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetItems: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

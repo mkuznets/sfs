@@ -7,6 +7,9 @@ sps: swagger web
 	mkdir -p bin
 	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
 
+sps-go:
+	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
+
 swagger:
 	swag init -g internal/api/api.go
 	swagger generate client --spec docs/swagger.json --name sps --strict-responders --target ./api

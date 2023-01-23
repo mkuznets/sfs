@@ -3,11 +3,14 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/sps/internal/ytils/ycrypto"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
-	"mkuznets.com/go/sps/internal/ytils/ytime"
 )
+
+type contextKey int
+
+var ctxTxKey = contextKey(0x54)
 
 // bunStore implements the Store interface.
 type bunStore struct {
@@ -20,76 +23,124 @@ func NewBunStore(db *bun.DB) Store {
 	}
 }
 
-func (s *bunStore) CreateChannel(ctx context.Context, channel *Channel) error {
-	_, err := s.db.NewInsert().Model(channel).Exec(ctx)
+func (s *bunStore) ctxDb(ctx context.Context) bun.IDB {
+	tx := ctx.Value(ctxTxKey)
+	if tx != nil {
+		return tx.(bun.Tx)
+	}
+	return s.db
+}
+
+func (s *bunStore) Init(ctx context.Context) error {
+	m := NewBunMigrator(s.db)
+	if err := m.Init(ctx); err != nil {
+		return err
+	}
+	if err := m.Migrate(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *bunStore) Tx(ctx context.Context, fn func(ctx context.Context) error) error {
+	return s.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		return fn(context.WithValue(ctx, ctxTxKey, tx))
+	})
+}
+
+func (s *bunStore) GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, error) {
+	feeds := make([]*Feed, 0)
+	q := s.ctxDb(ctx).NewSelect().Model(&feeds)
+
+	if len(filter.Ids) > 0 {
+		q = q.Where("id IN (?)", bun.In(filter.Ids))
+	}
+	if len(filter.UserIds) > 0 {
+		q = q.Where("user_id IN (?)", bun.In(filter.UserIds))
+	}
+
+	if err := q.Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	return feeds, nil
+}
+
+func (s *bunStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
+	_, err := s.ctxDb(ctx).NewInsert().Model(&feeds).Returning("id").Exec(ctx)
 	return err
 }
 
-func (s *bunStore) GetChannel(ctx context.Context, id string) (*Channel, error) {
-	var channel Channel
-	err := s.db.NewSelect().Model(&channel).
-		Where("id = ?", id).
-		Scan(ctx)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, yerr.NotFound("channel not found")
-		}
+func (s *bunStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, error) {
+	items := make([]*Item, 0)
+
+	q := s.db.NewSelect().Model(&items).Relation("File")
+
+	if len(filter.Ids) > 0 {
+		q = q.Where("it.id IN (?)", bun.In(filter.Ids))
+	}
+	if len(filter.FeedIds) > 0 {
+		q = q.Where("it.feed_id IN (?)", bun.In(filter.FeedIds))
+	}
+	if len(filter.UserIds) > 0 {
+		q = q.Where("it.user_id IN (?)", bun.In(filter.UserIds))
+	}
+	q = q.Order("it.id DESC")
+
+	if err := q.Scan(ctx); err != nil {
 		return nil, err
 	}
-	return &channel, nil
+
+	return items, nil
 }
 
-func (s *bunStore) ListChannels(ctx context.Context, userId string) ([]*Channel, error) {
-	channels := make([]*Channel, 0)
-	err := s.db.NewSelect().Model(&channels).
-		Where("user_id = ?", userId).
-		Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return channels, nil
-}
-
-func (s *bunStore) ListEpisodesWithFiles(ctx context.Context, channelId string) ([]*Episode, error) {
-	episodes := make([]*Episode, 0)
-	err := s.db.NewSelect().Model(&episodes).
-		Relation("File").
-		Where("channel_id = ?", channelId).
-		Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return episodes, nil
-}
-
-func (s *bunStore) CreateEpisode(ctx context.Context, episode *Episode) error {
-	_, err := s.db.NewInsert().Model(episode).Exec(ctx)
-	if err != nil {
-		return err
-	}
-
-	_, err = s.db.NewUpdate().
-		Model(&Channel{}).
-		Set("updated_at = ?", ytime.Now()).
-		Where("id = ?", episode.ChannelId).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-
+func (s *bunStore) CreateItems(ctx context.Context, items []*Item) error {
+	_, err := s.ctxDb(ctx).NewInsert().Model(&items).Returning("id").Exec(ctx)
 	return err
 }
 
 func (s *bunStore) CreateFile(ctx context.Context, file *File) error {
-	_, err := s.db.NewInsert().Model(file).Exec(ctx)
+	_, err := s.ctxDb(ctx).NewInsert().Model(file).Returning("id").Exec(ctx)
 	return err
 }
 
-func (s *bunStore) GetFile(ctx context.Context, id string) (*File, error) {
+func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...string) error {
+	values := s.ctxDb(ctx).NewValues(&feeds)
+
+	q := s.ctxDb(ctx).NewUpdate().
+		With("_data", values).
+		Model((*Feed)(nil)).
+		TableExpr("_data")
+
+	for _, attr := range fields {
+		q = q.Set(fmt.Sprintf("%s = _data.%s", attr, attr))
+	}
+	q = q.Where("fe.id = _data.id")
+
+	_, err := q.Exec(ctx)
+	return err
+}
+
+func (s *bunStore) UpdateFiles(ctx context.Context, files []*File, fields ...string) error {
+	values := s.ctxDb(ctx).NewValues(&files)
+
+	q := s.ctxDb(ctx).NewUpdate().
+		With("_data", values).
+		Model((*File)(nil)).
+		TableExpr("_data")
+
+	for _, attr := range fields {
+		q = q.Set(fmt.Sprintf("%s = _data.%s", attr, attr))
+	}
+	q = q.Where("fi.id = _data.id")
+
+	_, err := q.Exec(ctx)
+	return err
+}
+
+func (s *bunStore) GetFileById(ctx context.Context, id string) (*File, error) {
 	var file File
-	err := s.db.NewSelect().Model(&file).
-		Where("id = ?", id).
-		Scan(ctx)
+	err := s.ctxDb(ctx).NewSelect().Model(&file).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, yerr.NotFound("file not found")
@@ -97,70 +148,4 @@ func (s *bunStore) GetFile(ctx context.Context, id string) (*File, error) {
 		return nil, err
 	}
 	return &file, nil
-}
-
-func (s *bunStore) GetChannelsIdsToUpdateFeeds(ctx context.Context) ([]string, error) {
-	ids := make([]string, 0)
-	err := s.db.NewSelect().
-		ColumnExpr("id").
-		Model((*Channel)(nil)).
-		Where("feed_published_at IS NULL OR feed_published_at < updated_at").
-		Scan(ctx, &ids)
-	if err != nil {
-		return nil, err
-	}
-	return ids, nil
-}
-
-func (s *bunStore) UpdateChannelFeeds(ctx context.Context, channels []*Channel) error {
-	values := s.db.NewValues(&channels).Column("id", "feed_published_at", "feed_url")
-	_, err := s.db.NewUpdate().
-		With("_data", values).
-		Model((*Channel)(nil)).
-		TableExpr("_data").
-		Set("feed_published_at = _data.feed_published_at").
-		Set("feed_url = _data.feed_url").
-		Where("ch.id = _data.id").
-		Exec(ctx)
-	return err
-}
-
-func (s *bunStore) CreateUser(ctx context.Context, user *User) error {
-	_, err := s.db.NewInsert().Model(user).Exec(ctx)
-	return err
-}
-
-func (s *bunStore) GetUserByAccountNumber(ctx context.Context, accountNumber string) (*User, error) {
-	accountNumberHashed, err := ycrypto.HashPassword(accountNumber, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var user User
-	err = s.db.NewSelect().Model(&user).
-		Where("account_number = ?", accountNumberHashed).
-		Scan(ctx)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, yerr.NotFound("user not found")
-		}
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-func (s *bunStore) GetEpisode(ctx context.Context, id string) (*Episode, error) {
-	var episode Episode
-	err := s.db.NewSelect().Model(&episode).
-		Where("id = ?", id).
-		Scan(ctx)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, yerr.NotFound("episode not found")
-		}
-		return nil, err
-	}
-	return &episode, nil
-
 }

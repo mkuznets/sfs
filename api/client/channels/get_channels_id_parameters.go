@@ -63,7 +63,7 @@ type GetChannelsIDParams struct {
 
 	/* ID.
 
-	   Channel ID
+	   Feed ID
 	*/
 	ID string
 

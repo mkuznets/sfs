@@ -30,33 +30,30 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	CreateChannel(params *CreateChannelParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateChannelOK, error)
+	CreateFeeds(params *CreateFeedsParams, opts ...ClientOption) (*CreateFeedsOK, error)
 
-	GetChannel(params *GetChannelParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetChannelOK, error)
-
-	ListChannels(params *ListChannelsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*ListChannelsOK, error)
+	GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFeedsOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-CreateChannel creates a new channel
+CreateFeeds creates new channels
 */
-func (a *Client) CreateChannel(params *CreateChannelParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateChannelOK, error) {
+func (a *Client) CreateFeeds(params *CreateFeedsParams, opts ...ClientOption) (*CreateFeedsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewCreateChannelParams()
+		params = NewCreateFeedsParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "CreateChannel",
+		ID:                 "CreateFeeds",
 		Method:             "POST",
-		PathPattern:        "/channels",
+		PathPattern:        "/channels/create",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &CreateChannelReader{formats: a.formats},
-		AuthInfo:           authInfo,
+		Reader:             &CreateFeedsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -68,34 +65,33 @@ func (a *Client) CreateChannel(params *CreateChannelParams, authInfo runtime.Cli
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*CreateChannelOK)
+	success, ok := result.(*CreateFeedsOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for CreateChannel: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for CreateFeeds: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-GetChannel gets channel by ID
+GetFeeds gets channels matching the given parameters
 */
-func (a *Client) GetChannel(params *GetChannelParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetChannelOK, error) {
+func (a *Client) GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFeedsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetChannelParams()
+		params = NewGetFeedsParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetChannel",
-		Method:             "GET",
-		PathPattern:        "/channels/{id}",
+		ID:                 "GetFeeds",
+		Method:             "POST",
+		PathPattern:        "/channels/get",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetChannelReader{formats: a.formats},
-		AuthInfo:           authInfo,
+		Reader:             &GetFeedsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -107,52 +103,13 @@ func (a *Client) GetChannel(params *GetChannelParams, authInfo runtime.ClientAut
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetChannelOK)
+	success, ok := result.(*GetFeedsOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetChannel: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-ListChannels lists channels of the current user
-*/
-func (a *Client) ListChannels(params *ListChannelsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*ListChannelsOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewListChannelsParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "ListChannels",
-		Method:             "GET",
-		PathPattern:        "/channels",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &ListChannelsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*ListChannelsOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for ListChannels: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetFeeds: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

@@ -15,7 +15,7 @@ import (
 	"mkuznets.com/go/sps/api/models"
 )
 
-// ListChannelsReader is a Reader for the ListChannels structure.
+// ListChannelsReader is a Reader for the GetFeeds structure.
 type ListChannelsReader struct {
 	formats strfmt.Registry
 }

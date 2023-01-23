@@ -15,7 +15,7 @@ import (
 	"mkuznets.com/go/sps/api/models"
 )
 
-// CreateEpisodeReader is a Reader for the CreateEpisode structure.
+// CreateEpisodeReader is a Reader for the CreateItems structure.
 type CreateEpisodeReader struct {
 	formats strfmt.Registry
 }

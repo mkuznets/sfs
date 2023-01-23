@@ -1,54 +1,14 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Simple EpisodesPage Server REST API",
+        "title": "Simple Feed Service HTTP API",
         "contact": {},
         "version": "0.1"
     },
     "basePath": "/api",
     "paths": {
-        "/channels": {
-            "get": {
-                "security": [
-                    {
-                        "Authentication": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Channels"
-                ],
-                "summary": "List channels of the current user",
-                "operationId": "ListChannels",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/IdResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    }
-                }
-            },
+        "/feeds/create": {
             "post": {
-                "security": [
-                    {
-                        "Authentication": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -56,18 +16,18 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Channels"
+                    "Feeds"
                 ],
-                "summary": "Create a new channel",
-                "operationId": "CreateChannel",
+                "summary": "Create new feeds",
+                "operationId": "CreateFeeds",
                 "parameters": [
                     {
-                        "description": "CreateChannel request",
+                        "description": "CreateFeeds request",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/CreateChannelRequest"
+                            "$ref": "#/definitions/CreateFeedsRequest"
                         }
                     }
                 ],
@@ -75,7 +35,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IdResponse"
+                            "$ref": "#/definitions/CreateFeedsResponse"
                         }
                     },
                     "400": {
@@ -99,115 +59,8 @@
                 }
             }
         },
-        "/channels/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "Authentication": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Channels"
-                ],
-                "summary": "Get channel by ID",
-                "operationId": "GetChannel",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Channel ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ChannelResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/channels/{id}/episodes": {
-            "get": {
-                "security": [
-                    {
-                        "Authentication": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "EpisodesPage"
-                ],
-                "summary": "List episoded of the given channel",
-                "operationId": "ListEpisodes",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Channel ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/IdResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    }
-                }
-            },
+        "/feeds/get": {
             "post": {
-                "security": [
-                    {
-                        "Authentication": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -215,25 +68,18 @@
                     "application/json"
                 ],
                 "tags": [
-                    "EpisodesPage"
+                    "Feeds"
                 ],
-                "summary": "Create a new episode",
-                "operationId": "CreateEpisode",
+                "summary": "Get feeds matching the given parameters",
+                "operationId": "GetFeeds",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Channel ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "CreateEpisode request",
+                        "description": "Parameters for filtering feeds",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/CreateEpisodeRequest"
+                            "$ref": "#/definitions/GetFeedsRequest"
                         }
                     }
                 ],
@@ -241,23 +87,11 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IdResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
+                            "$ref": "#/definitions/GetFeedsResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
@@ -271,13 +105,8 @@
                 }
             }
         },
-        "/files": {
+        "/files/upload": {
             "post": {
-                "security": [
-                    {
-                        "Authentication": []
-                    }
-                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -287,12 +116,12 @@
                 "tags": [
                     "Files"
                 ],
-                "summary": "Uploads a new audio file",
-                "operationId": "UploadFile",
+                "summary": "Upload new audio files",
+                "operationId": "UploadFiles",
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "File to upload",
+                        "description": "File to upload (can be repeated multiple times)",
                         "name": "file",
                         "in": "formData",
                         "required": true
@@ -302,7 +131,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IdResponse"
+                            "$ref": "#/definitions/UploadFilesResponse"
                         }
                     },
                     "400": {
@@ -326,7 +155,7 @@
                 }
             }
         },
-        "/users": {
+        "/items/create": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -335,15 +164,84 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Items"
                 ],
-                "summary": "Register a new user",
-                "operationId": "CreateUser",
+                "summary": "Create new items and returns a response with their IDs",
+                "operationId": "CreateItems",
+                "parameters": [
+                    {
+                        "description": "CreateItems request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateItemsRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IdResponse"
+                            "$ref": "#/definitions/CreateItemsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/get": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Get items matching the given parameters",
+                "operationId": "GetItems",
+                "parameters": [
+                    {
+                        "description": "Parameters for filtering items",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GetItemsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/GetItemsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
@@ -357,13 +255,148 @@
         }
     },
     "definitions": {
-        "ChannelResponse": {
+        "CreateFeedsRequest": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CreateFeedsResource"
+                    }
+                }
+            }
+        },
+        "CreateFeedsResource": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "Bored Owls Online Radio"
+                },
+                "link": {
+                    "type": "string",
+                    "x-order": "1",
+                    "example": "https://example.com"
+                },
+                "authors": {
+                    "type": "string",
+                    "x-order": "2",
+                    "example": "The Owl"
+                },
+                "description": {
+                    "type": "string",
+                    "x-order": "3",
+                    "example": "Bored owls talk about whatever happens to be on their minds"
+                }
+            }
+        },
+        "CreateFeedsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CreateFeedsResultResource"
+                    }
+                }
+            }
+        },
+        "CreateFeedsResultResource": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "string",
                     "x-order": "0",
-                    "example": "ch_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                    "example": "feed_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                }
+            }
+        },
+        "CreateItemResultResource": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "item_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                }
+            }
+        },
+        "CreateItemsRequest": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CreateItemsResource"
+                    }
+                }
+            }
+        },
+        "CreateItemsResource": {
+            "type": "object",
+            "properties": {
+                "file_id": {
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "file_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                },
+                "feed_id": {
+                    "type": "string",
+                    "x-order": "1",
+                    "example": "feed_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                },
+                "title": {
+                    "type": "string",
+                    "x-order": "2",
+                    "example": "Bored Owls Online Radio"
+                },
+                "link": {
+                    "type": "string",
+                    "x-order": "3",
+                    "example": "https://example.com"
+                },
+                "authors": {
+                    "type": "string",
+                    "x-order": "4",
+                    "example": "The Owl"
+                },
+                "description": {
+                    "type": "string",
+                    "x-order": "5",
+                    "example": "Bored owls talk about whatever happens to be on their minds"
+                }
+            }
+        },
+        "CreateItemsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CreateItemResultResource"
+                    }
+                }
+            }
+        },
+        "ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "FeedResource": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "feed_2K9BWVNuo3sG4yM322fbP3mB6ls"
                 },
                 "feed_url": {
                     "type": "string",
@@ -403,75 +436,174 @@
                 }
             }
         },
-        "CreateChannelRequest": {
+        "GetFeedsRequest": {
             "type": "object",
             "properties": {
-                "title": {
-                    "type": "string",
-                    "x-order": "0",
-                    "example": "Bored Owls Online Radio"
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-order": "0"
                 },
-                "link": {
-                    "type": "string",
-                    "x-order": "1",
-                    "example": "https://example.com"
-                },
-                "authors": {
-                    "type": "string",
-                    "example": "The Owl"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Bored owls talk about whatever happens to be on their minds"
+                "userIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
-        "CreateEpisodeRequest": {
+        "GetFeedsResponse": {
             "type": "object",
             "properties": {
-                "file_id": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/FeedResource"
+                    }
+                }
+            }
+        },
+        "GetItemsRequest": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-order": "0"
+                },
+                "feed_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "x-order": "1"
+                },
+                "userIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "GetItemsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ItemResource"
+                    }
+                }
+            }
+        },
+        "ItemFileResource": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string",
                     "x-order": "0",
                     "example": "file_2K9BWVNuo3sG4yM322fbP3mB6ls"
                 },
-                "title": {
+                "url": {
                     "type": "string",
                     "x-order": "1",
+                    "example": "https://example.com/file.mp3"
+                },
+                "size": {
+                    "type": "integer",
+                    "x-order": "2",
+                    "example": 123456
+                },
+                "content_type": {
+                    "type": "string",
+                    "x-order": "3",
+                    "example": "audio/mpeg"
+                }
+            }
+        },
+        "ItemResource": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "item_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                },
+                "file": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ItemFileResource"
+                        }
+                    ],
+                    "x-order": "1"
+                },
+                "feed_id": {
+                    "type": "string",
+                    "x-order": "2",
+                    "example": "feed_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                },
+                "title": {
+                    "type": "string",
+                    "x-order": "3",
                     "example": "Bored Owls Online Radio"
                 },
                 "link": {
                     "type": "string",
-                    "x-order": "2",
+                    "x-order": "4",
                     "example": "https://example.com"
                 },
                 "authors": {
                     "type": "string",
-                    "x-order": "3",
+                    "x-order": "5",
                     "example": "The Owl"
                 },
                 "description": {
                     "type": "string",
-                    "x-order": "4",
+                    "x-order": "6",
                     "example": "Bored owls talk about whatever happens to be on their minds"
-                }
-            }
-        },
-        "ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
                 },
-                "message": {
-                    "type": "string"
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-order": "7",
+                    "example": "2023-01-01T01:02:03.456Z"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-order": "8",
+                    "example": "2023-01-01T01:02:03.456Z"
                 }
             }
         },
-        "IdResponse": {
+        "UploadFileResultResource": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "x-order": "0",
+                    "example": "file_2K9BWVNuo3sG4yM322fbP3mB6ls"
+                },
+                "error": {
+                    "type": "string",
+                    "x-order": "1",
+                    "example": "invalid file format"
+                }
+            }
+        },
+        "UploadFilesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/UploadFileResultResource"
+                    }
                 }
             }
         }

@@ -10,10 +10,9 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"mkuznets.com/go/sps/api/client/channels"
-	"mkuznets.com/go/sps/api/client/episodes_page"
+	"mkuznets.com/go/sps/api/client/feeds"
 	"mkuznets.com/go/sps/api/client/files"
-	"mkuznets.com/go/sps/api/client/users"
+	"mkuznets.com/go/sps/api/client/items"
 )
 
 // Default sps HTTP client.
@@ -58,10 +57,9 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Sps {
 
 	cli := new(Sps)
 	cli.Transport = transport
-	cli.Channels = channels.New(transport, formats)
-	cli.EpisodesPage = episodes_page.New(transport, formats)
+	cli.Feeds = feeds.New(transport, formats)
 	cli.Files = files.New(transport, formats)
-	cli.Users = users.New(transport, formats)
+	cli.Items = items.New(transport, formats)
 	return cli
 }
 
@@ -106,13 +104,11 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // Sps is a client for sps
 type Sps struct {
-	Channels channels.ClientService
-
-	EpisodesPage episodes_page.ClientService
+	Feeds feeds.ClientService
 
 	Files files.ClientService
 
-	Users users.ClientService
+	Items items.ClientService
 
 	Transport runtime.ClientTransport
 }
@@ -120,8 +116,7 @@ type Sps struct {
 // SetTransport changes the transport on the client and all its subresources
 func (c *Sps) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
-	c.Channels.SetTransport(transport)
-	c.EpisodesPage.SetTransport(transport)
+	c.Feeds.SetTransport(transport)
 	c.Files.SetTransport(transport)
-	c.Users.SetTransport(transport)
+	c.Items.SetTransport(transport)
 }

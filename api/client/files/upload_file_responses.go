@@ -15,7 +15,7 @@ import (
 	"mkuznets.com/go/sps/api/models"
 )
 
-// UploadFileReader is a Reader for the UploadFile structure.
+// UploadFileReader is a Reader for the UploadFiles structure.
 type UploadFileReader struct {
 	formats strfmt.Registry
 }

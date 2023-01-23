@@ -1,6 +1,101 @@
 basePath: /api
 definitions:
-  ChannelResponse:
+  CreateFeedsRequest:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/CreateFeedsResource'
+        type: array
+    type: object
+  CreateFeedsResource:
+    properties:
+      authors:
+        example: The Owl
+        type: string
+        x-order: "2"
+      description:
+        example: Bored owls talk about whatever happens to be on their minds
+        type: string
+        x-order: "3"
+      link:
+        example: https://example.com
+        type: string
+        x-order: "1"
+      title:
+        example: Bored Owls Online Radio
+        type: string
+        x-order: "0"
+    type: object
+  CreateFeedsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/CreateFeedsResultResource'
+        type: array
+    type: object
+  CreateFeedsResultResource:
+    properties:
+      id:
+        example: feed_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "0"
+    type: object
+  CreateItemResultResource:
+    properties:
+      id:
+        example: item_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "0"
+    type: object
+  CreateItemsRequest:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/CreateItemsResource'
+        type: array
+    type: object
+  CreateItemsResource:
+    properties:
+      authors:
+        example: The Owl
+        type: string
+        x-order: "4"
+      description:
+        example: Bored owls talk about whatever happens to be on their minds
+        type: string
+        x-order: "5"
+      feed_id:
+        example: feed_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "1"
+      file_id:
+        example: file_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "0"
+      link:
+        example: https://example.com
+        type: string
+        x-order: "3"
+      title:
+        example: Bored Owls Online Radio
+        type: string
+        x-order: "2"
+    type: object
+  CreateItemsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/CreateItemResultResource'
+        type: array
+    type: object
+  ErrorResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  FeedResource:
     properties:
       authors:
         example: The Owl
@@ -19,7 +114,7 @@ definitions:
         type: string
         x-order: "1"
       id:
-        example: ch_2K9BWVNuo3sG4yM322fbP3mB6ls
+        example: feed_2K9BWVNuo3sG4yM322fbP3mB6ls
         type: string
         x-order: "0"
       link:
@@ -36,104 +131,151 @@ definitions:
         type: string
         x-order: "7"
     type: object
-  CreateChannelRequest:
+  GetFeedsRequest:
     properties:
-      authors:
-        example: The Owl
-        type: string
-      description:
-        example: Bored owls talk about whatever happens to be on their minds
-        type: string
-      link:
-        example: https://example.com
-        type: string
-        x-order: "1"
-      title:
-        example: Bored Owls Online Radio
-        type: string
+      ids:
+        items:
+          type: string
+        type: array
         x-order: "0"
+      userIds:
+        items:
+          type: string
+        type: array
     type: object
-  CreateEpisodeRequest:
+  GetFeedsResponse:
     properties:
-      authors:
-        example: The Owl
+      data:
+        items:
+          $ref: '#/definitions/FeedResource'
+        type: array
+    type: object
+  GetItemsRequest:
+    properties:
+      feed_ids:
+        items:
+          type: string
+        type: array
+        x-order: "1"
+      ids:
+        items:
+          type: string
+        type: array
+        x-order: "0"
+      userIds:
+        items:
+          type: string
+        type: array
+    type: object
+  GetItemsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/ItemResource'
+        type: array
+    type: object
+  ItemFileResource:
+    properties:
+      content_type:
+        example: audio/mpeg
         type: string
         x-order: "3"
-      description:
-        example: Bored owls talk about whatever happens to be on their minds
-        type: string
-        x-order: "4"
-      file_id:
+      id:
         example: file_2K9BWVNuo3sG4yM322fbP3mB6ls
         type: string
         x-order: "0"
-      link:
-        example: https://example.com
-        type: string
+      size:
+        example: 123456
+        type: integer
         x-order: "2"
-      title:
-        example: Bored Owls Online Radio
+      url:
+        example: https://example.com/file.mp3
         type: string
         x-order: "1"
     type: object
-  ErrorResponse:
+  ItemResource:
+    properties:
+      authors:
+        example: The Owl
+        type: string
+        x-order: "5"
+      created_at:
+        example: "2023-01-01T01:02:03.456Z"
+        format: date-time
+        type: string
+        x-order: "7"
+      description:
+        example: Bored owls talk about whatever happens to be on their minds
+        type: string
+        x-order: "6"
+      feed_id:
+        example: feed_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "2"
+      file:
+        allOf:
+        - $ref: '#/definitions/ItemFileResource'
+        x-order: "1"
+      id:
+        example: item_2K9BWVNuo3sG4yM322fbP3mB6ls
+        type: string
+        x-order: "0"
+      link:
+        example: https://example.com
+        type: string
+        x-order: "4"
+      title:
+        example: Bored Owls Online Radio
+        type: string
+        x-order: "3"
+      updated_at:
+        example: "2023-01-01T01:02:03.456Z"
+        format: date-time
+        type: string
+        x-order: "8"
+    type: object
+  UploadFileResultResource:
     properties:
       error:
+        example: invalid file format
         type: string
-      message:
-        type: string
-    type: object
-  IdResponse:
-    properties:
+        x-order: "1"
       id:
+        example: file_2K9BWVNuo3sG4yM322fbP3mB6ls
         type: string
+        x-order: "0"
+    type: object
+  UploadFilesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/UploadFileResultResource'
+        type: array
     type: object
 info:
   contact: {}
-  title: Simple EpisodesPage Server REST API
+  title: Simple Feed Service HTTP API
   version: "0.1"
 paths:
-  /channels:
-    get:
-      operationId: ListChannels
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/IdResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      security:
-      - Authentication: []
-      summary: List channels of the current user
-      tags:
-      - Channels
+  /feeds/create:
     post:
       consumes:
       - application/json
-      operationId: CreateChannel
+      operationId: CreateFeeds
       parameters:
-      - description: CreateChannel request
+      - description: CreateFeeds request
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/CreateChannelRequest'
+          $ref: '#/definitions/CreateFeedsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/IdResponse'
+            $ref: '#/definitions/CreateFeedsResponse'
         "400":
           description: Bad Request
           schema:
@@ -146,128 +288,46 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-      security:
-      - Authentication: []
-      summary: Create a new channel
+      summary: Create new feeds
       tags:
-      - Channels
-  /channels/{id}:
-    get:
-      operationId: GetChannel
-      parameters:
-      - description: Channel ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ChannelResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      security:
-      - Authentication: []
-      summary: Get channel by ID
-      tags:
-      - Channels
-  /channels/{id}/episodes:
-    get:
-      operationId: ListEpisodes
-      parameters:
-      - description: Channel ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/IdResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      security:
-      - Authentication: []
-      summary: List episoded of the given channel
-      tags:
-      - EpisodesPage
+      - Feeds
+  /feeds/get:
     post:
       consumes:
       - application/json
-      operationId: CreateEpisode
+      operationId: GetFeeds
       parameters:
-      - description: Channel ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: CreateEpisode request
+      - description: Parameters for filtering feeds
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/CreateEpisodeRequest'
+          $ref: '#/definitions/GetFeedsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/IdResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ErrorResponse'
+            $ref: '#/definitions/GetFeedsResponse'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-      security:
-      - Authentication: []
-      summary: Create a new episode
+      summary: Get feeds matching the given parameters
       tags:
-      - EpisodesPage
-  /files:
+      - Feeds
+  /files/upload:
     post:
       consumes:
       - multipart/form-data
-      operationId: UploadFile
+      operationId: UploadFiles
       parameters:
-      - description: File to upload
+      - description: File to upload (can be repeated multiple times)
         in: formData
         name: file
         required: true
@@ -278,7 +338,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/IdResponse'
+            $ref: '#/definitions/UploadFilesResponse'
         "400":
           description: Bad Request
           schema:
@@ -291,30 +351,73 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-      security:
-      - Authentication: []
-      summary: Uploads a new audio file
+      summary: Upload new audio files
       tags:
       - Files
-  /users:
+  /items/create:
     post:
       consumes:
       - application/json
-      operationId: CreateUser
+      operationId: CreateItems
+      parameters:
+      - description: CreateItems request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateItemsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/IdResponse'
+            $ref: '#/definitions/CreateItemsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-      summary: Register a new user
+      summary: Create new items and returns a response with their IDs
       tags:
-      - Users
+      - Items
+  /items/get:
+    post:
+      consumes:
+      - application/json
+      operationId: GetItems
+      parameters:
+      - description: Parameters for filtering items
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/GetItemsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GetItemsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get items matching the given parameters
+      tags:
+      - Items
 securityDefinitions:
   Authentication:
     in: header

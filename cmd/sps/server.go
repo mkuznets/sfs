@@ -4,11 +4,10 @@ import (
 	"context"
 	"mkuznets.com/go/sps/internal/api"
 	"mkuznets.com/go/sps/internal/auth"
-	"mkuznets.com/go/sps/internal/feed"
 	"mkuznets.com/go/sps/internal/files"
+	"mkuznets.com/go/sps/internal/rss"
 	"mkuznets.com/go/sps/internal/sps"
 	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/ui"
 	_ "modernc.org/sqlite"
 )
 
@@ -17,8 +16,7 @@ type ServerCommand struct {
 	AwsOpts    Aws    `group:"AWS Options" namespace:"aws" env-namespace:"AWS"`
 	JwtOpts    Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT"`
 
-	server      *sps.Server
-	feedService feed.Service
+	server *sps.Server
 }
 
 type Server struct {
@@ -49,27 +47,21 @@ func (c *ServerCommand) Init(app *App) error {
 
 	fileStorage := files.NewS3Storage(c.AwsOpts.EndpointUrl, c.AwsOpts.Bucket, c.AwsOpts.KeyID, c.AwsOpts.SecretKey, c.AwsOpts.UrlPrefix)
 	bunStore := store.NewBunStore(db)
+	if err := bunStore.Init(context.Background()); err != nil {
+		return err
+	}
 
-	feedController := feed.NewController(bunStore, fileStorage)
+	feedController := rss.NewController(bunStore, fileStorage)
 	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), feedController, authService)
 
 	c.server = &sps.Server{
 		Addr:      c.ServerOpts.Addr,
 		ApiRouter: api.New(authService, api.NewHandler(apiController)).Router(),
-		UiRouter:  ui.New(authService, ui.NewHandler(ui.NewController(apiController), apiController)).Router(),
 	}
-
-	c.feedService = feed.NewService(feedController)
 
 	return nil
 }
 
 func (c *ServerCommand) Execute([]string) error {
-	ctx := context.Background()
-
-	go func() {
-		c.feedService.Start(ctx)
-	}()
-
 	return c.server.Start()
 }
