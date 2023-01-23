@@ -1,6 +1,8 @@
 package api
 
 import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"mkuznets.com/go/sps/internal/rss"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/ytime"
@@ -11,13 +13,16 @@ type GetFeedsRequest struct {
 	UserIds []string
 } // @name GetFeedsRequest
 
+func (r *GetFeedsRequest) Validate() error {
+	return nil
+}
+
 type GetFeedsResponse struct {
 	Data []*FeedResource `json:"data"`
 } // @name GetFeedsResponse
 
 type FeedResource struct {
 	Id          string     `json:"id" example:"feed_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
-	FeedUrl     string     `json:"feed_url" extensions:"x-order=1"`
 	Title       string     `json:"title" example:"Bored Owls Online Radio" extensions:"x-order=2"`
 	Link        string     `json:"link" example:"https://example.com" extensions:"x-order=3"`
 	Authors     string     `json:"authors" example:"The Owl" extensions:"x-order=4"`
@@ -30,6 +35,12 @@ type CreateFeedsRequest struct {
 	Data []*CreateFeedsResource `json:"data"`
 } // @name CreateFeedsRequest
 
+func (r *CreateFeedsRequest) Validate() error {
+	return validation.ValidateStruct(
+		r, validation.Field(&r.Data, validation.Required, validation.Length(1, 100)),
+	)
+}
+
 type CreateFeedsResponse struct {
 	Data []*CreateFeedsResultResource `json:"data"`
 } // @name CreateFeedsResponse
@@ -40,6 +51,16 @@ type CreateFeedsResource struct {
 	Authors     string `json:"authors" example:"The Owl" extensions:"x-order=2"`
 	Description string `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=3"`
 } // @name CreateFeedsResource
+
+func (r *CreateFeedsResource) Validate() error {
+	return validation.ValidateStruct(
+		r,
+		validation.Field(&r.Title, validation.Required, validation.Length(1, 1024)),
+		validation.Field(&r.Link, is.URL, validation.Length(0, 5*1024)),
+		validation.Field(&r.Authors, validation.Length(0, 1024)),
+		validation.Field(&r.Description, validation.Length(0, 64*1024)),
+	)
+}
 
 type CreateFeedsResultResource struct {
 	Id string `json:"id" example:"feed_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
@@ -78,9 +99,11 @@ type CreateItemsRequest struct {
 	Data []*CreateItemsResource `json:"data"`
 } // @name CreateItemsRequest
 
-type CreateItemsResponse struct {
-	Data []*CreateItemResultResource `json:"data"`
-} // @name CreateItemsResponse
+func (r *CreateItemsRequest) Validate() error {
+	return validation.ValidateStruct(
+		r, validation.Field(&r.Data, validation.Required, validation.Length(1, 10000)),
+	)
+}
 
 type CreateItemsResource struct {
 	FileId      string `json:"file_id" example:"file_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
@@ -90,6 +113,22 @@ type CreateItemsResource struct {
 	Authors     string `json:"authors" example:"The Owl" extensions:"x-order=4"`
 	Description string `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=5"`
 } // @name CreateItemsResource
+
+func (r *CreateItemsResource) Validate() error {
+	return validation.ValidateStruct(
+		r,
+		validation.Field(&r.FileId, validation.Required, validation.Length(1, 1024)),
+		validation.Field(&r.FeedId, validation.Required, validation.Length(1, 1024)),
+		validation.Field(&r.Title, validation.Required, validation.Length(1, 1024)),
+		validation.Field(&r.Link, is.URL, validation.Length(0, 5*1024)),
+		validation.Field(&r.Authors, validation.Length(0, 1024)),
+		validation.Field(&r.Description, validation.Length(0, 64*1024)),
+	)
+}
+
+type CreateItemsResponse struct {
+	Data []*CreateItemResultResource `json:"data"`
+} // @name CreateItemsResponse
 
 type CreateItemResultResource struct {
 	Id string `json:"id" example:"item_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`

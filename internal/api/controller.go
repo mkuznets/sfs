@@ -70,9 +70,8 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 		return nil, err
 	}
 
-	items := make([]*FeedResource, 0)
-	for _, f := range feeds {
-		items = append(items, &FeedResource{
+	results := yslice.Map(feeds, func(f *store.Feed) *FeedResource {
+		return &FeedResource{
 			Id:          f.Id,
 			Title:       f.Title,
 			Link:        f.Link,
@@ -80,10 +79,10 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 			Description: f.Description,
 			CreatedAt:   f.CreatedAt,
 			UpdatedAt:   f.UpdatedAt,
-		})
-	}
+		}
+	})
 
-	return &GetFeedsResponse{Data: items}, nil
+	return &GetFeedsResponse{Data: results}, nil
 }
 
 // CreateFeeds creates new feeds with the given parameters.
@@ -100,6 +99,10 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/feeds/create [post]
 func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error) {
+	if err := r.Validate(); err != nil {
+		return nil, yerr.Invalid(err.Error())
+	}
+
 	feeds := make([]*store.Feed, 0)
 	for _, i := range r.Data {
 		feeds = append(feeds, &store.Feed{
@@ -157,9 +160,8 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 		return nil, err
 	}
 
-	data := make([]*ItemResource, 0)
-	for _, i := range items {
-		data = append(data, &ItemResource{
+	results := yslice.Map(items, func(i *store.Item) *ItemResource {
+		return &ItemResource{
 			Id: i.Id,
 			File: &ItemFileResource{
 				Id:          i.File.Id,
@@ -174,10 +176,10 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 			Description: i.Description,
 			CreatedAt:   i.CreatedAt,
 			UpdatedAt:   i.UpdatedAt,
-		})
-	}
-
-	return &GetItemsResponse{Data: data}, nil
+		}
+	})
+	
+	return &GetItemsResponse{Data: results}, nil
 }
 
 // CreateItems creates new items and returns a response with their IDs.
@@ -194,22 +196,38 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/items/create [post]
 func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error) {
+	if err := r.Validate(); err != nil {
+		return nil, yerr.Invalid(err.Error())
+	}
+
 	items := make([]*store.Item, 0)
 
-	err := c.store.Tx(ctx, func(ctx context.Context) error {
+	err := c.store.Tx(ctx, func(ctxT context.Context) error {
 		var fs []*store.File
 
+		feeds, err := c.store.GetFeeds(ctxT, &store.FeedFilter{
+			Ids: yslice.UniqueMap(r.Data, func(v *CreateItemsResource) string { return v.FeedId }),
+		})
+		if err != nil {
+			return err
+		}
+		feedsById := yslice.MapByKey(feeds, func(v *store.Feed) string { return v.Id })
+
 		for _, i := range r.Data {
-			file, err := c.store.GetFileById(ctx, i.FileId)
+			if _, ok := feedsById[i.FeedId]; !ok {
+				return yerr.NotFound("feed %s not found", i.FeedId)
+			}
+
+			file, err := c.store.GetFileById(ctxT, i.FileId)
 			if err != nil {
 				return err
 			}
 			if file.ItemId != "" {
-				return yerr.Validation("file already used")
+				return yerr.Invalid("file already used")
 			}
 
 			item := &store.Item{
-				Id:          c.idService.Item(ctx),
+				Id:          c.idService.Item(ctxT),
 				FeedId:      i.FeedId,
 				Title:       i.Title,
 				Link:        i.Link,
@@ -225,15 +243,21 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			fs = append(fs, file)
 		}
 
-		if err := c.store.CreateItems(ctx, items); err != nil {
+		if err := c.store.CreateItems(ctxT, items); err != nil {
 			return err
 		}
-		if err := c.store.UpdateFiles(ctx, fs, "item_id"); err != nil {
+		if err := c.store.UpdateFiles(ctxT, fs, "item_id"); err != nil {
 			return err
 		}
 
-		feedIds := yslice.Unique(yslice.Map(items, func(v *store.Item) string { return v.FeedId }))
-		if err := c.rssController.UpdateFeeds(ctx, feedIds); err != nil {
+		for _, feed := range feeds {
+			feed.UpdatedAt = ytime.Now()
+		}
+
+		if err := c.rssController.BuildFeedsRss(ctxT, feeds); err != nil {
+			return err
+		}
+		if err := c.store.UpdateFeeds(ctxT, feeds, "rss", "rss_updated_at", "updated_at"); err != nil {
 			return err
 		}
 
@@ -290,10 +314,10 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*store.File, error) {
 	info, err := files.Info(f)
 	if err != nil {
-		return nil, yerr.Internal("failed to get file info").WithError(err)
+		return nil, yerr.Internal("failed to get file info").WithCause(err)
 	}
 	if info.Mime.Type != "audio" {
-		return nil, yerr.Validation("unsupported file type: %s", info.Mime.Value)
+		return nil, yerr.Invalid("unsupported file type: %s", info.Mime.Value)
 	}
 
 	fileId := c.idService.File(ctx)

@@ -433,10 +433,6 @@ const docTemplate = `{
                     "x-order": "0",
                     "example": "feed_2K9BWVNuo3sG4yM322fbP3mB6ls"
                 },
-                "feed_url": {
-                    "type": "string",
-                    "x-order": "1"
-                },
                 "title": {
                     "type": "string",
                     "x-order": "2",

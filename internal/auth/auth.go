@@ -10,6 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v4/request"
 	"mkuznets.com/go/sps/internal/user"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
+	"mkuznets.com/go/sps/internal/ytils/yrender"
 	"net/http"
 	"time"
 )
@@ -133,17 +134,17 @@ func (s *authService) Middleware() func(next http.Handler) http.Handler {
 					return
 				}
 
-				yerr.RenderJson(w, r, yerr.Unauthorised("valid auth header is required").WithError(err))
+				yrender.JsonErr(w, r, yerr.Unauthorised("valid auth header is required").WithCause(err))
 				return
 			}
 
 			var cs claims
 			if _, err := jwt.ParseWithClaims(tokenString, &cs, s.keyFunc); err != nil {
-				yerr.RenderJson(w, r, yerr.Unauthorised("invalid token").WithError(err))
+				yrender.JsonErr(w, r, yerr.Unauthorised("invalid token").WithCause(err))
 				return
 			}
 			if !cs.VerifyExpiresAt(time.Now(), true) {
-				yerr.RenderJson(w, r, yerr.Unauthorised("token expired"))
+				yrender.JsonErr(w, r, yerr.Unauthorised("token expired"))
 				return
 			}
 

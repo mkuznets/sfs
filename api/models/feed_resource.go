@@ -32,9 +32,6 @@ type FeedResource struct {
 	// Example: Bored owls talk about whatever happens to be on their minds
 	Description string `json:"description,omitempty"`
 
-	// feed url
-	FeedURL string `json:"feed_url,omitempty"`
-
 	// id
 	// Example: feed_2K9BWVNuo3sG4yM322fbP3mB6ls
 	ID string `json:"id,omitempty"`

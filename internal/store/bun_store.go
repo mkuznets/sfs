@@ -74,7 +74,7 @@ func (s *bunStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
 func (s *bunStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, error) {
 	items := make([]*Item, 0)
 
-	q := s.db.NewSelect().Model(&items).Relation("File")
+	q := s.ctxDb(ctx).NewSelect().Model(&items).Relation("File")
 
 	if len(filter.Ids) > 0 {
 		q = q.Where("it.id IN (?)", bun.In(filter.Ids))

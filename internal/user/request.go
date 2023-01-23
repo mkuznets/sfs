@@ -34,7 +34,7 @@ func MustGet(r *http.Request) User {
 func Require(r *http.Request) (User, error) {
 	user, err := Get(r)
 	if err != nil || user == nil {
-		return nil, yerr.Unauthorised("unauthorised").WithError(err)
+		return nil, yerr.Unauthorised("unauthorised").WithCause(err)
 	}
 	return user, nil
 }

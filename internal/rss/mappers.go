@@ -2,6 +2,7 @@ package rss
 
 import (
 	"mkuznets.com/go/sps/internal/store"
+	"mkuznets.com/go/sps/internal/ytils/yslice"
 	"time"
 )
 
@@ -19,29 +20,27 @@ func FeedToPodcast(feed *store.Feed, items []*store.Item) *Podcast {
 			IAuthor:       feed.Authors,
 		},
 	}
-
-	var podcastItems []*PodcastItem
-	for _, episode := range items {
-		podcastItems = append(podcastItems, &PodcastItem{
+	
+	podcast.Channel.Items = yslice.Map(items, func(i *store.Item) *PodcastItem {
+		return &PodcastItem{
 			Guid: Guid{
 				IsPermaLink: false,
-				Text:        episode.Id,
+				Text:        i.Id,
 			},
-			PubDate: episode.CreatedAt.Format(time.RFC1123Z),
-			Title:   episode.Title,
-			Link:    episode.Link,
+			PubDate: i.CreatedAt.Format(time.RFC1123Z),
+			Title:   i.Title,
+			Link:    i.Link,
 			Description: &Description{
-				Text: episode.Description,
+				Text: i.Description,
 			},
-			IAuthor: episode.Authors,
+			IAuthor: i.Authors,
 			Enclosure: &Enclosure{
-				URL:    episode.File.UploadUrl,
-				Length: episode.File.Size,
-				Type:   episode.File.MimeType,
+				URL:    i.File.UploadUrl,
+				Length: i.File.Size,
+				Type:   i.File.MimeType,
 			},
-		})
-	}
-	podcast.Channel.Items = podcastItems
+		}
+	})
 
 	return podcast
 }

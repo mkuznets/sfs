@@ -31,15 +31,15 @@ func NewHandler(c Controller) Handler {
 func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	u := user.MustGet(r)
 
-	var req GetFeedsRequest
-	if err := yrender.DecodeJson(r.Body, &req); err != nil {
-		yerr.RenderJson(w, r, err)
+	req, err := yrender.DecodeJson[GetFeedsRequest](r.Body)
+	if err != nil {
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
 	response, err := h.c.GetFeeds(r.Context(), &req, u)
 	if err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
@@ -49,15 +49,15 @@ func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
 func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	u := user.MustGet(r)
 
-	var req CreateFeedsRequest
-	if err := yrender.DecodeJson(r.Body, &req); err != nil {
-		yerr.RenderJson(w, r, err)
+	req, err := yrender.DecodeJson[CreateFeedsRequest](r.Body)
+	if err != nil {
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
 	response, err := h.c.CreateFeeds(r.Context(), &req, u)
 	if err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
@@ -67,15 +67,15 @@ func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
 	u := user.MustGet(r)
 
-	var req GetItemsRequest
-	if err := yrender.DecodeJson(r.Body, &req); err != nil {
-		yerr.RenderJson(w, r, err)
+	req, err := yrender.DecodeJson[GetItemsRequest](r.Body)
+	if err != nil {
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
 	response, err := h.c.GetItems(r.Context(), &req, u)
 	if err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
@@ -85,15 +85,15 @@ func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
 func (h *handlerImpl) CreateItems(w http.ResponseWriter, r *http.Request) {
 	u := user.MustGet(r)
 
-	var req CreateItemsRequest
-	if err := yrender.DecodeJson(r.Body, &req); err != nil {
-		yerr.RenderJson(w, r, err)
+	req, err := yrender.DecodeJson[CreateItemsRequest](r.Body)
+	if err != nil {
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
 	response, err := h.c.CreateItems(r.Context(), &req, u)
 	if err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := r.ParseMultipartForm(512 * ynits.MiB); err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
@@ -114,14 +114,14 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	for _, fileHeader := range r.MultipartForm.File["file"] {
 		file, err := fileHeader.Open()
 		if err != nil {
-			yerr.RenderJson(w, r, err)
+			yrender.JsonErr(w, r, err)
 			return
 		}
 		files = append(files, file)
 	}
 
 	if len(files) == 0 {
-		yerr.RenderJson(w, r, yerr.Validation("no files provided"))
+		yrender.JsonErr(w, r, yerr.Invalid("no files provided"))
 		return
 	}
 
@@ -135,7 +135,7 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 
 	response, err := h.c.UploadFiles(ctx, files, u)
 	if err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *handlerImpl) GetRss(w http.ResponseWriter, r *http.Request) {
 
 	response, err := h.c.GetRss(r.Context(), id)
 	if err != nil {
-		yerr.RenderJson(w, r, err)
+		yrender.JsonErr(w, r, err)
 		return
 	}
 
