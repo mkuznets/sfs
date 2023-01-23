@@ -5,7 +5,7 @@ import (
 )
 
 type Podcast struct {
-	XMLName xml.Name `xml:"rss"`
+	XMLName xml.Name `xml:"rss" json:"-"`
 	Version string   `xml:"version,attr"`
 	Itunes  string   `xml:"xmlns:itunes,attr"`
 	Channel *Channel `xml:"channel"`

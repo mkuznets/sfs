@@ -32,6 +32,7 @@ func (a *apiImpl) Router() chi.Router {
 
 	r.Group(func(r chi.Router) {
 		r.Route("/feeds", func(r chi.Router) {
+			r.Get("/rss/{feedId}", a.handler.GetRss)
 			r.Post("/get", a.handler.GetFeeds)
 			r.Post("/create", a.handler.CreateFeeds)
 		})
@@ -42,9 +43,6 @@ func (a *apiImpl) Router() chi.Router {
 		r.Route("/files", func(r chi.Router) {
 			r.With(middleware.AllowContentType("multipart/form-data")).
 				Post("/upload", a.handler.UploadFiles)
-		})
-		r.Route("/rss", func(r chi.Router) {
-			r.Get("/{feedId}", a.handler.GetRss)
 		})
 	})
 

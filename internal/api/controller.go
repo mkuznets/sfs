@@ -237,8 +237,6 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			return err
 		}
 
-		//c.store.UpdateFiles()
-
 		return nil
 	})
 	if err != nil {
@@ -319,6 +317,15 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 	}, nil
 }
 
+// GetRss returns a response with the RSS feed in XML format
+//
+//	@ID			GetRss
+//	@Summary	Returns a response with the RSS feed in XML format
+//	@Tags		Feeds
+//	@Produce	xml
+//	@Param		id	path		string	true	"Feed ID"
+//	@Success	200		{object} nil "RSS feed in XML format"
+//	@Router		/feeds/rss/{id} [get]
 func (c *controllerImpl) GetRss(ctx context.Context, feedId string) (string, error) {
 	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, &store.FeedFilter{Ids: []string{feedId}}))
 	if err != nil {

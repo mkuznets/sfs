@@ -1,6 +1,7 @@
 package api
 
 import (
+	"mkuznets.com/go/sps/internal/rss"
 	"mkuznets.com/go/sps/internal/ytils/yerr"
 	"mkuznets.com/go/sps/internal/ytils/ytime"
 )
@@ -105,3 +106,6 @@ type UploadFileResultResource struct {
 
 // Only used in Swagger docs.
 type _ yerr.Response // @name ErrorResponse
+
+// Only used in Swagger docs.
+type _ rss.Podcast // @name Podcast

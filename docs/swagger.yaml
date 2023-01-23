@@ -321,6 +321,23 @@ paths:
       summary: Get feeds matching the given parameters
       tags:
       - Feeds
+  /feeds/rss/{id}:
+    get:
+      operationId: GetRss
+      parameters:
+      - description: Feed ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: RSS feed in XML format
+      summary: Returns a response with the RSS feed in XML format
+      tags:
+      - Feeds
   /files/upload:
     post:
       consumes:

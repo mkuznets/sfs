@@ -114,6 +114,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/feeds/rss/{id}": {
+            "get": {
+                "produces": [
+                    "text/xml"
+                ],
+                "tags": [
+                    "Feeds"
+                ],
+                "summary": "Returns a response with the RSS feed in XML format",
+                "operationId": "GetRss",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Feed ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "RSS feed in XML format"
+                    }
+                }
+            }
+        },
         "/files/upload": {
             "post": {
                 "consumes": [
