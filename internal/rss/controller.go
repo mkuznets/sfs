@@ -58,7 +58,7 @@ func (c *controllerImpl) BuildFeedsRss(ctx context.Context, feeds []*store.Feed)
 			return fmt.Errorf("invalid feed type: %s", feed.Type)
 		}
 
-		content, err := xml.Marshal(xmlModel)
+		content, err := xml.MarshalIndent(xmlModel, "", "  ")
 		if err != nil {
 			return err
 		}
