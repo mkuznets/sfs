@@ -31,7 +31,7 @@ func JsonErr(w http.ResponseWriter, r *http.Request, err error) {
 	switch v := err.(type) {
 	case yerr.Error:
 		if v.Status() >= 500 {
-			log.Ctx(r.Context()).Error().Err(v.(error)).Msg("server error")
+			log.Ctx(r.Context()).Error().Stack().Err(v).Msg("server error")
 		}
 
 		var (
@@ -51,6 +51,6 @@ func JsonErr(w http.ResponseWriter, r *http.Request, err error) {
 		}
 		Json(w, r, v.Status(), yerr.Response{Error: http.StatusText(v.Status()), Message: strings.Join(msgs, ": ")})
 	default:
-		JsonErr(w, r, yerr.Internal("Internal error").WithCause(err))
+		JsonErr(w, r, yerr.New("Internal error").Err(err))
 	}
 }

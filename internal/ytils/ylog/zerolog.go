@@ -16,6 +16,7 @@ func Setup() {
 	})
 	zerolog.DefaultContextLogger = &log.Logger
 	zerolog.DurationFieldUnit = time.Microsecond
+	zerolog.ErrorStackMarshaler = MarshalStack
 }
 
 func ContextLogger(next http.Handler) http.Handler {

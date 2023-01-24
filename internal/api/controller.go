@@ -314,7 +314,7 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*store.File, error) {
 	info, err := files.Info(f)
 	if err != nil {
-		return nil, yerr.Internal("failed to get file info").WithCause(err)
+		return nil, yerr.New("failed to get file info").Err(err)
 	}
 	if info.Mime.Type != "audio" {
 		return nil, yerr.Invalid("unsupported file type: %s", info.Mime.Value)

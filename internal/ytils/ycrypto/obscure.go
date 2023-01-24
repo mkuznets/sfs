@@ -48,10 +48,10 @@ func Obscure(x string) (string, error) {
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(cryptRand, iv); err != nil {
-		return "", yerr.New("failed to read iv").WithCause(err)
+		return "", yerr.New("failed to read iv").Err(err)
 	}
 	if err := crypt(ciphertext[aes.BlockSize:], plaintext, iv); err != nil {
-		return "", yerr.New("encrypt failed").WithCause(err)
+		return "", yerr.New("encrypt failed").Err(err)
 	}
 	return base64.RawURLEncoding.EncodeToString(ciphertext), nil
 }
@@ -69,7 +69,7 @@ func MustObscure(x string) string {
 func Reveal(x string) (string, error) {
 	ciphertext, err := base64.RawURLEncoding.DecodeString(x)
 	if err != nil {
-		return "", yerr.New("base64 decode failed when revealing password - is it obscured?").WithCause(err)
+		return "", yerr.New("base64 decode failed when revealing password - is it obscured?").Err(err)
 	}
 	if len(ciphertext) < aes.BlockSize {
 		return "", yerr.New("input too short when revealing password - is it obscured?")
@@ -77,7 +77,7 @@ func Reveal(x string) (string, error) {
 	buf := ciphertext[aes.BlockSize:]
 	iv := ciphertext[:aes.BlockSize]
 	if err := crypt(buf, buf, iv); err != nil {
-		return "", yerr.New("decrypt failed when revealing password - is it obscured?").WithCause(err)
+		return "", yerr.New("decrypt failed when revealing password - is it obscured?").Err(err)
 	}
 	return string(buf), nil
 }

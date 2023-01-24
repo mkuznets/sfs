@@ -3,9 +3,9 @@ package rss
 import (
 	"context"
 	"encoding/xml"
-	"fmt"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"mkuznets.com/go/sfs/internal/ytils/ytime"
 )
 
@@ -55,7 +55,7 @@ func (c *controllerImpl) BuildFeedsRss(ctx context.Context, feeds []*store.Feed)
 		case "podcast":
 			xmlModel = FeedToPodcast(feed, items)
 		default:
-			return fmt.Errorf("invalid feed type: %s", feed.Type)
+			return yerr.New("%s has invalid feed type: %s", feed.Id, feed.Type)
 		}
 
 		content, err := xml.MarshalIndent(xmlModel, "", "  ")

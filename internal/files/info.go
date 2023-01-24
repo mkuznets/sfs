@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/h2non/filetype"
 	"io"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 )
 
 func Info(r io.ReadSeeker) (*FileInfo, error) {
@@ -14,7 +15,7 @@ func Info(r io.ReadSeeker) (*FileInfo, error) {
 	}
 
 	if fileType == filetype.Unknown {
-		return nil, fmt.Errorf("unknown file type")
+		return nil, yerr.Invalid("unknown file type")
 	}
 
 	if err := seekReset(r); err != nil {
@@ -71,7 +72,7 @@ type FileInfo struct {
 
 func seekReset(r io.ReadSeeker) error {
 	if pos, err := r.Seek(0, 0); err != nil || pos != 0 {
-		return fmt.Errorf("could not seek to the beginning of the file")
+		return yerr.New("seek error").Err(err)
 	}
 	return nil
 }

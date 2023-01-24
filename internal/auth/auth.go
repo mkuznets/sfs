@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"mkuznets.com/go/sfs/internal/user"
@@ -50,24 +49,24 @@ func (s *authService) parsedPrivateKey() (*rsa.PrivateKey, error) {
 
 	pemRaw, err := base64.StdEncoding.DecodeString(s.privateKey)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode private key: %w", err)
+		return nil, yerr.New("could not decode private key: %w", err)
 	}
 
 	block, _ := pem.Decode(pemRaw)
 	if block == nil || block.Type != "PRIVATE KEY" {
-		return nil, fmt.Errorf("failed to decode PEM: `PRIVATE KEY` expected")
+		return nil, yerr.New("failed to decode PEM: `PRIVATE KEY` expected")
 	}
 
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse private key: %w", err)
+		return nil, yerr.New("could not parse private key: %w", err)
 	}
 	if v, ok := key.(*rsa.PrivateKey); ok {
 		s.privateKeyCache = v
 		return v, nil
 	}
 
-	return nil, fmt.Errorf("RSA private key expected")
+	return nil, yerr.New("RSA private key expected")
 }
 
 func (s *authService) Token(id string) (string, error) {
@@ -88,7 +87,7 @@ func (s *authService) Token(id string) (string, error) {
 
 	token, err := jwtEncoder.SignedString(privateKey)
 	if err != nil {
-		return "", fmt.Errorf("could not create signed token: %w", err)
+		return "", yerr.New("could not create signed token: %w", err)
 	}
 
 	return token, nil
@@ -130,13 +129,13 @@ func (s *authService) Middleware() func(next http.Handler) http.Handler {
 					return
 				}
 
-				yrender.JsonErr(w, r, yerr.Unauthorised("valid auth header is required").WithCause(err))
+				yrender.JsonErr(w, r, yerr.Unauthorised("valid auth header is required").Err(err))
 				return
 			}
 
 			var claims customClaims
 			if _, err := jwt.ParseWithClaims(tokenString, &claims, s.keyFunc); err != nil {
-				yrender.JsonErr(w, r, yerr.Unauthorised("invalid token").WithCause(err))
+				yrender.JsonErr(w, r, yerr.Unauthorised("invalid token").Err(err))
 				return
 			}
 			if !claims.VerifyExpiresAt(time.Now(), true) {

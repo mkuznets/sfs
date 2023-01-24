@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"fmt"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"net/http"
 )
 
@@ -18,7 +18,7 @@ func Get(r *http.Request) (User, error) {
 	if u, ok := user.(User); ok {
 		return u, nil
 	} else {
-		return nil, fmt.Errorf("invalid user type")
+		return nil, yerr.New("invalid user type")
 	}
 }
 
