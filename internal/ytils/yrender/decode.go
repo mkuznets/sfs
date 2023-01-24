@@ -3,7 +3,7 @@ package yrender
 import (
 	"encoding/json"
 	"io"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 )
 
 func DecodeJson[T any](r io.Reader) (T, error) {

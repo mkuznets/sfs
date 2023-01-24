@@ -1,1 +1,1 @@
-# Simple Podcast Service
+# Simple Feed Service

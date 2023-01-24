@@ -3,9 +3,9 @@ package api
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"mkuznets.com/go/sps/internal/rss"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
-	"mkuznets.com/go/sps/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/internal/rss"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/ytime"
 )
 
 type GetFeedsRequest struct {

@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"net/http"
 )
 

@@ -1,8 +1,8 @@
 package rss
 
 import (
-	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/ytils/yslice"
+	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/ytils/yslice"
 	"time"
 )
 
@@ -20,7 +20,7 @@ func FeedToPodcast(feed *store.Feed, items []*store.Item) *Podcast {
 			IAuthor:       feed.Authors,
 		},
 	}
-	
+
 	podcast.Channel.Items = yslice.Map(items, func(i *store.Item) *PodcastItem {
 		return &PodcastItem{
 			Guid: Guid{

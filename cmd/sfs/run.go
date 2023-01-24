@@ -4,29 +4,28 @@ import (
 	"context"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"mkuznets.com/go/sps/internal/api"
-	"mkuznets.com/go/sps/internal/auth"
-	"mkuznets.com/go/sps/internal/files"
-	"mkuznets.com/go/sps/internal/rss"
-	"mkuznets.com/go/sps/internal/sps"
-	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/ytils/ycrypto"
+	"mkuznets.com/go/sfs/internal/api"
+	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/rss"
+	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/ytils/ycrypto"
+	"net/http"
 )
 
-type ServerCommand struct {
+type RunCommand struct {
 	ServerOpts *Server `group:"Server Options" namespace:"server" env-namespace:"SERVER" validation:"SERVER"`
 	S3Opts     *S3     `group:"S3 Options" namespace:"s3" env-namespace:"S3" validation:"S3"`
 	JwtOpts    *Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT" validation:"JWT"`
 
-	server *sps.Server
+	api api.Api
 }
 
-func (c *ServerCommand) Validate() error {
+func (c *RunCommand) Validate() error {
 	return validation.ValidateStruct(
 		c,
 		validation.Field(&c.ServerOpts),
 		validation.Field(&c.S3Opts),
-		//validation.Field(&c.JwtOpts),
 	)
 }
 
@@ -71,7 +70,7 @@ type Jwt struct {
 	PrivateKey string `long:"private-key" env:"PRIVATE_KEY" description:"RSA private key" required:"true"`
 }
 
-func (c *ServerCommand) Init(app *App) error {
+func (c *RunCommand) Init(app *App) error {
 	db, err := store.NewBunDb(app.DbOpts.Driver, app.DbOpts.Dsn)
 	if err != nil {
 		return err
@@ -93,15 +92,12 @@ func (c *ServerCommand) Init(app *App) error {
 
 	feedController := rss.NewController(bunStore, fileStorage)
 	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), feedController, authService)
-
-	c.server = &sps.Server{
-		Addr:      c.ServerOpts.Addr,
-		ApiRouter: api.New(authService, api.NewHandler(apiController)).Router(),
-	}
+	c.api = api.New(authService, api.NewHandler(apiController))
 
 	return nil
 }
 
-func (c *ServerCommand) Execute([]string) error {
-	return c.server.Start()
+func (c *RunCommand) Execute([]string) error {
+	handler := c.api.Handler("/api")
+	return http.ListenAndServe(c.ServerOpts.Addr, handler)
 }

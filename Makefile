@@ -1,24 +1,24 @@
 LDFLAGS := "-s -w"
 
-build: sps
+build: sfs
 
-sps: swagger
+sfs: swagger
 	mkdir -p bin
 	export CGO_ENABLED=1
-	go build -tags sqlite_omit_load_extension -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
+	go build -tags sqlite_omit_load_extension -ldflags=${LDFLAGS} -o bin/sfs mkuznets.com/go/sfs/cmd/sfs
 
 swagger:
 	swag init -g internal/api/api.go --output internal/api/swagger
-	swagger generate client --spec internal/api/swagger/swagger.json --name sps --strict-responders --target ./api
+	swagger generate client --spec internal/api/swagger/swagger.json --name SimpleFeedService --strict-responders --target ./api
 
 fmt:
 	go fmt ./...
 	swag fmt --exclude internal/api/resources.go
 
-server: sps
-	bin/sps server
+run: sfs
+	bin/sfs run
 
 test:
 	go test -v ./...
 
-.PHONY: sps build swagger web
+.PHONY: sfs build swagger web

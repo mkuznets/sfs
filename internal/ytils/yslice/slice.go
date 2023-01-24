@@ -1,8 +1,9 @@
 package yslice
 
-import "mkuznets.com/go/sps/internal/ytils/yerr"
+import "mkuznets.com/go/sfs/internal/ytils/yerr"
 
-func Map[E any, R any](slice []E, mapper func(value E) R) (mapped []R) {
+func Map[E any, R any](slice []E, mapper func(value E) R) []R {
+	mapped := make([]R, 0, len(slice))
 	for _, el := range slice {
 		mapped = append(mapped, mapper(el))
 	}
@@ -26,8 +27,8 @@ func UniqueMap[E any, R comparable](slice []E, mapper func(value E) R) []R {
 	return Unique(Map(slice, mapper))
 }
 
-func MapByKey[T any, R comparable](slice []T, key func(value T) R) (mapped map[R]T) {
-	mapped = make(map[R]T)
+func MapByKey[T any, R comparable](slice []T, key func(value T) R) map[R]T {
+	mapped := make(map[R]T, len(slice))
 	for _, el := range slice {
 		mapped[key(el)] = el
 	}

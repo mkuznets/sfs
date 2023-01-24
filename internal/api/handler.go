@@ -4,10 +4,10 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
-	"mkuznets.com/go/sps/internal/user"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
-	"mkuznets.com/go/sps/internal/ytils/ynits"
-	"mkuznets.com/go/sps/internal/ytils/yrender"
+	"mkuznets.com/go/sfs/internal/user"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/ynits"
+	"mkuznets.com/go/sfs/internal/ytils/yrender"
 	"net/http"
 )
 

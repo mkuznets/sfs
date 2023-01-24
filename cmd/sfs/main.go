@@ -5,7 +5,7 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
-	"mkuznets.com/go/sps/internal/ytils/ylog"
+	"mkuznets.com/go/sfs/internal/ytils/ylog"
 	"os"
 )
 
@@ -21,8 +21,8 @@ type App struct {
 	GlobalOpts *Global `group:"Global Options"`
 	DbOpts     *Db     `group:"Database Options" namespace:"db" env-namespace:"DB"`
 
-	DbCmd     *DbCommand     `command:"db" description:"Database migration"`
-	ServerCmd *ServerCommand `command:"server" description:"Start the server"`
+	DbCmd  *DbCommand  `command:"db" description:"Database migration"`
+	RunCmd *RunCommand `command:"run" description:"Start the service"`
 }
 
 type Command interface {

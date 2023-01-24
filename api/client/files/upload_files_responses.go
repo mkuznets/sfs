@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"mkuznets.com/go/sps/api/models"
+	"mkuznets.com/go/sfs/api/models"
 )
 
 // UploadFilesReader is a Reader for the UploadFiles structure.

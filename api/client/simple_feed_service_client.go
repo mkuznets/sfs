@@ -10,12 +10,12 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"mkuznets.com/go/sps/api/client/feeds"
-	"mkuznets.com/go/sps/api/client/files"
-	"mkuznets.com/go/sps/api/client/items"
+	"mkuznets.com/go/sfs/api/client/feeds"
+	"mkuznets.com/go/sfs/api/client/files"
+	"mkuznets.com/go/sfs/api/client/items"
 )
 
-// Default sps HTTP client.
+// Default simple feed service HTTP client.
 var Default = NewHTTPClient(nil)
 
 const (
@@ -30,14 +30,14 @@ const (
 // DefaultSchemes are the default schemes found in Meta (info) section of spec file
 var DefaultSchemes = []string{"http"}
 
-// NewHTTPClient creates a new sps HTTP client.
-func NewHTTPClient(formats strfmt.Registry) *Sps {
+// NewHTTPClient creates a new simple feed service HTTP client.
+func NewHTTPClient(formats strfmt.Registry) *SimpleFeedService {
 	return NewHTTPClientWithConfig(formats, nil)
 }
 
-// NewHTTPClientWithConfig creates a new sps HTTP client,
+// NewHTTPClientWithConfig creates a new simple feed service HTTP client,
 // using a customizable transport config.
-func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *Sps {
+func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *SimpleFeedService {
 	// ensure nullable parameters have default
 	if cfg == nil {
 		cfg = DefaultTransportConfig()
@@ -48,14 +48,14 @@ func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *Sps
 	return New(transport, formats)
 }
 
-// New creates a new sps client
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Sps {
+// New creates a new simple feed service client
+func New(transport runtime.ClientTransport, formats strfmt.Registry) *SimpleFeedService {
 	// ensure nullable parameters have default
 	if formats == nil {
 		formats = strfmt.Default
 	}
 
-	cli := new(Sps)
+	cli := new(SimpleFeedService)
 	cli.Transport = transport
 	cli.Feeds = feeds.New(transport, formats)
 	cli.Files = files.New(transport, formats)
@@ -102,8 +102,8 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 	return cfg
 }
 
-// Sps is a client for sps
-type Sps struct {
+// SimpleFeedService is a client for simple feed service
+type SimpleFeedService struct {
 	Feeds feeds.ClientService
 
 	Files files.ClientService
@@ -114,7 +114,7 @@ type Sps struct {
 }
 
 // SetTransport changes the transport on the client and all its subresources
-func (c *Sps) SetTransport(transport runtime.ClientTransport) {
+func (c *SimpleFeedService) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 	c.Feeds.SetTransport(transport)
 	c.Files.SetTransport(transport)

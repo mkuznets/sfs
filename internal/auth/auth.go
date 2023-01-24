@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
-	"mkuznets.com/go/sps/internal/user"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
-	"mkuznets.com/go/sps/internal/ytils/yrender"
+	"mkuznets.com/go/sfs/internal/user"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/yrender"
 	"net/http"
 	"time"
 )

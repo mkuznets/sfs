@@ -5,7 +5,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
-	"mkuznets.com/go/sps/internal/store"
+	"mkuznets.com/go/sfs/internal/store"
 	"testing"
 )
 

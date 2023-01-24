@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"mkuznets.com/go/sps/internal/files"
-	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/ytils/ytime"
 )
 
 type Controller interface {

@@ -3,16 +3,16 @@ package api
 import (
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
-	"mkuznets.com/go/sps/api/client"
+	"mkuznets.com/go/sfs/api/client"
 	"net/url"
 )
 
 type Api struct {
-	client.Sps
+	client.SimpleFeedService
 	token string
 }
 
-// New create a new SPS API client instance.
+// New create a new Simple Feed Service API client instance.
 func New(baseUrl, token string) (*Api, error) {
 	u, err := url.Parse(baseUrl)
 	if err != nil {
@@ -25,8 +25,8 @@ func New(baseUrl, token string) (*Api, error) {
 	}
 
 	return &Api{
-		Sps:   *client.NewHTTPClientWithConfig(nil, &tc),
-		token: token,
+		SimpleFeedService: *client.NewHTTPClientWithConfig(nil, &tc),
+		token:             token,
 	}, nil
 }
 

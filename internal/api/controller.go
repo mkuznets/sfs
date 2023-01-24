@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"mkuznets.com/go/sps/internal/auth"
-	"mkuznets.com/go/sps/internal/files"
-	"mkuznets.com/go/sps/internal/rss"
-	"mkuznets.com/go/sps/internal/store"
-	"mkuznets.com/go/sps/internal/user"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
-	"mkuznets.com/go/sps/internal/ytils/yrand"
-	"mkuznets.com/go/sps/internal/ytils/yslice"
-	"mkuznets.com/go/sps/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/rss"
+	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/user"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/yrand"
+	"mkuznets.com/go/sfs/internal/ytils/yslice"
+	"mkuznets.com/go/sfs/internal/ytils/ytime"
 )
 
 type Controller interface {
@@ -178,7 +178,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 			UpdatedAt:   i.UpdatedAt,
 		}
 	})
-	
+
 	return &GetItemsResponse{Data: results}, nil
 }
 

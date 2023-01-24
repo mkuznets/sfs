@@ -15,7 +15,7 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"mkuznets.com/go/sps/api/models"
+	"mkuznets.com/go/sfs/api/models"
 )
 
 // NewGetFeedsParams creates a new GetFeedsParams object,

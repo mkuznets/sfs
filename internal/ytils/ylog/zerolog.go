@@ -3,7 +3,7 @@ package ylog
 import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"mkuznets.com/go/sps/internal/ytils/yreq"
+	"mkuznets.com/go/sfs/internal/ytils/yreq"
 	"net/http"
 	"os"
 	"time"

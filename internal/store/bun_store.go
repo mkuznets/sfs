@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/sps/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 )
 
 type contextKey int

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
-	sqlFs "mkuznets.com/go/sps/sql"
+	sqlFs "mkuznets.com/go/sfs/sql"
 )
 
 type Migrator interface {

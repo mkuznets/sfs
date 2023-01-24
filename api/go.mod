@@ -1,4 +1,4 @@
-module mkuznets.com/go/sps/api
+module mkuznets.com/go/sfs/api
 
 go 1.19
 
