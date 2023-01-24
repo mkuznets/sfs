@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.8
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.30.0
-	github.com/go-chi/chi v1.5.4
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/h2non/filetype v1.1.3
@@ -21,8 +21,8 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/http-swagger v1.3.3
 	github.com/swaggo/swag v1.8.9
-	github.com/uptrace/bun v1.1.9
-	github.com/uptrace/bun/dialect/sqlitedialect v1.1.9
+	github.com/uptrace/bun v1.1.10
+	github.com/uptrace/bun/dialect/sqlitedialect v1.1.10
 	golang.org/x/crypto v0.5.0
 )
 
