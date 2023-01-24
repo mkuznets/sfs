@@ -11,7 +11,7 @@ import (
 	"time"
 
 	// Required to load "sqlite" driver
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func NewBunDb(driver, dsn string) (*bun.DB, error) {
@@ -38,10 +38,16 @@ func prepareDsn(driver, dsn string) (string, error) {
 	query := u.Query()
 
 	if driver == "sqlite" {
-		query.Add("_pragma", "journal_mode('WAL')")
-		query.Add("_pragma", "synchronous('NORMAL')")
-		query.Add("_pragma", "writable_schema('OFF')")
-		query.Add("_pragma", "encoding('UTF-8')")
+		query.Add("_journal_mode", "WAL")
+		query.Add("_synchronous", "NORMAL")
+		query.Add("_writable_schema", "0")
+		query.Add("_foreign_keys", "1")
+
+		// Parameters for modernc.org/sqlite/lib
+		//query.Add("_pragma", "journal_mode('WAL')")
+		//query.Add("_pragma", "synchronous('NORMAL')")
+		//query.Add("_pragma", "writable_schema('OFF')")
+		//query.Add("_pragma", "encoding('UTF-8')")
 		//query.Add("_pragma", "foreign_keys(1)")
 	}
 	u.RawQuery = query.Encode()

@@ -5,11 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"html/template"
 	"io"
-	"net/url"
+	"strings"
 )
 
 type s3Storage struct {
@@ -17,18 +16,23 @@ type s3Storage struct {
 	bucket          string
 	accessKeyId     string
 	accessKeySecret string
-	urlPrefix       string
+	urlTemplate     string
 
 	cachedAwsConfig *aws.Config
 }
 
-func NewS3Storage(endpointUrl, bucket, accessKeyId, accessKeySecret, urlPrefix string) Storage {
+type Object struct {
+	Bucket string
+	Key    string
+}
+
+func NewS3Storage(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate string) Storage {
 	return &s3Storage{
 		endpointUrl:     endpointUrl,
 		bucket:          bucket,
 		accessKeyId:     accessKeyId,
 		accessKeySecret: accessKeySecret,
-		urlPrefix:       urlPrefix,
+		urlTemplate:     urlTemplate,
 	}
 }
 
@@ -59,40 +63,34 @@ func (s *s3Storage) awsConfig(ctx context.Context) (aws.Config, error) {
 }
 
 func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*UploadResult, error) {
+	urlTpl, err := template.New("url").Parse(s.urlTemplate)
+	if err != nil {
+		return nil, err
+	}
+
 	cfg, err := s.awsConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 	client := s3.NewFromConfig(cfg)
-	uploader := manager.NewUploader(client)
 
-	output, err := uploader.Upload(ctx, &s3.PutObjectInput{
+	_, err = client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:             aws.String(s.bucket),
 		Key:                aws.String(path),
 		ContentDisposition: aws.String("inline"),
 		Body:               r,
-		ACL:                types.ObjectCannedACLPublicRead,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	uploadUrl := output.Location
-
-	if s.urlPrefix != "" {
-		urlPrefix, err := url.Parse(s.urlPrefix)
-		if err != nil {
-			return nil, err
-		}
-		s3Url, err := urlPrefix.Parse(output.Location)
-		if err != nil {
-			return nil, err
-		}
-		uploadUrl = urlPrefix.JoinPath(s3Url.Path).String()
+	var urlB strings.Builder
+	if err := urlTpl.Execute(&urlB, Object{Bucket: s.bucket, Key: path}); err != nil {
+		return nil, err
 	}
 
 	return &UploadResult{
-		Id:  *output.Key,
-		Url: uploadUrl,
+		Id:  path,
+		Url: urlB.String(),
 	}, nil
 }

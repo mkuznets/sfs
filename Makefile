@@ -1,11 +1,11 @@
-LDFLAGS := "-s -w -linkmode external -extldflags -static"
+LDFLAGS := "-s -w"
 
 build: sps
 
 sps: swagger
 	mkdir -p bin
 	export CGO_ENABLED=1
-	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
+	go build -tags sqlite_omit_load_extension -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
 
 swagger:
 	swag init -g internal/api/api.go

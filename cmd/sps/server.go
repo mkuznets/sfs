@@ -2,34 +2,67 @@ package main
 
 import (
 	"context"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"mkuznets.com/go/sps/internal/api"
 	"mkuznets.com/go/sps/internal/auth"
 	"mkuznets.com/go/sps/internal/files"
 	"mkuznets.com/go/sps/internal/rss"
 	"mkuznets.com/go/sps/internal/sps"
 	"mkuznets.com/go/sps/internal/store"
-	_ "modernc.org/sqlite"
 )
 
 type ServerCommand struct {
-	ServerOpts Server `group:"Server Options" namespace:"server" env-namespace:"SERVER"`
-	AwsOpts    Aws    `group:"AWS Options" namespace:"aws" env-namespace:"AWS"`
-	JwtOpts    Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT"`
+	ServerOpts *Server `group:"Server Options" namespace:"server" env-namespace:"SERVER" validation:"SERVER"`
+	S3Opts     *S3     `group:"S3 Options" namespace:"s3" env-namespace:"S3" validation:"S3"`
+	JwtOpts    *Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT" validation:"JWT"`
 
 	server *sps.Server
 }
 
-type Server struct {
-	Addr      string `long:"addr" env:"ADDR" description:"HTTP service address" required:"true"`
-	UrlPrefix string `long:"url-prefix" env:"URL_PREFIX" description:"URL prefix to the service" required:"true"`
+func (c *ServerCommand) Validate() error {
+	return validation.ValidateStruct(
+		c,
+		validation.Field(&c.ServerOpts),
+		validation.Field(&c.S3Opts),
+		//validation.Field(&c.JwtOpts),
+	)
 }
 
-type Aws struct {
-	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" required:"true"`
-	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" required:"true"`
-	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" required:"true"`
-	Bucket      string `long:"s3-bucket" env:"S3_BUCKET" description:"S3 bucket name" required:"true"`
-	UrlPrefix   string `long:"url-prefix" env:"URL_PREFIX" description:"Optional URL prefix that will be used to generate URLs to the uploaded files"`
+type Server struct {
+	Addr      string `long:"addr" env:"ADDR" validation:"ADDR" description:"HTTP service address" required:"true"`
+	UrlPrefix string `long:"url-prefix" env:"URL_PREFIX" validation:"URL_PREFIX" description:"URL prefix to the service" required:"true"`
+}
+
+func (s *Server) Validate() error {
+	return validation.ValidateStruct(
+		s,
+		validation.Field(&s.UrlPrefix, validation.Required, is.URL),
+	)
+}
+
+type S3 struct {
+	Enabled     bool   `long:"enabled" env:"ENABLED" description:"Enable S3 storage" validation:"ENABLED"`
+	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" validation:"ENDPOINT_URL"`
+	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" validation:"ACCESS_KEY_ID"`
+	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" validation:"SECRET_ACCESS_KEY"`
+	Bucket      string `long:"bucket" env:"BUCKET" description:"S3 bucket name" validation:"BUCKET"`
+	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a publically available URL of the uploaded object" validation:"URL_TEMPLATE"`
+}
+
+func (s3 *S3) Validate() error {
+	if s3.Enabled {
+		return validation.ValidateStruct(
+			s3,
+			validation.Field(&s3.EndpointUrl, validation.Required, is.URL),
+			validation.Field(&s3.EndpointUrl, validation.Required),
+			validation.Field(&s3.KeyID, validation.Required),
+			validation.Field(&s3.SecretKey, validation.Required),
+			validation.Field(&s3.Bucket, validation.Required),
+			validation.Field(&s3.UrlTemplate, validation.Required, is.URL),
+		)
+	}
+	return nil
 }
 
 type Jwt struct {
@@ -45,7 +78,7 @@ func (c *ServerCommand) Init(app *App) error {
 
 	authService := auth.New(c.JwtOpts.PrivateKey, c.JwtOpts.PublicKey)
 
-	fileStorage := files.NewS3Storage(c.AwsOpts.EndpointUrl, c.AwsOpts.Bucket, c.AwsOpts.KeyID, c.AwsOpts.SecretKey, c.AwsOpts.UrlPrefix)
+	fileStorage := files.NewS3Storage(c.S3Opts.EndpointUrl, c.S3Opts.Bucket, c.S3Opts.KeyID, c.S3Opts.SecretKey, c.S3Opts.UrlTemplate)
 	bunStore := store.NewBunStore(db)
 	if err := bunStore.Init(context.Background()); err != nil {
 		return err

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"mkuznets.com/go/sps/internal/store"
-	_ "modernc.org/sqlite"
 )
 
 type DbCommand struct {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jessevdk/go-flags"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
@@ -10,12 +11,10 @@ import (
 )
 
 // Global is a group of common flags for all subcommands.
-type Global struct {
-	Debug bool `long:"debug" description:"Enable debug logging"`
-}
+type Global struct{}
 
 type Db struct {
-	Driver string `long:"driver" env:"DRIVER" description:"Database driver" default:"sqlite" required:"true"`
+	Driver string `long:"driver" env:"DRIVER" description:"Database driver" default:"sqlite3" choice:"sqlite3" required:"true"`
 	Dsn    string `long:"dsn" env:"DSN" description:"Database DSN" required:"true"`
 }
 
@@ -29,7 +28,8 @@ type App struct {
 
 type Command interface {
 	Init(app *App) error
-	Execute(args []string) error
+	flags.Commander
+	validation.Validatable
 }
 
 func handleError(err error) {
@@ -57,6 +57,8 @@ func init() {
 }
 
 func main() {
+	validation.ErrorTag = "validation"
+
 	if err := godotenv.Load(); err != nil {
 		panic(err)
 	}
@@ -65,6 +67,7 @@ func main() {
 	var parser = flags.NewParser(&app, flags.Default)
 	parser.CommandHandler = func(command flags.Commander, args []string) error {
 		c := command.(Command)
+		handleError(c.Validate())
 		handleError(c.Init(&app))
 		handleError(c.Execute(args))
 		return nil
