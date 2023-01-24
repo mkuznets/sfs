@@ -1,21 +1,15 @@
-LDFLAGS := "-s -w"
+LDFLAGS := "-s -w -linkmode external -extldflags -static"
 
 build: sps
 
-sps: swagger web
-	export CGO_ENABLED=0
+sps: swagger
 	mkdir -p bin
-	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
-
-sps-go:
+	export CGO_ENABLED=1
 	go build -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
 
 swagger:
 	swag init -g internal/api/api.go
 	swagger generate client --spec docs/swagger.json --name sps --strict-responders --target ./api
-
-web:
-	cd web && npx webpack
 
 fmt:
 	go fmt ./...
@@ -23,15 +17,6 @@ fmt:
 
 server: sps
 	bin/sps server
-
-db-up: sps
-	bin/sps db up
-
-db-down: sps
-	bin/sps db down
-
-db-status: sps
-	bin/sps db status
 
 test:
 	go test -v ./...
