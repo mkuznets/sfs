@@ -5,7 +5,8 @@ import (
 	"github.com/go-chi/chi/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"mkuznets.com/go/sps/docs"
-	"mkuznets.com/go/sps/internal/rlog"
+	"mkuznets.com/go/sps/internal/ytils/ylog"
+	"mkuznets.com/go/sps/internal/ytils/yreq"
 	"net/http"
 )
 
@@ -18,8 +19,8 @@ type Server struct {
 func (s *Server) Start() error {
 	router := chi.NewRouter()
 	router.Use(middleware.Recoverer)
-	router.Use(rlog.RequestID)
-	router.Use(rlog.Logger())
+	router.Use(yreq.RequestId)
+	router.Use(ylog.ContextLogger)
 
 	swaggerSpecs := http.StripPrefix("/swagger", http.FileServer(http.FS(docs.SwaggerFiles))).ServeHTTP
 	swaggerUi := httpSwagger.Handler(httpSwagger.URL("/swagger/swagger.json"))

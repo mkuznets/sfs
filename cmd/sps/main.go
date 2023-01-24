@@ -4,10 +4,9 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jessevdk/go-flags"
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"mkuznets.com/go/sps/internal/ytils/ylog"
 	"os"
-	"time"
 )
 
 // Global is a group of common flags for all subcommands.
@@ -48,12 +47,7 @@ func handleError(err error) {
 }
 
 func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{
-		Out:        os.Stderr,
-		TimeFormat: "2006-01-02 15:04:05",
-	})
-	zerolog.DefaultContextLogger = &log.Logger
-	zerolog.DurationFieldUnit = time.Microsecond
+	ylog.Setup()
 }
 
 func main() {
