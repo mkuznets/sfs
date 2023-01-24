@@ -8,8 +8,8 @@ sps: swagger
 	go build -tags sqlite_omit_load_extension -ldflags=${LDFLAGS} -o bin/sps mkuznets.com/go/sps/cmd/sps
 
 swagger:
-	swag init -g internal/api/api.go
-	swagger generate client --spec docs/swagger.json --name sps --strict-responders --target ./api
+	swag init -g internal/api/api.go --output internal/api/swagger
+	swagger generate client --spec internal/api/swagger/swagger.json --name sps --strict-responders --target ./api
 
 fmt:
 	go fmt ./...
