@@ -27,14 +27,6 @@ type authService struct {
 	privateKeyCache *rsa.PrivateKey
 }
 
-type jwtUser struct {
-	id string
-}
-
-func (u *jwtUser) Id() string {
-	return u.id
-}
-
 func New(privateKey, publicKey string) Service {
 	return &authService{
 		privateKey: privateKey,
@@ -42,9 +34,13 @@ func New(privateKey, publicKey string) Service {
 	}
 }
 
-type claims struct {
+// Implements the `user.User` interface.
+type customClaims struct {
 	jwt.RegisteredClaims
-	UserId string `json:"uid"`
+}
+
+func (c *customClaims) Id() string {
+	return c.Subject
 }
 
 func (s *authService) parsedPrivateKey() (*rsa.PrivateKey, error) {
@@ -80,12 +76,12 @@ func (s *authService) Token(id string) (string, error) {
 		return "", err
 	}
 
-	cs := claims{
+	cs := customClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(365 * 24 * time.Hour)),
+			Subject:   id,
 		},
-		UserId: id,
 	}
 
 	jwtEncoder := jwt.NewWithClaims(jwt.SigningMethodRS256, cs)
@@ -138,17 +134,17 @@ func (s *authService) Middleware() func(next http.Handler) http.Handler {
 				return
 			}
 
-			var cs claims
-			if _, err := jwt.ParseWithClaims(tokenString, &cs, s.keyFunc); err != nil {
+			var claims customClaims
+			if _, err := jwt.ParseWithClaims(tokenString, &claims, s.keyFunc); err != nil {
 				yrender.JsonErr(w, r, yerr.Unauthorised("invalid token").WithCause(err))
 				return
 			}
-			if !cs.VerifyExpiresAt(time.Now(), true) {
+			if !claims.VerifyExpiresAt(time.Now(), true) {
 				yrender.JsonErr(w, r, yerr.Unauthorised("token expired"))
 				return
 			}
 
-			ctx := user.Ctx(r.Context(), &jwtUser{id: cs.UserId})
+			ctx := user.Ctx(r.Context(), &claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

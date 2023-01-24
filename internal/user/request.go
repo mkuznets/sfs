@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"net/http"
 )
 
@@ -29,14 +28,6 @@ func MustGet(r *http.Request) User {
 		panic(err)
 	}
 	return user
-}
-
-func Require(r *http.Request) (User, error) {
-	user, err := Get(r)
-	if err != nil || user == nil {
-		return nil, yerr.Unauthorised("unauthorised").WithCause(err)
-	}
-	return user, nil
 }
 
 func Ctx(ctx context.Context, user User) context.Context {
