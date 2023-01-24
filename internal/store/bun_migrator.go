@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
-	sqlFs "mkuznets.com/go/sfs/sql"
+	"mkuznets.com/go/sfs/sql/sqlite"
 )
 
 type Migrator interface {
@@ -25,7 +25,7 @@ type migrator struct {
 
 func NewBunMigrator(db *bun.DB) Migrator {
 	return &migrator{
-		bm: migrate.NewMigrator(db, sqlFs.Migrations, migrate.WithMarkAppliedOnSuccess(true)),
+		bm: migrate.NewMigrator(db, sqlite.Migrations, migrate.WithMarkAppliedOnSuccess(true)),
 	}
 }
 

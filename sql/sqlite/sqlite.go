@@ -1,4 +1,4 @@
-package sql
+package sqlite
 
 import (
 	"embed"
@@ -7,12 +7,12 @@ import (
 
 //go:embed *.sql
 
-var sqlMigrations embed.FS
+var files embed.FS
 
 var Migrations = migrate.NewMigrations()
 
 func init() {
-	if err := Migrations.Discover(sqlMigrations); err != nil {
+	if err := Migrations.Discover(files); err != nil {
 		panic(err)
 	}
 }
