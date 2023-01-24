@@ -55,6 +55,10 @@ func Internal(message string, a ...interface{}) Error {
 	return newErrorf(nil, http.StatusInternalServerError, message, a...)
 }
 
+func New(message string, a ...interface{}) Error {
+	return newErrorf(nil, http.StatusInternalServerError, message, a...)
+}
+
 type Response struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`

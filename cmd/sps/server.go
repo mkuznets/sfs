@@ -10,6 +10,7 @@ import (
 	"mkuznets.com/go/sps/internal/rss"
 	"mkuznets.com/go/sps/internal/sps"
 	"mkuznets.com/go/sps/internal/store"
+	"mkuznets.com/go/sps/internal/ytils/ycrypto"
 )
 
 type ServerCommand struct {
@@ -78,7 +79,13 @@ func (c *ServerCommand) Init(app *App) error {
 
 	authService := auth.New(c.JwtOpts.PrivateKey, c.JwtOpts.PublicKey)
 
-	fileStorage := files.NewS3Storage(c.S3Opts.EndpointUrl, c.S3Opts.Bucket, c.S3Opts.KeyID, c.S3Opts.SecretKey, c.S3Opts.UrlTemplate)
+	fileStorage := files.NewS3Storage(
+		c.S3Opts.EndpointUrl,
+		c.S3Opts.Bucket,
+		ycrypto.MustReveal(c.S3Opts.KeyID),
+		ycrypto.MustReveal(c.S3Opts.SecretKey),
+		c.S3Opts.UrlTemplate,
+	)
 	bunStore := store.NewBunStore(db)
 	if err := bunStore.Init(context.Background()); err != nil {
 		return err
