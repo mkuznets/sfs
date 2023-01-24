@@ -51,9 +51,9 @@ func NewController(store store.Store, fileStorage files.Storage, idService IdSer
 //	@Accept		json
 //	@Produce	json
 //	@Param		request	body		GetFeedsRequest	true	"Parameters for filtering feeds"
-//	@Success	200	{object}	GetFeedsResponse
-//	@Failure	401	{object}	ErrorResponse
-//	@Failure	500	{object}	ErrorResponse
+//	@Success	200		{object}	GetFeedsResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
 //	@Router		/feeds/get [post]
 func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error) {
 
@@ -141,9 +141,9 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 //	@Accept		json
 //	@Produce	json
 //	@Param		request	body		GetItemsRequest	true	"Parameters for filtering items"
-//	@Success	200	{object}	GetItemsResponse
-//	@Failure	401	{object}	ErrorResponse
-//	@Failure	500	{object}	ErrorResponse
+//	@Success	200		{object}	GetItemsResponse
+//	@Failure	401		{object}	ErrorResponse
+//	@Failure	500		{object}	ErrorResponse
 //	@Router		/items/get [post]
 func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error) {
 	filter := store.ItemFilter{
@@ -348,7 +348,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 //	@Tags		Feeds
 //	@Produce	xml
 //	@Param		id	path		string	true	"Feed ID"
-//	@Success	200		{object} nil "RSS feed in XML format"
+//	@Success	200	{object}	nil		"RSS feed in XML format"
 //	@Router		/feeds/rss/{id} [get]
 func (c *controllerImpl) GetRss(ctx context.Context, feedId string) (string, error) {
 	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, &store.FeedFilter{Ids: []string{feedId}}))
