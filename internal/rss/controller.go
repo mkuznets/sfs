@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
-	"mkuznets.com/go/sfs/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/ytime"
 	"strings"
 )
 

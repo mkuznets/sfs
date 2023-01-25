@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"mkuznets.com/go/sfs/internal/ytils/ycrypto"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/ycrypto"
+	"mkuznets.com/go/sfs/ytils/yerr"
 	"os"
 	"strings"
 )

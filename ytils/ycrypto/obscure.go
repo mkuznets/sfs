@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"io"
 	"log"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yerr"
 )
 
 // crypt internals

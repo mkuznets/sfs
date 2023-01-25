@@ -9,9 +9,9 @@ import (
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/sfs/internal/user"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
-	"mkuznets.com/go/sfs/internal/ytils/yslice"
-	"mkuznets.com/go/sfs/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yslice"
+	"mkuznets.com/go/sfs/ytils/ytime"
 )
 
 type Controller interface {

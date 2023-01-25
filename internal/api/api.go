@@ -6,8 +6,8 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"mkuznets.com/go/sfs/internal/api/swagger"
 	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/sfs/internal/ytils/ylog"
-	"mkuznets.com/go/sfs/internal/ytils/yreq"
+	"mkuznets.com/go/sfs/ytils/ylog"
+	"mkuznets.com/go/sfs/ytils/yreq"
 	"net/http"
 )
 

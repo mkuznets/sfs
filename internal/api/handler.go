@@ -5,9 +5,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"mkuznets.com/go/sfs/internal/user"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
-	"mkuznets.com/go/sfs/internal/ytils/ynits"
-	"mkuznets.com/go/sfs/internal/ytils/yrender"
+	"mkuznets.com/go/sfs/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/ynits"
+	"mkuznets.com/go/sfs/ytils/yrender"
 	"net/http"
 )
 

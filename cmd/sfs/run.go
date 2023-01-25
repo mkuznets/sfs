@@ -11,8 +11,8 @@ import (
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/sfs/internal/ytils/ycrypto"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/ycrypto"
+	"mkuznets.com/go/sfs/ytils/yerr"
 	"net/http"
 	"os"
 )

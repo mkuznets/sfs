@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"html/template"
 	"io"
-	"mkuznets.com/go/sfs/internal/ytils/y"
+	"mkuznets.com/go/sfs/ytils/y"
 	"strings"
 )
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/rs/zerolog/log"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yerr"
 	"net/http"
 )
 

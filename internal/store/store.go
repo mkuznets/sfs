@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/sfs/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/ytils/ytime"
 )
 
 type Store interface {

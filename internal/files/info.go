@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/h2non/filetype"
 	"io"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yerr"
 )
 
 func Info(r io.ReadSeeker) (*FileInfo, error) {

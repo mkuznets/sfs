@@ -4,8 +4,8 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"mkuznets.com/go/sfs/internal/rss"
-	"mkuznets.com/go/sfs/internal/ytils/yrender"
-	"mkuznets.com/go/sfs/internal/ytils/ytime"
+	"mkuznets.com/go/sfs/ytils/yrender"
+	"mkuznets.com/go/sfs/ytils/ytime"
 )
 
 type GetFeedsRequest struct {

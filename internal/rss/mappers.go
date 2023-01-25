@@ -2,7 +2,7 @@ package rss
 
 import (
 	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/sfs/internal/ytils/yslice"
+	"mkuznets.com/go/sfs/ytils/yslice"
 	"time"
 )
 

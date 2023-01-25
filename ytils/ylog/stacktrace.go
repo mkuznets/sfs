@@ -3,7 +3,7 @@ package ylog
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yerr"
 )
 
 var (

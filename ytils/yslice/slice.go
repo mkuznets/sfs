@@ -1,6 +1,6 @@
 package yslice
 
-import "mkuznets.com/go/sfs/internal/ytils/yerr"
+import "mkuznets.com/go/sfs/ytils/yerr"
 
 func Map[E any, R any](slice []E, mapper func(value E) R) []R {
 	mapped := make([]R, 0, len(slice))

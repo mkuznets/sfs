@@ -3,7 +3,7 @@ package files
 import (
 	"context"
 	"io"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yerr"
 	"net/url"
 	"os"
 	"path/filepath"

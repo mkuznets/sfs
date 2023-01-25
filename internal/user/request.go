@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yerr"
 	"net/http"
 )
 

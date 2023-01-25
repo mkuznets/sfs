@@ -5,7 +5,7 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
-	"mkuznets.com/go/sfs/internal/ytils/ylog"
+	"mkuznets.com/go/sfs/ytils/ylog"
 	"os"
 )
 
