@@ -28,7 +28,7 @@ func (l *localStorage) ensurePath(path string) (string, error) {
 	}
 
 	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
-		return "", yerr.New("failed to create target directory: %w", err)
+		return "", yerr.New("failed to create target directory").Err(err)
 	}
 
 	return absPath, nil

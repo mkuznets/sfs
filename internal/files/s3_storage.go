@@ -2,12 +2,11 @@ package files
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"html/template"
 	"io"
+	"mkuznets.com/go/sfs/internal/ytils/y"
 	"strings"
 )
 
@@ -18,7 +17,7 @@ type s3Storage struct {
 	accessKeySecret string
 	urlTemplate     string
 
-	cachedAwsConfig *aws.Config
+	//cachedAwsConfig *aws.Config
 }
 
 type Object struct {
@@ -36,48 +35,21 @@ func NewS3Storage(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate
 	}
 }
 
-func (s *s3Storage) awsConfig(ctx context.Context) (aws.Config, error) {
-	if s.cachedAwsConfig != nil {
-		return *s.cachedAwsConfig, nil
-	}
-
-	resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		return aws.Endpoint{
-			URL: s.endpointUrl,
-		}, nil
+func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*UploadResult, error) {
+	s3client := s3.New(s3.Options{
+		Credentials:      credentials.NewStaticCredentialsProvider(s.accessKeyId, s.accessKeySecret, ""),
+		EndpointResolver: s3.EndpointResolverFromURL(s.endpointUrl),
 	})
 
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithEndpointResolverWithOptions(resolver),
-		config.WithCredentialsProvider(
-			credentials.NewStaticCredentialsProvider(s.accessKeyId, s.accessKeySecret, ""),
-		),
-	)
-	if err != nil {
-		return aws.Config{}, err
-	}
-
-	s.cachedAwsConfig = &cfg
-
-	return cfg, nil
-}
-
-func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*UploadResult, error) {
 	urlTpl, err := template.New("url").Parse(s.urlTemplate)
 	if err != nil {
 		return nil, err
 	}
 
-	cfg, err := s.awsConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-	client := s3.NewFromConfig(cfg)
-
-	_, err = client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:             aws.String(s.bucket),
-		Key:                aws.String(path),
-		ContentDisposition: aws.String("inline"),
+	_, err = s3client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:             y.Ptr(s.bucket),
+		Key:                y.Ptr(path),
+		ContentDisposition: y.Ptr("inline"),
 		Body:               r,
 	})
 	if err != nil {

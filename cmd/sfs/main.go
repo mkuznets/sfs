@@ -51,9 +51,7 @@ func init() {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		panic(err)
-	}
+	_ = godotenv.Load()
 
 	var app App
 	var parser = flags.NewParser(&app, flags.Default)

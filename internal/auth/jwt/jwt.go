@@ -65,7 +65,7 @@ func (s *jwtService) Token(id string) (string, error) {
 
 	token, err := jwtEncoder.SignedString(privateKey)
 	if err != nil {
-		return "", yerr.New("could not create signed token: %w", err)
+		return "", yerr.New("could not create signed token").Err(err)
 	}
 
 	return token, nil
