@@ -3,15 +3,17 @@ package rss
 import (
 	"context"
 	"encoding/xml"
+	"fmt"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"mkuznets.com/go/sfs/internal/ytils/ytime"
+	"strings"
 )
 
 type Controller interface {
-	UpdateFeeds(ctx context.Context, feedIds []string) error
-	BuildFeedsRss(ctx context.Context, feeds []*store.Feed) error
+	UpdateFeeds(ctx context.Context, feeds []*store.Feed) error
+	BuildRss(ctx context.Context, feed *store.Feed) error
 }
 
 type controllerImpl struct {
@@ -26,46 +28,50 @@ func NewController(store store.Store, fileStorage files.Storage) Controller {
 	}
 }
 
-func (c *controllerImpl) UpdateFeeds(ctx context.Context, feedIds []string) error {
-	feeds, err := c.store.GetFeeds(ctx, &store.FeedFilter{Ids: feedIds})
+func (c *controllerImpl) UpdateFeeds(ctx context.Context, feeds []*store.Feed) error {
+	for _, feed := range feeds {
+		if err := c.BuildRss(ctx, feed); err != nil {
+			return err
+		}
+	}
+	if err := c.store.UpdateFeeds(ctx, feeds, "rss_content", "rss_content_updated_at", "rss_url", "rss_url_updated_at", "updated_at"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
+	items, err := c.store.GetItems(ctx, &store.ItemFilter{FeedIds: []string{feed.Id}})
 	if err != nil {
 		return err
 	}
 
-	if err := c.BuildFeedsRss(ctx, feeds); err != nil {
+	var xmlModel any
+	switch feed.Type {
+	case "podcast":
+		xmlModel = FeedToPodcast(feed, items)
+	default:
+		return yerr.New("%s has invalid feed type: %s", feed.Id, feed.Type)
+	}
+
+	content, err := xml.MarshalIndent(xmlModel, "", "  ")
+	if err != nil {
 		return err
 	}
 
-	if err := c.store.UpdateFeeds(ctx, feeds, "rss", "rss_updated_at"); err != nil {
-		return err
+	feed.RssContent = string(content)
+	feed.RssContentUpdatedAt = ytime.Now()
+
+	path := fmt.Sprintf("rss/%s/feed.xml", feed.Id)
+	upload, err := c.fileStorage.Upload(ctx, path, strings.NewReader(feed.RssContent))
+	if err != nil {
+		return yerr.New("failed to upload RSS feed").Err(err)
 	}
 
-	return nil
-}
+	feed.RssUrl = upload.Url
+	feed.RssUrlUpdatedAt = ytime.Now()
 
-func (c *controllerImpl) BuildFeedsRss(ctx context.Context, feeds []*store.Feed) error {
-	for _, feed := range feeds {
-		items, err := c.store.GetItems(ctx, &store.ItemFilter{FeedIds: []string{feed.Id}})
-		if err != nil {
-			return err
-		}
-
-		var xmlModel any
-		switch feed.Type {
-		case "podcast":
-			xmlModel = FeedToPodcast(feed, items)
-		default:
-			return yerr.New("%s has invalid feed type: %s", feed.Id, feed.Type)
-		}
-
-		content, err := xml.MarshalIndent(xmlModel, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		feed.Rss = string(content)
-		feed.RssUpdatedAt = ytime.Now()
-	}
+	feed.UpdatedAt = ytime.Now()
 
 	return nil
 }

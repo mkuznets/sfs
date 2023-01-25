@@ -118,6 +118,10 @@ definitions:
         example: https://example.com
         type: string
         x-order: "3"
+      rss_url:
+        example: https://example.com/feed.rss
+        type: string
+        x-order: "1"
       title:
         example: Bored Owls Online Radio
         type: string

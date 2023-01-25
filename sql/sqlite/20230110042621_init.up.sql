@@ -1,17 +1,19 @@
 create table feeds
 (
-    id             text primary key not null check (substring(id, 1, 5) = 'feed_'),
-    user_id        text             not null,
-    type           text             not null,
-    title          text             not null,
-    link           text             not null,
-    authors        text             not null,
-    description    text             not null,
-    rss            text             not null,
-    rss_updated_at integer          not null check (created_at > 0),
-    created_at     integer          not null check (created_at > 0),
-    updated_at     integer          not null check (updated_at > 0),
-    deleted_at     integer check (deleted_at is null or deleted_at > 0)
+    id                     text primary key not null check (substring(id, 1, 5) = 'feed_'),
+    user_id                text             not null,
+    type                   text             not null,
+    title                  text             not null,
+    link                   text             not null,
+    authors                text             not null,
+    description            text             not null,
+    rss_content            text             not null,
+    rss_content_updated_at integer check (rss_content_updated_at is null or rss_content_updated_at > 0),
+    rss_url                text             not null,
+    rss_url_updated_at     integer check (rss_url_updated_at is null or rss_url_updated_at > 0),
+    created_at             integer          not null check (created_at > 0),
+    updated_at             integer          not null check (updated_at > 0),
+    deleted_at             integer check (deleted_at is null or deleted_at > 0)
 ) strict;
 
 create index feeds_user_id_idx on feeds (user_id);

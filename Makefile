@@ -16,9 +16,13 @@ fmt:
 	swag fmt --exclude internal/api/resources.go
 
 run: sfs
+	mkdir -p data
 	bin/sfs run
 
 test:
 	go test -v ./...
 
-.PHONY: sfs build swagger web
+distclean:
+	rm -rf bin data
+
+.PHONY: sfs build swagger web distclean

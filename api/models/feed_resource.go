@@ -40,6 +40,10 @@ type FeedResource struct {
 	// Example: https://example.com
 	Link string `json:"link,omitempty"`
 
+	// rss url
+	// Example: https://example.com/feed.rss
+	RssURL string `json:"rss_url,omitempty"`
+
 	// title
 	// Example: Bored Owls Online Radio
 	Title string `json:"title,omitempty"`

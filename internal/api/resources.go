@@ -4,7 +4,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"mkuznets.com/go/sfs/internal/rss"
-	"mkuznets.com/go/sfs/internal/ytils/yerr"
+	"mkuznets.com/go/sfs/internal/ytils/yrender"
 	"mkuznets.com/go/sfs/internal/ytils/ytime"
 )
 
@@ -23,6 +23,7 @@ type GetFeedsResponse struct {
 
 type FeedResource struct {
 	Id          string     `json:"id" example:"feed_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
+	RssUrl      string     `json:"rss_url" example:"https://example.com/feed.rss" extensions:"x-order=1"`
 	Title       string     `json:"title" example:"Bored Owls Online Radio" extensions:"x-order=2"`
 	Link        string     `json:"link" example:"https://example.com" extensions:"x-order=3"`
 	Authors     string     `json:"authors" example:"The Owl" extensions:"x-order=4"`
@@ -144,7 +145,7 @@ type UploadFileResultResource struct {
 } // @name UploadFileResultResource
 
 // Only used in Swagger docs.
-type _ yerr.Response // @name ErrorResponse
+type _ yrender.ErrorResponse // @name ErrorResponse
 
 // Only used in Swagger docs.
 type _ rss.Podcast // @name Podcast

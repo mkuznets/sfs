@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"net/http"
 	"runtime"
+	"strings"
 )
 
 type StackTracer interface {
@@ -17,6 +18,7 @@ type Error interface {
 	Status() int
 	Err(error) Error
 	Unwrap() error
+	Message() string
 }
 
 type errorImpl struct {
@@ -39,8 +41,26 @@ func (e *errorImpl) Status() int {
 	return e.status
 }
 
-func (e *errorImpl) Error() string {
+func (e *errorImpl) Message() string {
 	return e.message
+}
+
+func (e *errorImpl) Error() string {
+	var (
+		msgs []string
+		err  error = e
+	)
+	for err != nil {
+		switch v := err.(type) {
+		case Error:
+			msgs = append(msgs, v.Message())
+		default:
+			msgs = append(msgs, err.Error())
+		}
+		err = errors.Unwrap(err)
+	}
+
+	return strings.Join(msgs, ": ")
 }
 
 func (e *errorImpl) StackTrace() errors.StackTrace {
@@ -77,9 +97,4 @@ func Unauthorised(format string, a ...interface{}) Error {
 
 func New(format string, a ...interface{}) Error {
 	return newErrorf(nil, http.StatusInternalServerError, format, a...)
-}
-
-type Response struct {
-	Error   string `json:"error"`
-	Message string `json:"message"`
 }

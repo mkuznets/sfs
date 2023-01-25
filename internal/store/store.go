@@ -26,18 +26,20 @@ type Store interface {
 type Feed struct {
 	bun.BaseModel `bun:"table:feeds,alias:fe"`
 
-	Id           string     `bun:"id,pk"`
-	UserId       string     `bun:"user_id"`
-	Type         string     `bun:"type"`
-	Title        string     `bun:"title"`
-	Link         string     `bun:"link"`
-	Authors      string     `bun:"authors"`
-	Description  string     `bun:"description"`
-	Rss          string     `bun:"rss"`
-	RssUpdatedAt ytime.Time `bun:"rss_updated_at"`
-	CreatedAt    ytime.Time `bun:"created_at"`
-	UpdatedAt    ytime.Time `bun:"updated_at"`
-	DeletedAt    ytime.Time `bun:"deleted_at"`
+	Id                  string     `bun:"id,pk"`
+	UserId              string     `bun:"user_id"`
+	Type                string     `bun:"type"`
+	Title               string     `bun:"title"`
+	Link                string     `bun:"link"`
+	Authors             string     `bun:"authors"`
+	Description         string     `bun:"description"`
+	RssContent          string     `bun:"rss_content"`
+	RssContentUpdatedAt ytime.Time `bun:"rss_content_updated_at"`
+	RssUrl              string     `bun:"rss_url"`
+	RssUrlUpdatedAt     ytime.Time `bun:"rss_url_updated_at"`
+	CreatedAt           ytime.Time `bun:"created_at"`
+	UpdatedAt           ytime.Time `bun:"updated_at"`
+	DeletedAt           ytime.Time `bun:"deleted_at"`
 }
 
 type Item struct {

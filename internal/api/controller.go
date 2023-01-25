@@ -73,6 +73,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 	results := yslice.Map(feeds, func(f *store.Feed) *FeedResource {
 		return &FeedResource{
 			Id:          f.Id,
+			RssUrl:      f.RssUrl,
 			Title:       f.Title,
 			Link:        f.Link,
 			Authors:     f.Authors,
@@ -105,7 +106,7 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 
 	feeds := make([]*store.Feed, 0)
 	for _, i := range r.Data {
-		feeds = append(feeds, &store.Feed{
+		feed := &store.Feed{
 			Id:          c.idService.Feed(ctx),
 			UserId:      usr.Id(),
 			Type:        "podcast",
@@ -115,10 +116,11 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 			Description: i.Description,
 			CreatedAt:   ytime.Now(),
 			UpdatedAt:   ytime.Now(),
-		})
-	}
-	if err := c.rssController.BuildFeedsRss(ctx, feeds); err != nil {
-		return nil, err
+		}
+		if err := c.rssController.BuildRss(ctx, feed); err != nil {
+			return nil, err
+		}
+		feeds = append(feeds)
 	}
 
 	if err := c.store.CreateFeeds(ctx, feeds); err != nil {
@@ -251,15 +253,8 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			return err
 		}
 
-		for _, feed := range feeds {
-			feed.UpdatedAt = ytime.Now()
-		}
-
-		if err := c.rssController.BuildFeedsRss(ctxT, feeds); err != nil {
-			return err
-		}
-		if err := c.store.UpdateFeeds(ctxT, feeds, "rss", "rss_updated_at", "updated_at"); err != nil {
-			return err
+		if err := c.rssController.UpdateFeeds(ctxT, feeds); err != nil {
+			return yerr.New("failed to update feeds").Err(err)
 		}
 
 		return nil
@@ -356,5 +351,5 @@ func (c *controllerImpl) GetRss(ctx context.Context, feedId string) (string, err
 	if err != nil {
 		return "", err
 	}
-	return feed.Rss, nil
+	return feed.RssContent, nil
 }

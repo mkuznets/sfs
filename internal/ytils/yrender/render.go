@@ -2,12 +2,11 @@ package yrender
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"errors"
 	"github.com/rs/zerolog/log"
 	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"net/http"
-	"strings"
 )
 
 type Response interface {
@@ -69,30 +68,27 @@ func renderJSON(w http.ResponseWriter, status int, v interface{}) {
 	_, _ = w.Write(buf.Bytes())
 }
 
+func reportError(ctx context.Context, err error) {
+	log.Ctx(ctx).Error().Stack().Err(err).Msg("server error")
+}
+
 func renderJSONError(w http.ResponseWriter, r *http.Request, err error) {
 	switch v := err.(type) {
 	case yerr.Error:
+		message := v.Message()
 		if v.Status() >= 500 {
-			log.Ctx(r.Context()).Error().Stack().Err(v).Msg("server error")
+			message = "Internal Server Error"
+			reportError(r.Context(), err)
 		}
-
-		var (
-			msgs []string
-			e    error
-		)
-		msgs = append(msgs, v.Error())
-
-		if v.Status() < 500 {
-			e = v
-			for e != nil {
-				e = errors.Unwrap(e)
-				if e != nil {
-					msgs = append(msgs, e.Error())
-				}
-			}
-		}
-		renderJSON(w, v.Status(), yerr.Response{Error: http.StatusText(v.Status()), Message: strings.Join(msgs, ": ")})
+		renderJSON(w, v.Status(), ErrorResponse{
+			Error:   http.StatusText(v.Status()),
+			Message: message,
+		})
 	default:
-		renderJSONError(w, r, yerr.New("Internal error").Err(err))
+		reportError(r.Context(), err)
+		renderJSON(w, http.StatusInternalServerError, ErrorResponse{
+			Error:   http.StatusText(http.StatusInternalServerError),
+			Message: err.Error(),
+		})
 	}
 }
