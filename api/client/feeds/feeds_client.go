@@ -116,7 +116,7 @@ func (a *Client) GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFee
 }
 
 /*
-GetRss returns a response with the r s s feed in XML format
+GetRss returns a response with the XML feed in XML format
 */
 func (a *Client) GetRss(params *GetRssParams, opts ...ClientOption) (*GetRssOK, error) {
 	// TODO: Validate the params before sending

@@ -122,7 +122,7 @@ const docTemplate = `{
                 "tags": [
                     "Feeds"
                 ],
-                "summary": "Returns a response with the RSS feed in XML format",
+                "summary": "Returns a response with the XML feed in XML format",
                 "operationId": "GetRss",
                 "parameters": [
                     {
@@ -135,7 +135,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "RSS feed in XML format"
+                        "description": "XML feed in XML format"
                     }
                 }
             }

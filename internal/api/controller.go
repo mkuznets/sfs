@@ -222,13 +222,14 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			if err != nil {
 				return err
 			}
-			if file.ItemId != "" {
+			if file.ItemId != nil {
 				return yerr.Invalid("file already used")
 			}
 
 			item := &store.Item{
 				Id:          c.idService.Item(ctxT),
 				FeedId:      i.FeedId,
+				UserId:      usr.Id(),
 				Title:       i.Title,
 				Link:        i.Link,
 				Authors:     i.Authors,
@@ -239,7 +240,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			}
 			items = append(items, item)
 
-			file.ItemId = item.Id
+			file.ItemId = &item.Id
 			fs = append(fs, file)
 		}
 
@@ -341,14 +342,14 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 	}, nil
 }
 
-// GetRss returns a response with the RSS feed in XML format
+// GetRss returns a response with the XML feed in XML format
 //
 //	@ID			GetRss
-//	@Summary	Returns a response with the RSS feed in XML format
+//	@Summary	Returns a response with the XML feed in XML format
 //	@Tags		Feeds
 //	@Produce	xml
 //	@Param		id	path		string	true	"Feed ID"
-//	@Success	200	{object}	nil		"RSS feed in XML format"
+//	@Success	200	{object}	nil		"XML feed in XML format"
 //	@Router		/feeds/rss/{id} [get]
 func (c *controllerImpl) GetRss(ctx context.Context, feedId string) (string, error) {
 	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, &store.FeedFilter{Ids: []string{feedId}}))

@@ -39,7 +39,7 @@ func NewGetRssOK() *GetRssOK {
 /*
 GetRssOK describes a response with status code 200, with default header values.
 
-RSS feed in XML format
+XML feed in XML format
 */
 type GetRssOK struct {
 }

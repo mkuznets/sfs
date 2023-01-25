@@ -62,7 +62,7 @@ type File struct {
 
 	Id        string     `bun:"id,pk"`
 	UserId    string     `bun:"user_id"`
-	ItemId    string     `bun:"item_id"`
+	ItemId    *string    `bun:"item_id"`
 	Size      int64      `bun:"size"`
 	MimeType  string     `bun:"mime_type"`
 	Hash      string     `bun:"hash"`

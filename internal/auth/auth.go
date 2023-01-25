@@ -129,17 +129,17 @@ func (s *authService) Middleware() func(next http.Handler) http.Handler {
 					return
 				}
 
-				yrender.JsonErr(w, r, yerr.Unauthorised("valid auth header is required").Err(err))
+				yrender.New(w, r, yerr.Unauthorised("valid auth header is required").Err(err)).JSON()
 				return
 			}
 
 			var claims customClaims
 			if _, err := jwt.ParseWithClaims(tokenString, &claims, s.keyFunc); err != nil {
-				yrender.JsonErr(w, r, yerr.Unauthorised("invalid token").Err(err))
+				yrender.New(w, r, yerr.Unauthorised("invalid token").Err(err)).JSON()
 				return
 			}
 			if !claims.VerifyExpiresAt(time.Now(), true) {
-				yrender.JsonErr(w, r, yerr.Unauthorised("token expired"))
+				yrender.New(w, r, yerr.Unauthorised("token expired")).JSON()
 				return
 			}
 
