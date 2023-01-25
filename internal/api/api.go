@@ -41,6 +41,7 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 		r.Use(middleware.Recoverer)
 		r.Use(yreq.RequestId)
 		r.Use(ylog.ContextLogger)
+		r.Use(ylog.RequestLogger())
 
 		r.Route("/feeds", func(r chi.Router) {
 			r.Get("/rss/{feedId}", a.handler.GetRss)

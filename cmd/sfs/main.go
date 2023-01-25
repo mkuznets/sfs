@@ -51,8 +51,6 @@ func init() {
 }
 
 func main() {
-	validation.ErrorTag = "validation"
-
 	if err := godotenv.Load(); err != nil {
 		panic(err)
 	}

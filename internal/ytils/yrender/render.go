@@ -69,7 +69,7 @@ func renderJSON(w http.ResponseWriter, status int, v interface{}) {
 }
 
 func reportError(ctx context.Context, err error) {
-	log.Ctx(ctx).Error().Stack().Err(err).Msg("server error")
+	log.Ctx(ctx).Error().Stack().Err(err).Send()
 }
 
 func renderJSONError(w http.ResponseWriter, r *http.Request, err error) {
@@ -88,7 +88,7 @@ func renderJSONError(w http.ResponseWriter, r *http.Request, err error) {
 		reportError(r.Context(), err)
 		renderJSON(w, http.StatusInternalServerError, ErrorResponse{
 			Error:   http.StatusText(http.StatusInternalServerError),
-			Message: err.Error(),
+			Message: "Internal Server Error",
 		})
 	}
 }

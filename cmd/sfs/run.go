@@ -14,9 +14,9 @@ import (
 )
 
 type RunCommand struct {
-	ServerOpts *Server `group:"Server Options" namespace:"server" env-namespace:"SERVER" validation:"SERVER"`
-	S3Opts     *S3     `group:"S3 Options" namespace:"s3" env-namespace:"S3" validation:"S3"`
-	JwtOpts    *Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT" validation:"JWT"`
+	ServerOpts *Server `group:"Server Options" namespace:"server" env-namespace:"SERVER" json:"SERVER"`
+	S3Opts     *S3     `group:"S3 Options" namespace:"s3" env-namespace:"S3" json:"S3"`
+	JwtOpts    *Jwt    `group:"JWT Options" namespace:"jwt" env-namespace:"JWT" json:"JWT"`
 
 	api api.Api
 }
@@ -30,8 +30,8 @@ func (c *RunCommand) Validate() error {
 }
 
 type Server struct {
-	Addr      string `long:"addr" env:"ADDR" validation:"ADDR" description:"HTTP service address" required:"true"`
-	UrlPrefix string `long:"url-prefix" env:"URL_PREFIX" validation:"URL_PREFIX" description:"URL prefix to the service" required:"true"`
+	Addr      string `long:"addr" env:"ADDR" json:"ADDR" description:"HTTP service address" required:"true"`
+	UrlPrefix string `long:"url-prefix" env:"URL_PREFIX" json:"URL_PREFIX" description:"URL prefix to the service" required:"true"`
 }
 
 func (s *Server) Validate() error {
@@ -42,12 +42,12 @@ func (s *Server) Validate() error {
 }
 
 type S3 struct {
-	Enabled     bool   `long:"enabled" env:"ENABLED" description:"Enable S3 storage" validation:"ENABLED"`
-	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" validation:"ENDPOINT_URL"`
-	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" validation:"ACCESS_KEY_ID"`
-	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" validation:"SECRET_ACCESS_KEY"`
-	Bucket      string `long:"bucket" env:"BUCKET" description:"S3 bucket name" validation:"BUCKET"`
-	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a publically available URL of the uploaded object" validation:"URL_TEMPLATE"`
+	Enabled     bool   `long:"enabled" env:"ENABLED" description:"Enable S3 storage" json:"ENABLED"`
+	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" json:"ENDPOINT_URL"`
+	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" json:"ACCESS_KEY_ID"`
+	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" json:"SECRET_ACCESS_KEY"`
+	Bucket      string `long:"bucket" env:"BUCKET" description:"S3 bucket name" json:"BUCKET"`
+	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a publically available URL of the uploaded object" json:"URL_TEMPLATE"`
 }
 
 func (s3 *S3) Validate() error {

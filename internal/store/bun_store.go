@@ -67,6 +67,9 @@ func (s *bunStore) GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, e
 }
 
 func (s *bunStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
+	if len(feeds) == 0 {
+		return yerr.New("no feeds to create")
+	}
 	_, err := s.ctxDb(ctx).NewInsert().Model(&feeds).Returning("id").Exec(ctx)
 	return err
 }
@@ -95,6 +98,9 @@ func (s *bunStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, e
 }
 
 func (s *bunStore) CreateItems(ctx context.Context, items []*Item) error {
+	if len(items) == 0 {
+		return yerr.New("no items to create")
+	}
 	_, err := s.ctxDb(ctx).NewInsert().Model(&items).Returning("id").Exec(ctx)
 	return err
 }
@@ -105,6 +111,10 @@ func (s *bunStore) CreateFile(ctx context.Context, file *File) error {
 }
 
 func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...string) error {
+	if len(feeds) == 0 {
+		return yerr.New("no feeds to update")
+	}
+
 	values := s.ctxDb(ctx).NewValues(&feeds)
 
 	q := s.ctxDb(ctx).NewUpdate().
@@ -122,6 +132,10 @@ func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...str
 }
 
 func (s *bunStore) UpdateFiles(ctx context.Context, files []*File, fields ...string) error {
+	if len(files) == 0 {
+		return yerr.New("no files to update")
+	}
+
 	values := s.ctxDb(ctx).NewValues(&files)
 
 	q := s.ctxDb(ctx).NewUpdate().

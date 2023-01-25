@@ -120,11 +120,11 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 		if err := c.rssController.BuildRss(ctx, feed); err != nil {
 			return nil, err
 		}
-		feeds = append(feeds)
+		feeds = append(feeds, feed)
 	}
 
 	if err := c.store.CreateFeeds(ctx, feeds); err != nil {
-		return nil, err
+		return nil, yerr.New("could not create feeds").Err(err)
 	}
 
 	items := make([]*CreateFeedsResultResource, 0)

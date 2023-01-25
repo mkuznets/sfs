@@ -69,5 +69,5 @@ func (h *bunHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 		logEvent = l.Debug()
 	}
 
-	logEvent.Dur("duration", dur).Str("query", event.Query).Msg("query")
+	logEvent.Dur("duration", dur).Str("query", event.Query).Msg("QUERY")
 }
