@@ -22,9 +22,6 @@ type GetItemsRequest struct {
 
 	// ids
 	Ids []string `json:"ids"`
-
-	// user ids
-	UserIds []string `json:"userIds"`
 }
 
 // Validate validates this get items request

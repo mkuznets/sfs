@@ -139,10 +139,6 @@ definitions:
           type: string
         type: array
         x-order: "0"
-      userIds:
-        items:
-          type: string
-        type: array
     type: object
   GetFeedsResponse:
     properties:
@@ -163,10 +159,6 @@ definitions:
           type: string
         type: array
         x-order: "0"
-      userIds:
-        items:
-          type: string
-        type: array
     type: object
   GetItemsResponse:
     properties:
@@ -289,6 +281,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
       summary: Create new feeds
       tags:
       - Feeds
@@ -319,6 +313,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
       summary: Get feeds matching the given parameters
       tags:
       - Feeds
@@ -336,6 +332,8 @@ paths:
       responses:
         "200":
           description: XML feed in XML format
+      security:
+      - Authentication: []
       summary: Returns a response with the XML feed in XML format
       tags:
       - Feeds
@@ -369,6 +367,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
       summary: Upload new audio files
       tags:
       - Files
@@ -403,6 +403,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
       summary: Create new items and returns a response with their IDs
       tags:
       - Items
@@ -433,6 +435,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+      security:
+      - Authentication: []
       summary: Get items matching the given parameters
       tags:
       - Items

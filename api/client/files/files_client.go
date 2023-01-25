@@ -30,7 +30,7 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	UploadFiles(params *UploadFilesParams, opts ...ClientOption) (*UploadFilesOK, error)
+	UploadFiles(params *UploadFilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*UploadFilesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -38,7 +38,7 @@ type ClientService interface {
 /*
 UploadFiles uploads new audio files
 */
-func (a *Client) UploadFiles(params *UploadFilesParams, opts ...ClientOption) (*UploadFilesOK, error) {
+func (a *Client) UploadFiles(params *UploadFilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*UploadFilesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewUploadFilesParams()
@@ -52,6 +52,7 @@ func (a *Client) UploadFiles(params *UploadFilesParams, opts ...ClientOption) (*
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &UploadFilesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

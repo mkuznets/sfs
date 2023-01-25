@@ -68,24 +68,30 @@ func renderJSON(w http.ResponseWriter, status int, v interface{}) {
 	_, _ = w.Write(buf.Bytes())
 }
 
-func reportError(ctx context.Context, err error) {
-	log.Ctx(ctx).Error().Stack().Err(err).Send()
+func reportError(ctx context.Context, err error, stack bool) {
+	event := log.Ctx(ctx).Error()
+	if stack {
+		event = event.Stack()
+	}
+	event.Err(err).Send()
 }
 
 func renderJSONError(w http.ResponseWriter, r *http.Request, err error) {
 	switch v := err.(type) {
 	case yerr.Error:
-		message := v.Message()
+		message := v.Error()
+		stack := false
 		if v.Status() >= 500 {
 			message = "Internal Server Error"
-			reportError(r.Context(), err)
+			stack = true
 		}
+		reportError(r.Context(), err, stack)
 		renderJSON(w, v.Status(), ErrorResponse{
 			Error:   http.StatusText(v.Status()),
 			Message: message,
 		})
 	default:
-		reportError(r.Context(), err)
+		reportError(r.Context(), err, false)
 		renderJSON(w, http.StatusInternalServerError, ErrorResponse{
 			Error:   http.StatusText(http.StatusInternalServerError),
 			Message: "Internal Server Error",

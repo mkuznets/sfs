@@ -16,12 +16,12 @@ type Api interface {
 }
 
 type apiImpl struct {
-	authService auth.Service
-	handler     Handler
+	auth    auth.Service
+	handler Handler
 }
 
-func New(authService auth.Service, handler Handler) Api {
-	return &apiImpl{authService, handler}
+func New(auth auth.Service, handler Handler) Api {
+	return &apiImpl{auth, handler}
 }
 
 // Handler ...
@@ -42,6 +42,7 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 		r.Use(yreq.RequestId)
 		r.Use(ylog.ContextLogger)
 		r.Use(ylog.RequestLogger())
+		r.Use(a.auth.Middleware())
 
 		r.Route("/feeds", func(r chi.Router) {
 			r.Get("/rss/{feedId}", a.handler.GetRss)

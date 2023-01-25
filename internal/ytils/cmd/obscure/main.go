@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"io"
 	"mkuznets.com/go/sfs/internal/ytils/ycrypto"
+	"mkuznets.com/go/sfs/internal/ytils/yerr"
 	"os"
 	"strings"
 )
 
 func main() {
 	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, os.Stdin); err != nil {
-		panic(err)
-	}
-	fmt.Println(ycrypto.MustObscure(strings.TrimSpace(buf.String())))
+	yerr.Must(io.Copy(&buf, os.Stdin))
+	fmt.Println(yerr.Must(ycrypto.Obscure(strings.TrimSpace(buf.String()))))
 }

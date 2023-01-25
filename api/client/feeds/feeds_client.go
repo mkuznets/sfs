@@ -30,11 +30,11 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	CreateFeeds(params *CreateFeedsParams, opts ...ClientOption) (*CreateFeedsOK, error)
+	CreateFeeds(params *CreateFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateFeedsOK, error)
 
-	GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFeedsOK, error)
+	GetFeeds(params *GetFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFeedsOK, error)
 
-	GetRss(params *GetRssParams, opts ...ClientOption) (*GetRssOK, error)
+	GetRss(params *GetRssParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetRssOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -42,7 +42,7 @@ type ClientService interface {
 /*
 CreateFeeds creates new feeds
 */
-func (a *Client) CreateFeeds(params *CreateFeedsParams, opts ...ClientOption) (*CreateFeedsOK, error) {
+func (a *Client) CreateFeeds(params *CreateFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateFeedsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewCreateFeedsParams()
@@ -56,6 +56,7 @@ func (a *Client) CreateFeeds(params *CreateFeedsParams, opts ...ClientOption) (*
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &CreateFeedsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -80,7 +81,7 @@ func (a *Client) CreateFeeds(params *CreateFeedsParams, opts ...ClientOption) (*
 /*
 GetFeeds gets feeds matching the given parameters
 */
-func (a *Client) GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFeedsOK, error) {
+func (a *Client) GetFeeds(params *GetFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFeedsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFeedsParams()
@@ -94,6 +95,7 @@ func (a *Client) GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFee
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetFeedsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -118,7 +120,7 @@ func (a *Client) GetFeeds(params *GetFeedsParams, opts ...ClientOption) (*GetFee
 /*
 GetRss returns a response with the XML feed in XML format
 */
-func (a *Client) GetRss(params *GetRssParams, opts ...ClientOption) (*GetRssOK, error) {
+func (a *Client) GetRss(params *GetRssParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetRssOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetRssParams()
@@ -132,6 +134,7 @@ func (a *Client) GetRss(params *GetRssParams, opts ...ClientOption) (*GetRssOK, 
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetRssReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

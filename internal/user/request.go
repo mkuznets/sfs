@@ -22,14 +22,6 @@ func Get(r *http.Request) (User, error) {
 	}
 }
 
-func MustGet(r *http.Request) User {
-	user, err := Get(r)
-	if err != nil {
-		panic(err)
-	}
-	return user
-}
-
 func Ctx(ctx context.Context, user User) context.Context {
 	return context.WithValue(ctx, ctxUserKey, user)
 }

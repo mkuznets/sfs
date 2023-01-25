@@ -4,36 +4,33 @@ import (
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"mkuznets.com/go/sfs/api/client"
-	"net/url"
 )
 
 type Api struct {
 	client.SimpleFeedService
 	token string
+	auth  runtime.ClientAuthInfoWriter
 }
 
 // New create a new Simple Feed Service API client instance.
-func New(baseUrl, token string) (*Api, error) {
-	u, err := url.Parse(baseUrl)
-	if err != nil {
-		return nil, err
-	}
+func New(scheme, host, basePath string) *Api {
 	tc := client.TransportConfig{
-		Host:     u.Host,
-		BasePath: u.Path,
-		Schemes:  []string{u.Scheme},
+		Host:     host,
+		BasePath: basePath,
+		Schemes:  []string{scheme},
 	}
 
 	return &Api{
 		SimpleFeedService: *client.NewHTTPClientWithConfig(nil, &tc),
-		token:             token,
-	}, nil
+		auth:              httptransport.PassThroughAuth,
+	}
 }
 
-func (a *Api) AuthInfo() runtime.ClientAuthInfoWriter {
-	return httptransport.BearerToken(a.token)
+func (a *Api) WithJwt(privateKey, userId string) *Api {
+	a.auth = newJwtAuthenticator(privateKey, userId)
+	return a
 }
 
-func NewAuth(key string) runtime.ClientAuthInfoWriter {
-	return httptransport.BearerToken(key)
+func (a *Api) AuthWriter() runtime.ClientAuthInfoWriter {
+	return a.auth
 }

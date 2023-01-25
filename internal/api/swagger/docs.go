@@ -18,6 +18,11 @@ const docTemplate = `{
     "paths": {
         "/feeds/create": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -70,6 +75,11 @@ const docTemplate = `{
         },
         "/feeds/get": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -116,6 +126,11 @@ const docTemplate = `{
         },
         "/feeds/rss/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "produces": [
                     "text/xml"
                 ],
@@ -142,6 +157,11 @@ const docTemplate = `{
         },
         "/files/upload": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -192,6 +212,11 @@ const docTemplate = `{
         },
         "/items/create": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -244,6 +269,11 @@ const docTemplate = `{
         },
         "/items/get": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -481,12 +511,6 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "x-order": "0"
-                },
-                "userIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -517,12 +541,6 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "x-order": "1"
-                },
-                "userIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },

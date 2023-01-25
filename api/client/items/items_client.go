@@ -30,9 +30,9 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	CreateItems(params *CreateItemsParams, opts ...ClientOption) (*CreateItemsOK, error)
+	CreateItems(params *CreateItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateItemsOK, error)
 
-	GetItems(params *GetItemsParams, opts ...ClientOption) (*GetItemsOK, error)
+	GetItems(params *GetItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetItemsOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -40,7 +40,7 @@ type ClientService interface {
 /*
 CreateItems creates new items and returns a response with their i ds
 */
-func (a *Client) CreateItems(params *CreateItemsParams, opts ...ClientOption) (*CreateItemsOK, error) {
+func (a *Client) CreateItems(params *CreateItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateItemsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewCreateItemsParams()
@@ -54,6 +54,7 @@ func (a *Client) CreateItems(params *CreateItemsParams, opts ...ClientOption) (*
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &CreateItemsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -78,7 +79,7 @@ func (a *Client) CreateItems(params *CreateItemsParams, opts ...ClientOption) (*
 /*
 GetItems gets items matching the given parameters
 */
-func (a *Client) GetItems(params *GetItemsParams, opts ...ClientOption) (*GetItemsOK, error) {
+func (a *Client) GetItems(params *GetItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetItemsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetItemsParams()
@@ -92,6 +93,7 @@ func (a *Client) GetItems(params *GetItemsParams, opts ...ClientOption) (*GetIte
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetItemsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

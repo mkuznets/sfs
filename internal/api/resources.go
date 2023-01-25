@@ -9,8 +9,7 @@ import (
 )
 
 type GetFeedsRequest struct {
-	Ids     []string `json:"ids" extensions:"x-order=0"`
-	UserIds []string
+	Ids []string `json:"ids" extensions:"x-order=0"`
 } // @name GetFeedsRequest
 
 func (r *GetFeedsRequest) Validate() error {
@@ -70,7 +69,6 @@ type CreateFeedsResultResource struct {
 type GetItemsRequest struct {
 	Ids     []string `json:"ids" extensions:"x-order=0"`
 	FeedIds []string `json:"feed_ids" extensions:"x-order=1"`
-	UserIds []string
 } // @name GetItemsRequest
 
 type GetItemsResponse struct {

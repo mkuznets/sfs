@@ -9,6 +9,11 @@
     "paths": {
         "/feeds/create": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -61,6 +66,11 @@
         },
         "/feeds/get": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -107,6 +117,11 @@
         },
         "/feeds/rss/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "produces": [
                     "text/xml"
                 ],
@@ -133,6 +148,11 @@
         },
         "/files/upload": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -183,6 +203,11 @@
         },
         "/items/create": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -235,6 +260,11 @@
         },
         "/items/get": {
             "post": {
+                "security": [
+                    {
+                        "Authentication": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -472,12 +502,6 @@
                         "type": "string"
                     },
                     "x-order": "0"
-                },
-                "userIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -508,12 +532,6 @@
                         "type": "string"
                     },
                     "x-order": "1"
-                },
-                "userIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
@@ -22,7 +21,7 @@ type Controller interface {
 	GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error)
 	CreateItems(ctx context.Context, req *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error)
 	UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error)
-	GetRss(ctx context.Context, id string) (string, error)
+	GetRss(ctx context.Context, feedId string, usr user.User) (string, error)
 }
 
 type controllerImpl struct {
@@ -30,16 +29,14 @@ type controllerImpl struct {
 	store         store.Store
 	idService     IdService
 	rssController rss.Controller
-	authService   auth.Service
 }
 
-func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController rss.Controller, authService auth.Service) Controller {
+func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController rss.Controller) Controller {
 	return &controllerImpl{
 		store:         store,
 		fileStorage:   fileStorage,
 		idService:     idService,
 		rssController: feedController,
-		authService:   authService,
 	}
 }
 
@@ -55,14 +52,11 @@ func NewController(store store.Store, fileStorage files.Storage, idService IdSer
 //	@Failure	401		{object}	ErrorResponse
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/feeds/get [post]
+//	@Security	Authentication
 func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error) {
-
 	filter := store.FeedFilter{
 		Ids:     req.Ids,
-		UserIds: req.UserIds,
-	}
-	if len(filter.UserIds) == 0 {
-		filter.UserIds = []string{usr.Id()}
+		UserIds: []string{usr.Id()},
 	}
 
 	feeds, err := c.store.GetFeeds(ctx, &filter)
@@ -99,6 +93,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 //	@Failure	401		{object}	ErrorResponse
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/feeds/create [post]
+//	@Security	Authentication
 func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error) {
 	if err := r.Validate(); err != nil {
 		return nil, yerr.Invalid(err.Error())
@@ -147,11 +142,12 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 //	@Failure	401		{object}	ErrorResponse
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/items/get [post]
+//	@Security	Authentication
 func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error) {
 	filter := store.ItemFilter{
 		Ids:     req.Ids,
 		FeedIds: req.FeedIds,
-		UserIds: req.UserIds,
+		UserIds: []string{usr.Id()},
 	}
 	if len(filter.UserIds) == 0 {
 		filter.UserIds = []string{usr.Id()}
@@ -197,6 +193,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 //	@Failure	401		{object}	ErrorResponse
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/items/create [post]
+//	@Security	Authentication
 func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error) {
 	if err := r.Validate(); err != nil {
 		return nil, yerr.Invalid(err.Error())
@@ -284,6 +281,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 //	@Failure	401		{object}	ErrorResponse
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/files/upload [post]
+//	@Security	Authentication
 func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error) {
 	results := make([]*UploadFileResultResource, 0)
 
@@ -346,8 +344,14 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 //	@Param		id	path		string	true	"Feed ID"
 //	@Success	200	{object}	nil		"XML feed in XML format"
 //	@Router		/feeds/rss/{id} [get]
-func (c *controllerImpl) GetRss(ctx context.Context, feedId string) (string, error) {
-	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, &store.FeedFilter{Ids: []string{feedId}}))
+//	@Security	Authentication
+func (c *controllerImpl) GetRss(ctx context.Context, feedId string, usr user.User) (string, error) {
+	filter := &store.FeedFilter{
+		Ids:     []string{feedId},
+		UserIds: []string{usr.Id()},
+	}
+
+	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, filter))
 	if err != nil {
 		return "", err
 	}

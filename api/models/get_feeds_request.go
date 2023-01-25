@@ -19,9 +19,6 @@ type GetFeedsRequest struct {
 
 	// ids
 	Ids []string `json:"ids"`
-
-	// user ids
-	UserIds []string `json:"userIds"`
 }
 
 // Validate validates this get feeds request

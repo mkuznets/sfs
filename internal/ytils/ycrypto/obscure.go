@@ -56,15 +56,6 @@ func Obscure(x string) (string, error) {
 	return base64.RawURLEncoding.EncodeToString(ciphertext), nil
 }
 
-// MustObscure obscures a value, exiting with a fatal error if it failed
-func MustObscure(x string) string {
-	out, err := Obscure(x)
-	if err != nil {
-		log.Fatalf("Obscure failed: %v", err)
-	}
-	return out
-}
-
 // Reveal an obscured value
 func Reveal(x string) (string, error) {
 	ciphertext, err := base64.RawURLEncoding.DecodeString(x)
