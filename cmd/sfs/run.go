@@ -107,7 +107,7 @@ func (s3 *S3) Validate() error {
 			validation.Field(&s3.KeyID, validation.Required, validation.By(validateObscured)),
 			validation.Field(&s3.SecretKey, validation.Required, validation.By(validateObscured)),
 			validation.Field(&s3.Bucket, validation.Required),
-			validation.Field(&s3.UrlTemplate, validation.Required, is.URL),
+			validation.Field(&s3.UrlTemplate, validation.Required),
 		)
 	}
 	return nil

@@ -10,7 +10,6 @@ import (
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/sfs/internal/user"
 	"mkuznets.com/go/sfs/internal/ytils/yerr"
-	"mkuznets.com/go/sfs/internal/ytils/yrand"
 	"mkuznets.com/go/sfs/internal/ytils/yslice"
 	"mkuznets.com/go/sfs/internal/ytils/ytime"
 )
@@ -316,7 +315,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 
 	fileId := c.idService.File(ctx)
 
-	path := fmt.Sprintf("file/%s/%s/%s_%s.%s", info.Hash.Digest[:2], info.Hash.Digest[2:4], yrand.Base62(15), fileId, info.Extension)
+	path := fmt.Sprintf("files/%s/%s/%s.%s", info.Hash.Digest[:2], info.Hash.Digest[2:4], fileId, info.Extension)
 	upload, err := c.fileStorage.Upload(ctx, path, f)
 	if err != nil {
 		return nil, err

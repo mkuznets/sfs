@@ -62,7 +62,7 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 	feed.RssContent = string(content)
 	feed.RssContentUpdatedAt = ytime.Now()
 
-	path := fmt.Sprintf("rss/%s/feed.xml", feed.Id)
+	path := fmt.Sprintf("rss/%s.xml", feed.Id)
 	upload, err := c.fileStorage.Upload(ctx, path, strings.NewReader(feed.RssContent))
 	if err != nil {
 		return yerr.New("failed to upload RSS feed").Err(err)
