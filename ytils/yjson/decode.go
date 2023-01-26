@@ -1,4 +1,4 @@
-package yrender
+package yjson
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"mkuznets.com/go/sfs/ytils/yerr"
 )
 
-func DecodeJson[T any](r io.Reader) (T, error) {
+func Decode[T any](r io.Reader) (T, error) {
 	var v T
 	defer func(src io.Reader) {
 		_, _ = io.Copy(io.Discard, src)

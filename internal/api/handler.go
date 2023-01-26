@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"mkuznets.com/go/sfs/internal/user"
 	"mkuznets.com/go/sfs/ytils/yerr"
+	"mkuznets.com/go/sfs/ytils/yjson"
 	"mkuznets.com/go/sfs/ytils/ynits"
 	"mkuznets.com/go/sfs/ytils/yrender"
 	"net/http"
@@ -31,7 +32,7 @@ func NewHandler(c Controller) Handler {
 func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	usr := yerr.Must(user.Get(r))
 
-	req, err := yrender.DecodeJson[GetFeedsRequest](r.Body)
+	req, err := yjson.Decode[GetFeedsRequest](r.Body)
 	if err != nil {
 		yrender.New(w, r, err).JSON()
 		return
@@ -49,7 +50,7 @@ func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
 func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	usr := yerr.Must(user.Get(r))
 
-	req, err := yrender.DecodeJson[CreateFeedsRequest](r.Body)
+	req, err := yjson.Decode[CreateFeedsRequest](r.Body)
 	if err != nil {
 		yrender.New(w, r, err).JSON()
 		return
@@ -67,7 +68,7 @@ func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
 	usr := yerr.Must(user.Get(r))
 
-	req, err := yrender.DecodeJson[GetItemsRequest](r.Body)
+	req, err := yjson.Decode[GetItemsRequest](r.Body)
 	if err != nil {
 		yrender.New(w, r, err).JSON()
 		return
@@ -85,7 +86,7 @@ func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
 func (h *handlerImpl) CreateItems(w http.ResponseWriter, r *http.Request) {
 	usr := yerr.Must(user.Get(r))
 
-	req, err := yrender.DecodeJson[CreateItemsRequest](r.Body)
+	req, err := yjson.Decode[CreateItemsRequest](r.Body)
 	if err != nil {
 		yrender.New(w, r, err).JSON()
 		return

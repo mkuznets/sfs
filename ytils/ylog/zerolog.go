@@ -15,7 +15,8 @@ func Setup() {
 		TimeFormat: "2006-01-02 15:04:05",
 	})
 	zerolog.DefaultContextLogger = &log.Logger
-	zerolog.DurationFieldUnit = time.Microsecond
+	zerolog.DurationFieldUnit = time.Millisecond
+	zerolog.DurationFieldInteger = false
 	zerolog.ErrorStackMarshaler = MarshalStack
 }
 
