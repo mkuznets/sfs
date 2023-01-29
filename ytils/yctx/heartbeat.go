@@ -2,6 +2,7 @@ package yctx
 
 import (
 	"context"
+	"github.com/dlsniper/debugger"
 	"github.com/rs/zerolog/log"
 	"mkuznets.com/go/sfs/ytils/y"
 	"mkuznets.com/go/sfs/ytils/ytime"
@@ -47,6 +48,7 @@ func (h *Heartbeat) Beat() {
 }
 
 func (h *Heartbeat) Close() {
+	h.cancel()
 	close(h.beatC)
 }
 
@@ -64,6 +66,14 @@ func (h *Heartbeat) Start() *Heartbeat {
 	}
 
 	go func(last *time.Time) {
+		debugger.SetLabels(func() []string {
+			return []string{
+				"pkg", "ytils/yctx",
+				"name", h.name,
+				"func", "beats monitor",
+			}
+		})
+
 		for {
 			if h.ctx.Err() != nil {
 				return
@@ -88,6 +98,14 @@ func (h *Heartbeat) Start() *Heartbeat {
 	}(&lastBeat)
 
 	go func() {
+		debugger.SetLabels(func() []string {
+			return []string{
+				"pkg", "ytils/yctx",
+				"name", h.name,
+				"func", "beats consumer",
+			}
+		})
+
 		for {
 			select {
 			case <-h.beatC:

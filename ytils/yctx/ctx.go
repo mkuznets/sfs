@@ -2,6 +2,7 @@ package yctx
 
 import (
 	"context"
+	"github.com/dlsniper/debugger"
 	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
@@ -27,6 +28,13 @@ func NewContexts() Contexts {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
+		debugger.SetLabels(func() []string {
+			return []string{
+				"pkg", "ytils/yctx",
+				"func", "cotexts signal handler",
+			}
+		})
+
 		cnt := 0
 		for range signalChan {
 			switch cnt {

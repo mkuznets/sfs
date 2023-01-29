@@ -35,6 +35,16 @@ func MapByKey[T any, R comparable](slice []T, key func(value T) R) map[R]T {
 	return mapped
 }
 
+func Filter[T any](slice []T, predicate func(value T) bool) []T {
+	filtered := make([]T, 0, len(slice))
+	for _, el := range slice {
+		if predicate(el) {
+			filtered = append(filtered, el)
+		}
+	}
+	return filtered
+}
+
 func EnsureOneE[T any](s []T, err error) (T, error) {
 	var zero T
 
@@ -46,4 +56,36 @@ func EnsureOneE[T any](s []T, err error) (T, error) {
 		return zero, yerr.NotFound("not found")
 	}
 	return s[0], nil
+}
+
+func Intersect[T comparable](as ...[]T) []T {
+	switch len(as) {
+	case 0:
+		return nil
+	case 1:
+		return as[0]
+	default:
+		result := make([]T, 0)
+		h := map[T]struct{}{}
+
+		for _, value := range as[0] {
+			h[value] = struct{}{}
+		}
+
+		for _, b := range as[1:] {
+			hb := map[T]struct{}{}
+
+			for _, v := range b {
+				if _, ok := h[v]; ok {
+					hb[v] = struct{}{}
+				}
+			}
+			h = hb
+		}
+
+		for k := range h {
+			result = append(result, k)
+		}
+		return result
+	}
 }

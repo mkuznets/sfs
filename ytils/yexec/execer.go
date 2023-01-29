@@ -3,6 +3,7 @@ package yexec
 import (
 	"bufio"
 	"context"
+	"github.com/dlsniper/debugger"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"io"
@@ -76,6 +77,14 @@ func (e *Execer) Exec(cmd *exec.Cmd) error {
 
 	if stdout != nil {
 		g.Go(func() error {
+			debugger.SetLabels(func() []string {
+				return []string{
+					"pkg", "ytils/yexec",
+					"cmd", cmd.String(),
+					"func", "stdout reader",
+				}
+			})
+
 			readLines(stdout, e.stdoutFunc)
 			log.Debug().Msg("stdout closed")
 			return nil
@@ -84,6 +93,14 @@ func (e *Execer) Exec(cmd *exec.Cmd) error {
 
 	if stderr != nil {
 		g.Go(func() error {
+			debugger.SetLabels(func() []string {
+				return []string{
+					"pkg", "ytils/yexec",
+					"cmd", cmd.String(),
+					"func", "stderr reader",
+				}
+			})
+
 			readLines(stderr, e.stderrFunc)
 			log.Debug().Msg("stderr closed")
 			return nil
@@ -93,6 +110,14 @@ func (e *Execer) Exec(cmd *exec.Cmd) error {
 	sic, cancel := context.WithCancel(e.sigintContext)
 	defer cancel()
 	go func() {
+		debugger.SetLabels(func() []string {
+			return []string{
+				"pkg", "ytils/yexec",
+				"cmd", cmd.String(),
+				"func", "sigintContext monitor",
+			}
+		})
+
 		select {
 		case <-e.sigintContext.Done():
 			for _, s := range terminationSequence {
