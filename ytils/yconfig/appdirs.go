@@ -14,18 +14,14 @@ var (
 	DirCache  string
 )
 
-func Reload() {
+// nolint
+func init() {
 	home, err := homedir.Dir()
 	if err != nil {
 		panic("could not detect home directory")
 	}
 	DirHome = home
 	initBaseDirs(home)
-}
-
-// nolint
-func init() {
-	Reload()
 }
 
 func searchConfig(parts ...string) (string, bool) {

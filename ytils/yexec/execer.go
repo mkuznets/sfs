@@ -84,9 +84,7 @@ func (e *Execer) Exec(cmd *exec.Cmd) error {
 					"func", "stdout reader",
 				}
 			})
-
 			readLines(stdout, e.stdoutFunc)
-			log.Debug().Msg("stdout closed")
 			return nil
 		})
 	}
@@ -100,9 +98,7 @@ func (e *Execer) Exec(cmd *exec.Cmd) error {
 					"func", "stderr reader",
 				}
 			})
-
 			readLines(stderr, e.stderrFunc)
-			log.Debug().Msg("stderr closed")
 			return nil
 		})
 	}
@@ -143,7 +139,6 @@ func (e *Execer) Exec(cmd *exec.Cmd) error {
 	if err := g.Wait(); err != nil {
 		return err
 	}
-	log.Debug().Msg("output streams closed")
 
 	if err := cmd.Wait(); err != nil {
 		return err

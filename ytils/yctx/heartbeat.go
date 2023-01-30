@@ -21,7 +21,6 @@ type Heartbeat struct {
 	timeout       time.Duration
 	checkInterval time.Duration
 	leftWarning   time.Duration
-	name          string
 }
 
 func NewHeartbeat(ctx context.Context, timeout time.Duration) *Heartbeat {
@@ -52,24 +51,14 @@ func (h *Heartbeat) Close() {
 	close(h.beatC)
 }
 
-func (h *Heartbeat) WithName(name string) *Heartbeat {
-	h.name = name
-	return h
-}
-
 func (h *Heartbeat) Start() *Heartbeat {
 	lastBeat := time.Now()
-
-	logger := log.Logger
-	if h.name != "" {
-		logger = logger.With().Str("ctx", h.name).Logger()
-	}
+	logger := log.Ctx(h.ctx)
 
 	go func(last *time.Time) {
 		debugger.SetLabels(func() []string {
 			return []string{
 				"pkg", "ytils/yctx",
-				"name", h.name,
 				"func", "beats monitor",
 			}
 		})
@@ -80,7 +69,7 @@ func (h *Heartbeat) Start() *Heartbeat {
 			}
 
 			idle := time.Since(*last)
-			logger.Debug().Stringer("elapsed", idle.Round(time.Millisecond)).Msg("last heartbeat")
+			logger.Debug().Stringer("elapsed", idle.Round(time.Millisecond)).Msg("heartbeat")
 
 			if idle >= h.timeout {
 				logger.Error().Msg("idle context cancelled")
@@ -101,7 +90,6 @@ func (h *Heartbeat) Start() *Heartbeat {
 		debugger.SetLabels(func() []string {
 			return []string{
 				"pkg", "ytils/yctx",
-				"name", h.name,
 				"func", "beats consumer",
 			}
 		})

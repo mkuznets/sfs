@@ -26,7 +26,6 @@ require (
 	go.uber.org/config v1.4.0
 	golang.org/x/exp v0.0.0-20230125214544-b3c2aaf6208d
 	golang.org/x/sync v0.1.0
-	mkuznets.com/go/ytbackup v0.1.3
 )
 
 require (

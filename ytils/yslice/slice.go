@@ -89,3 +89,7 @@ func Intersect[T comparable](as ...[]T) []T {
 		return result
 	}
 }
+
+func New[T any](v ...T) []T {
+	return v
+}

@@ -39,13 +39,13 @@ func NewContexts() Contexts {
 		for range signalChan {
 			switch cnt {
 			case 0:
-				log.Debug().Msg("Graceful exit")
+				log.Debug().Msg("graceful exit")
 				normalCancel()
 			case 1:
-				log.Debug().Msg("Send one more for hard exit")
+				log.Debug().Msg("send one more for hard exit")
 				criticalCancel()
 			default:
-				log.Debug().Msg("Hard exit")
+				log.Debug().Msg("hard exit")
 				os.Exit(1)
 			}
 			cnt++
