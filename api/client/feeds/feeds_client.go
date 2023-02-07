@@ -6,15 +6,35 @@ package feeds
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/strfmt"
+
+	strfmt "github.com/go-openapi/strfmt"
 )
 
+//go:generate mockery -name API -inpkg
+
+// API is the interface of the feeds client
+type API interface {
+	/*
+	   CreateFeeds creates new feeds*/
+	CreateFeeds(ctx context.Context, params *CreateFeedsParams) (*CreateFeedsOK, error)
+	/*
+	   GetFeeds gets feeds matching the given parameters*/
+	GetFeeds(ctx context.Context, params *GetFeedsParams) (*GetFeedsOK, error)
+	/*
+	   GetRss returns a response with the XML feed in XML format*/
+	GetRss(ctx context.Context, params *GetRssParams) (*GetRssOK, error)
+}
+
 // New creates a new feeds API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
-	return &Client{transport: transport, formats: formats}
+func New(transport runtime.ClientTransport, formats strfmt.Registry, authInfo runtime.ClientAuthInfoWriter) *Client {
+	return &Client{
+		transport: transport,
+		formats:   formats,
+		authInfo:  authInfo,
+	}
 }
 
 /*
@@ -23,31 +43,15 @@ Client for feeds API
 type Client struct {
 	transport runtime.ClientTransport
 	formats   strfmt.Registry
-}
-
-// ClientOption is the option for Client methods
-type ClientOption func(*runtime.ClientOperation)
-
-// ClientService is the interface for Client methods
-type ClientService interface {
-	CreateFeeds(params *CreateFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateFeedsOK, error)
-
-	GetFeeds(params *GetFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFeedsOK, error)
-
-	GetRss(params *GetRssParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetRssOK, error)
-
-	SetTransport(transport runtime.ClientTransport)
+	authInfo  runtime.ClientAuthInfoWriter
 }
 
 /*
 CreateFeeds creates new feeds
 */
-func (a *Client) CreateFeeds(params *CreateFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateFeedsOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewCreateFeedsParams()
-	}
-	op := &runtime.ClientOperation{
+func (a *Client) CreateFeeds(ctx context.Context, params *CreateFeedsParams) (*CreateFeedsOK, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "CreateFeeds",
 		Method:             "POST",
 		PathPattern:        "/feeds/create",
@@ -56,37 +60,23 @@ func (a *Client) CreateFeeds(params *CreateFeedsParams, authInfo runtime.ClientA
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &CreateFeedsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
 		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
+	})
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*CreateFeedsOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for CreateFeeds: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
+	return result.(*CreateFeedsOK), nil
+
 }
 
 /*
 GetFeeds gets feeds matching the given parameters
 */
-func (a *Client) GetFeeds(params *GetFeedsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFeedsOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetFeedsParams()
-	}
-	op := &runtime.ClientOperation{
+func (a *Client) GetFeeds(ctx context.Context, params *GetFeedsParams) (*GetFeedsOK, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "GetFeeds",
 		Method:             "POST",
 		PathPattern:        "/feeds/get",
@@ -95,37 +85,23 @@ func (a *Client) GetFeeds(params *GetFeedsParams, authInfo runtime.ClientAuthInf
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetFeedsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
 		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
+	})
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetFeedsOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetFeeds: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
+	return result.(*GetFeedsOK), nil
+
 }
 
 /*
 GetRss returns a response with the XML feed in XML format
 */
-func (a *Client) GetRss(params *GetRssParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetRssOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetRssParams()
-	}
-	op := &runtime.ClientOperation{
+func (a *Client) GetRss(ctx context.Context, params *GetRssParams) (*GetRssOK, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "GetRss",
 		Method:             "GET",
 		PathPattern:        "/feeds/rss/{id}",
@@ -134,29 +110,13 @@ func (a *Client) GetRss(params *GetRssParams, authInfo runtime.ClientAuthInfoWri
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetRssReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
 		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
+	})
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetRssOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetRss: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
+	return result.(*GetRssOK), nil
 
-// SetTransport changes the transport on the client
-func (a *Client) SetTransport(transport runtime.ClientTransport) {
-	a.transport = transport
 }

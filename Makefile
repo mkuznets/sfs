@@ -10,7 +10,7 @@ sfs: swagger
 
 swagger:
 	swag init -g internal/api/api.go --output internal/api/swagger
-	swagger generate client --spec internal/api/swagger/swagger.json --name SimpleFeedService --strict-responders --target ./api
+	swagger generate client --template=stratoscale --spec internal/api/swagger/swagger.json --name SimpleFeedService --strict-responders --target ./api
 
 fmt:
 	go fmt ./...

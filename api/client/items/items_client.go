@@ -6,15 +6,32 @@ package items
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/strfmt"
+
+	strfmt "github.com/go-openapi/strfmt"
 )
 
+//go:generate mockery -name API -inpkg
+
+// API is the interface of the items client
+type API interface {
+	/*
+	   CreateItems creates new items and returns a response with their i ds*/
+	CreateItems(ctx context.Context, params *CreateItemsParams) (*CreateItemsOK, error)
+	/*
+	   GetItems gets items matching the given parameters*/
+	GetItems(ctx context.Context, params *GetItemsParams) (*GetItemsOK, error)
+}
+
 // New creates a new items API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
-	return &Client{transport: transport, formats: formats}
+func New(transport runtime.ClientTransport, formats strfmt.Registry, authInfo runtime.ClientAuthInfoWriter) *Client {
+	return &Client{
+		transport: transport,
+		formats:   formats,
+		authInfo:  authInfo,
+	}
 }
 
 /*
@@ -23,29 +40,15 @@ Client for items API
 type Client struct {
 	transport runtime.ClientTransport
 	formats   strfmt.Registry
-}
-
-// ClientOption is the option for Client methods
-type ClientOption func(*runtime.ClientOperation)
-
-// ClientService is the interface for Client methods
-type ClientService interface {
-	CreateItems(params *CreateItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateItemsOK, error)
-
-	GetItems(params *GetItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetItemsOK, error)
-
-	SetTransport(transport runtime.ClientTransport)
+	authInfo  runtime.ClientAuthInfoWriter
 }
 
 /*
 CreateItems creates new items and returns a response with their i ds
 */
-func (a *Client) CreateItems(params *CreateItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*CreateItemsOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewCreateItemsParams()
-	}
-	op := &runtime.ClientOperation{
+func (a *Client) CreateItems(ctx context.Context, params *CreateItemsParams) (*CreateItemsOK, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "CreateItems",
 		Method:             "POST",
 		PathPattern:        "/items/create",
@@ -54,37 +57,23 @@ func (a *Client) CreateItems(params *CreateItemsParams, authInfo runtime.ClientA
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &CreateItemsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
 		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
+	})
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*CreateItemsOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for CreateItems: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
+	return result.(*CreateItemsOK), nil
+
 }
 
 /*
 GetItems gets items matching the given parameters
 */
-func (a *Client) GetItems(params *GetItemsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetItemsOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetItemsParams()
-	}
-	op := &runtime.ClientOperation{
+func (a *Client) GetItems(ctx context.Context, params *GetItemsParams) (*GetItemsOK, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "GetItems",
 		Method:             "POST",
 		PathPattern:        "/items/get",
@@ -93,29 +82,13 @@ func (a *Client) GetItems(params *GetItemsParams, authInfo runtime.ClientAuthInf
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetItemsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
 		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
+	})
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetItemsOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetItems: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
+	return result.(*GetItemsOK), nil
 
-// SetTransport changes the transport on the client
-func (a *Client) SetTransport(transport runtime.ClientTransport) {
-	a.transport = transport
 }

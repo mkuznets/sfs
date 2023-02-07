@@ -6,17 +6,17 @@ package client
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
+	"net/url"
+
 	"github.com/go-openapi/runtime"
-	httptransport "github.com/go-openapi/runtime/client"
+	rtclient "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
 	"mkuznets.com/go/sfs/api/client/feeds"
 	"mkuznets.com/go/sfs/api/client/files"
 	"mkuznets.com/go/sfs/api/client/items"
 )
-
-// Default simple feed service HTTP client.
-var Default = NewHTTPClient(nil)
 
 const (
 	// DefaultHost is the default Host
@@ -30,93 +30,46 @@ const (
 // DefaultSchemes are the default schemes found in Meta (info) section of spec file
 var DefaultSchemes = []string{"http"}
 
-// NewHTTPClient creates a new simple feed service HTTP client.
-func NewHTTPClient(formats strfmt.Registry) *SimpleFeedService {
-	return NewHTTPClientWithConfig(formats, nil)
+type Config struct {
+	// URL is the base URL of the upstream server
+	URL *url.URL
+	// Transport is an inner transport for the client
+	Transport http.RoundTripper
+	// AuthInfo is for authentication
+	AuthInfo runtime.ClientAuthInfoWriter
 }
 
-// NewHTTPClientWithConfig creates a new simple feed service HTTP client,
-// using a customizable transport config.
-func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *SimpleFeedService {
-	// ensure nullable parameters have default
-	if cfg == nil {
-		cfg = DefaultTransportConfig()
+// New creates a new simple feed service HTTP client.
+func New(c Config) *SimpleFeedService {
+	var (
+		host     = DefaultHost
+		basePath = DefaultBasePath
+		schemes  = DefaultSchemes
+	)
+
+	if c.URL != nil {
+		host = c.URL.Host
+		basePath = c.URL.Path
+		schemes = []string{c.URL.Scheme}
 	}
 
-	// create transport and client
-	transport := httptransport.New(cfg.Host, cfg.BasePath, cfg.Schemes)
-	return New(transport, formats)
-}
-
-// New creates a new simple feed service client
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *SimpleFeedService {
-	// ensure nullable parameters have default
-	if formats == nil {
-		formats = strfmt.Default
+	transport := rtclient.New(host, basePath, schemes)
+	if c.Transport != nil {
+		transport.Transport = c.Transport
 	}
 
 	cli := new(SimpleFeedService)
 	cli.Transport = transport
-	cli.Feeds = feeds.New(transport, formats)
-	cli.Files = files.New(transport, formats)
-	cli.Items = items.New(transport, formats)
+	cli.Feeds = feeds.New(transport, strfmt.Default, c.AuthInfo)
+	cli.Files = files.New(transport, strfmt.Default, c.AuthInfo)
+	cli.Items = items.New(transport, strfmt.Default, c.AuthInfo)
 	return cli
-}
-
-// DefaultTransportConfig creates a TransportConfig with the
-// default settings taken from the meta section of the spec file.
-func DefaultTransportConfig() *TransportConfig {
-	return &TransportConfig{
-		Host:     DefaultHost,
-		BasePath: DefaultBasePath,
-		Schemes:  DefaultSchemes,
-	}
-}
-
-// TransportConfig contains the transport related info,
-// found in the meta section of the spec file.
-type TransportConfig struct {
-	Host     string
-	BasePath string
-	Schemes  []string
-}
-
-// WithHost overrides the default host,
-// provided by the meta section of the spec file.
-func (cfg *TransportConfig) WithHost(host string) *TransportConfig {
-	cfg.Host = host
-	return cfg
-}
-
-// WithBasePath overrides the default basePath,
-// provided by the meta section of the spec file.
-func (cfg *TransportConfig) WithBasePath(basePath string) *TransportConfig {
-	cfg.BasePath = basePath
-	return cfg
-}
-
-// WithSchemes overrides the default schemes,
-// provided by the meta section of the spec file.
-func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
-	cfg.Schemes = schemes
-	return cfg
 }
 
 // SimpleFeedService is a client for simple feed service
 type SimpleFeedService struct {
-	Feeds feeds.ClientService
-
-	Files files.ClientService
-
-	Items items.ClientService
-
+	Feeds     *feeds.Client
+	Files     *files.Client
+	Items     *items.Client
 	Transport runtime.ClientTransport
-}
-
-// SetTransport changes the transport on the client and all its subresources
-func (c *SimpleFeedService) SetTransport(transport runtime.ClientTransport) {
-	c.Transport = transport
-	c.Feeds.SetTransport(transport)
-	c.Files.SetTransport(transport)
-	c.Items.SetTransport(transport)
 }
