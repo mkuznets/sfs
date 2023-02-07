@@ -9,7 +9,7 @@ require (
 	github.com/go-openapi/swag v0.22.3
 	github.com/go-openapi/validate v0.22.1
 	github.com/golang-jwt/jwt/v4 v4.4.3
-	mkuznets.com/go/sfs v0.0.2
+	mkuznets.com/go/sfs v0.0.4
 )
 
 require (
