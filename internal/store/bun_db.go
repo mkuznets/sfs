@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/rs/zerolog"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
+	"golang.org/x/exp/slog"
+	"mkuznets.com/go/ytils/ylog"
 	"net/url"
 	"time"
 
@@ -56,18 +57,19 @@ func (h *bunHook) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Co
 
 func (h *bunHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	dur := time.Since(event.StartTime)
-	var logEvent *zerolog.Event
-	l := zerolog.Ctx(ctx)
 
+	logAttrs := []slog.Attr{
+		slog.Duration("duration", dur),
+		slog.String("query", event.Query),
+	}
 	if event.Err != nil {
-		if errors.Is(event.Err, sql.ErrNoRows) {
-			logEvent = l.Warn().Err(event.Err)
-		} else {
-			logEvent = l.Err(event.Err)
-		}
-	} else {
-		logEvent = l.Debug()
+		logAttrs = append(logAttrs, slog.Any(slog.ErrorKey, event.Err))
+	}
+	level := slog.LevelInfo
+
+	if event.Err != nil && !errors.Is(event.Err, sql.ErrNoRows) {
+		level = slog.LevelError
 	}
 
-	logEvent.Dur("duration", dur).Str("query", event.Query).Msg("QUERY")
+	ylog.Ctx(ctx).LogAttrs(level, "QUERY", logAttrs...)
 }

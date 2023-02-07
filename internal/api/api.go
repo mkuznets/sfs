@@ -6,8 +6,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"mkuznets.com/go/sfs/internal/api/swagger"
 	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/sfs/ytils/ylog"
-	"mkuznets.com/go/sfs/ytils/yreq"
+	"mkuznets.com/go/ytils/yhttp"
 	"net/http"
 )
 
@@ -39,9 +38,9 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 
 	r.Route(prefix, func(r chi.Router) {
 		r.Use(middleware.Recoverer)
-		r.Use(yreq.RequestId)
-		r.Use(ylog.ContextLogger)
-		r.Use(ylog.RequestLogger())
+		r.Use(yhttp.RequestIdMiddleware)
+		r.Use(yhttp.ContextLoggerMiddleware)
+		r.Use(yhttp.RequestLoggerMiddleware)
 		r.Use(a.auth.Middleware())
 
 		r.Route("/feeds", func(r chi.Router) {

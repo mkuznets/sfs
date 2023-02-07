@@ -9,9 +9,8 @@ import (
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/sfs/internal/user"
-	"mkuznets.com/go/sfs/ytils/yerr"
-	"mkuznets.com/go/sfs/ytils/yslice"
-	"mkuznets.com/go/sfs/ytils/ytime"
+	"mkuznets.com/go/ytils/yslice"
+	"mkuznets.com/go/ytils/ytime"
 )
 
 type Controller interface {
@@ -60,7 +59,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 
 	feeds, err := c.store.GetFeeds(ctx, &filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("HTTP 500: get feeds: %w", err)
 	}
 
 	results := yslice.Map(feeds, func(f *store.Feed) *FeedResource {
@@ -95,7 +94,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 //	@Security	Authentication
 func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error) {
 	if err := r.Validate(); err != nil {
-		return nil, yerr.Invalid(err.Error())
+		return nil, fmt.Errorf("HTTP 400: %w", err)
 	}
 
 	feeds := make([]*store.Feed, 0)
@@ -112,13 +111,13 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 			UpdatedAt:   ytime.Now(),
 		}
 		if err := c.rssController.BuildRss(ctx, feed); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("HTTP 500: build rss: %w", err)
 		}
 		feeds = append(feeds, feed)
 	}
 
 	if err := c.store.CreateFeeds(ctx, feeds); err != nil {
-		return nil, yerr.New("could not create feeds").Err(err)
+		return nil, fmt.Errorf("HTTP 500: create feeds: %w", err)
 	}
 
 	items := make([]*CreateFeedsResultResource, 0)
@@ -154,7 +153,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 
 	items, err := c.store.GetItems(ctx, &filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("HTTP 500: get items: %w", err)
 	}
 
 	results := yslice.Map(items, func(i *store.Item) *ItemResource {
@@ -195,7 +194,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 //	@Security	Authentication
 func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error) {
 	if err := r.Validate(); err != nil {
-		return nil, yerr.Invalid(err.Error())
+		return nil, fmt.Errorf("HTTP 400: %w", err)
 	}
 
 	items := make([]*store.Item, 0)
@@ -207,21 +206,24 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			Ids: yslice.UniqueMap(r.Data, func(v *CreateItemsResource) string { return v.FeedId }),
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("HTTP 500: get feeds: %w", err)
 		}
 		feedsById := yslice.MapByKey(feeds, func(v *store.Feed) string { return v.Id })
 
 		for _, i := range r.Data {
 			if _, ok := feedsById[i.FeedId]; !ok {
-				return yerr.NotFound("feed %s not found", i.FeedId)
+				return fmt.Errorf("HTTP 404: no feed %s", i.FeedId)
 			}
 
 			file, err := c.store.GetFileById(ctxT, i.FileId)
 			if err != nil {
-				return err
+				if err == store.ErrNotFound {
+					return fmt.Errorf("HTTP 404: no file %s", i.FileId)
+				}
+				return fmt.Errorf("HTTP 500: get file: %w", err)
 			}
 			if file.ItemId != nil {
-				return yerr.Invalid("file already used")
+				return fmt.Errorf("HTTP 400: file already used")
 			}
 
 			item := &store.Item{
@@ -243,14 +245,14 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 		}
 
 		if err := c.store.CreateItems(ctxT, items); err != nil {
-			return err
+			return fmt.Errorf("HTTP 500: create items: %w", err)
 		}
 		if err := c.store.UpdateFiles(ctxT, fs, "item_id"); err != nil {
-			return err
+			return fmt.Errorf("HTTP 500: update files: %w", err)
 		}
 
 		if err := c.rssController.UpdateFeeds(ctxT, feeds); err != nil {
-			return yerr.New("failed to update feeds").Err(err)
+			return fmt.Errorf("HTTP 500: update feeds: %w", err)
 		}
 
 		return nil
@@ -307,10 +309,10 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*store.File, error) {
 	info, err := files.Info(f)
 	if err != nil {
-		return nil, yerr.New("failed to get file info").Err(err)
+		return nil, fmt.Errorf("read filetype: %w", err)
 	}
 	if info.Mime.Type != "audio" {
-		return nil, yerr.Invalid("unsupported file type: %s", info.Mime.Value)
+		return nil, fmt.Errorf("unsupported file type: %s", info.Mime.Value)
 	}
 
 	fileId := c.idService.File(ctx)
@@ -318,7 +320,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 	path := fmt.Sprintf("files/%s/%s/%s.%s", info.Hash.Digest[:2], info.Hash.Digest[2:4], fileId, info.Extension)
 	upload, err := c.fileStorage.Upload(ctx, path, f)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("upload file: %w", err)
 	}
 
 	return &store.File{
@@ -350,9 +352,13 @@ func (c *controllerImpl) GetRss(ctx context.Context, feedId string, usr user.Use
 		UserIds: []string{usr.Id()},
 	}
 
-	feed, err := yslice.EnsureOneE(c.store.GetFeeds(ctx, filter))
+	feeds, err := c.store.GetFeeds(ctx, filter)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("HTTP 500: get feed: %w", err)
 	}
-	return feed.RssContent, nil
+	if len(feeds) == 0 {
+		return "", fmt.Errorf("HTTP 404: no feed %s", feedId)
+	}
+
+	return feeds[0].RssContent, nil
 }

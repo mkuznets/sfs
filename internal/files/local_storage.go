@@ -2,8 +2,8 @@ package files
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"mkuznets.com/go/sfs/ytils/yerr"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -24,11 +24,11 @@ func NewLocalStorage(basePath string, urlPrefix string) Storage {
 func (l *localStorage) ensurePath(path string) (string, error) {
 	absPath, err := filepath.Abs(filepath.Join(l.basePath, path))
 	if err != nil {
-		return "", yerr.New("failed to get absolute path for %s", absPath).Err(err)
+		return "", fmt.Errorf("get absolute path for %s: %w", absPath, err)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
-		return "", yerr.New("failed to create target directory").Err(err)
+		return "", fmt.Errorf("create target directory: %w", err)
 	}
 
 	return absPath, nil
@@ -42,7 +42,7 @@ func (l *localStorage) Upload(_ context.Context, path string, r io.Reader) (*Upl
 
 	f, err := os.Create(absPath)
 	if err != nil {
-		return nil, yerr.New("failed to create file").Err(err)
+		return nil, fmt.Errorf("create file: %w", err)
 	}
 	defer func() {
 		_ = f.Sync()
@@ -50,7 +50,7 @@ func (l *localStorage) Upload(_ context.Context, path string, r io.Reader) (*Upl
 	}()
 
 	if _, err := io.Copy(f, r); err != nil {
-		return nil, yerr.New("failed to copy file").Err(err)
+		return nil, fmt.Errorf("copy file: %w", err)
 	}
 
 	u, err := url.Parse(l.urlPrefix)

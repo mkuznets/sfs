@@ -4,8 +4,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"mkuznets.com/go/sfs/internal/rss"
-	"mkuznets.com/go/sfs/ytils/yrender"
-	"mkuznets.com/go/sfs/ytils/ytime"
+	"mkuznets.com/go/ytils/ytime"
 )
 
 type GetFeedsRequest struct {
@@ -142,8 +141,10 @@ type UploadFileResultResource struct {
 	Error string `json:"error,omitempty" example:"invalid file format" extensions:"x-order=1"`
 } // @name UploadFileResultResource
 
-// Only used in Swagger docs.
-type _ yrender.ErrorResponse // @name ErrorResponse
+type ErrorResponse struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+} // @name ErrorResponse
 
 // Only used in Swagger docs.
 type _ rss.Podcast // @name Podcast

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
+	"golang.org/x/exp/slog"
 	"mkuznets.com/go/sfs/sql/sqlite"
 )
 
@@ -39,10 +40,10 @@ func (m *migrator) Migrate(ctx context.Context) error {
 		return err
 	}
 	if group.IsZero() {
-		fmt.Printf("there are no new migrations to run (database is up to date)\n")
+		slog.Info("database is up to date")
 		return nil
 	}
-	fmt.Printf("migrated to %s\n", group)
+	slog.Info("migrated", "group", group)
 	return nil
 }
 
@@ -52,10 +53,10 @@ func (m *migrator) Rollback(ctx context.Context) error {
 		return err
 	}
 	if group.IsZero() {
-		fmt.Printf("there are no groups to roll back\n")
+		slog.Info("there are no groups to roll back")
 		return nil
 	}
-	fmt.Printf("rolled back %s\n", group)
+	slog.Info("rolled back", "group", group)
 	return nil
 }
 
@@ -74,7 +75,7 @@ func (m *migrator) CreateSQLMigrations(ctx context.Context, name string) error {
 	}
 
 	for _, mf := range files {
-		fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
+		slog.Info("created migration", "name", mf.Name, "path", mf.Path)
 	}
 	return nil
 }
@@ -96,9 +97,9 @@ func (m *migrator) MarkApplied(ctx context.Context) error {
 		return err
 	}
 	if group.IsZero() {
-		fmt.Printf("there are no new migrations to mark as applied\n")
+		slog.Info("no new migrations to mark as applied")
 		return nil
 	}
-	fmt.Printf("marked as applied %s\n", group)
+	slog.Info("marked as applied", "group", group)
 	return nil
 }

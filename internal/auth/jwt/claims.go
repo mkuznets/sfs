@@ -1,8 +1,8 @@
 package jwt
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt/v4"
-	"mkuznets.com/go/sfs/ytils/yerr"
 	"strings"
 	"time"
 )
@@ -17,13 +17,13 @@ type Claims struct {
 func (c *Claims) Valid() error {
 	now := TimeFunc()
 	if !c.VerifyExpiresAt(now, true) {
-		return yerr.New("token expired")
+		return errors.New("token expired")
 	}
 	if !c.VerifyIssuedAt(now, true) {
-		return yerr.New("token used before issued")
+		return errors.New("token used before issued")
 	}
 	if strings.TrimSpace(c.Subject) == "" {
-		return yerr.New("token subject is empty")
+		return errors.New("token subject is empty")
 	}
 
 	return nil

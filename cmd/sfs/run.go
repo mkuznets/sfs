@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/golang-jwt/jwt/v4"
@@ -11,8 +13,8 @@ import (
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/sfs/ytils/ycrypto"
-	"mkuznets.com/go/sfs/ytils/yerr"
+	"mkuznets.com/go/ytils/ycrypto"
+	"mkuznets.com/go/ytils/yerr"
 	"net/http"
 	"os"
 )
@@ -53,10 +55,10 @@ type Storage struct {
 
 func (s *Storage) Validate() error {
 	if s.S3Opts.Enabled && s.LocalOpts.Enabled {
-		return yerr.New("only one storage type can be enabled")
+		return errors.New("only one storage type can be enabled")
 	}
 	if !s.S3Opts.Enabled && !s.LocalOpts.Enabled {
-		return yerr.New("at least one storage type must be enabled")
+		return errors.New("at least one storage type must be enabled")
 	}
 
 	return validation.ValidateStruct(
@@ -84,7 +86,7 @@ func (l *LocalStorage) Validate() error {
 func validateDirectory(x interface{}) error {
 	s := x.(string)
 	if err := os.MkdirAll(s, 0755); err != nil {
-		return yerr.New("invalid directory").Err(err)
+		return fmt.Errorf("invalid directory: %w", err)
 	}
 	return nil
 }
@@ -142,7 +144,7 @@ func (j *Jwt) Validate() error {
 func validateObscured(x interface{}) error {
 	s := x.(string)
 	if _, err := ycrypto.Reveal(s); err != nil {
-		return yerr.New("could not de-obscure").Err(err)
+		return fmt.Errorf("could not de-obscure: %w", err)
 	}
 	return nil
 }

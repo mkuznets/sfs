@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/sfs/ytils/yerr"
-	"mkuznets.com/go/sfs/ytils/ytime"
+	"mkuznets.com/go/ytils/ytime"
 	"strings"
 )
 
@@ -51,7 +50,7 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 	case "podcast":
 		xmlModel = FeedToPodcast(feed, items)
 	default:
-		return yerr.New("%s has invalid feed type: %s", feed.Id, feed.Type)
+		return fmt.Errorf("%s has invalid feed type: %s", feed.Id, feed.Type)
 	}
 
 	content, err := xml.MarshalIndent(xmlModel, "", "  ")
@@ -65,7 +64,7 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 	path := fmt.Sprintf("rss/%s.xml", feed.Id)
 	upload, err := c.fileStorage.Upload(ctx, path, strings.NewReader(feed.RssContent))
 	if err != nil {
-		return yerr.New("failed to upload RSS feed").Err(err)
+		return fmt.Errorf("failed to upload RSS feed: %w", err)
 	}
 
 	feed.RssUrl = upload.Url

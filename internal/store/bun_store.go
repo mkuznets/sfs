@@ -3,14 +3,16 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/sfs/ytils/yerr"
 )
 
 type contextKey int
 
 var ctxTxKey = contextKey(0x54)
+
+var ErrNotFound = errors.New("not found")
 
 // bunStore implements the Store interface.
 type bunStore struct {
@@ -68,7 +70,7 @@ func (s *bunStore) GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, e
 
 func (s *bunStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
 	if len(feeds) == 0 {
-		return yerr.New("no feeds to create")
+		return errors.New("no feeds to create")
 	}
 	_, err := s.ctxDb(ctx).NewInsert().Model(&feeds).Returning("id").Exec(ctx)
 	return err
@@ -99,7 +101,7 @@ func (s *bunStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, e
 
 func (s *bunStore) CreateItems(ctx context.Context, items []*Item) error {
 	if len(items) == 0 {
-		return yerr.New("no items to create")
+		return errors.New("no items to create")
 	}
 	_, err := s.ctxDb(ctx).NewInsert().Model(&items).Returning("id").Exec(ctx)
 	return err
@@ -112,7 +114,7 @@ func (s *bunStore) CreateFile(ctx context.Context, file *File) error {
 
 func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...string) error {
 	if len(feeds) == 0 {
-		return yerr.New("no feeds to update")
+		return errors.New("no feeds to update")
 	}
 
 	values := s.ctxDb(ctx).NewValues(&feeds)
@@ -133,7 +135,7 @@ func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...str
 
 func (s *bunStore) UpdateFiles(ctx context.Context, files []*File, fields ...string) error {
 	if len(files) == 0 {
-		return yerr.New("no files to update")
+		return errors.New("no files to update")
 	}
 
 	values := s.ctxDb(ctx).NewValues(&files)
@@ -157,7 +159,7 @@ func (s *bunStore) GetFileById(ctx context.Context, id string) (*File, error) {
 	err := s.ctxDb(ctx).NewSelect().Model(&file).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, yerr.NotFound("file not found")
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}

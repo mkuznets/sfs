@@ -2,12 +2,12 @@ package jwt
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/user"
-	"mkuznets.com/go/sfs/ytils/yerr"
-	"mkuznets.com/go/sfs/ytils/yrender"
+	"mkuznets.com/go/ytils/yhttp"
 	"net/http"
 	"time"
 )
@@ -41,7 +41,7 @@ func (s *jwtService) parsedPrivateKey() (*rsa.PrivateKey, error) {
 	}
 	key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(s.privateKey))
 	if err != nil {
-		return nil, yerr.New("could not parse private key").Err(err)
+		return nil, fmt.Errorf("could not parse private key: %w", err)
 	}
 	s.privateKeyCache = key
 	return key, nil
@@ -65,7 +65,7 @@ func (s *jwtService) Token(id string) (string, error) {
 
 	token, err := jwtEncoder.SignedString(privateKey)
 	if err != nil {
-		return "", yerr.New("could not create signed token").Err(err)
+		return "", fmt.Errorf("could not create signed token: %w", err)
 	}
 
 	return token, nil
@@ -81,10 +81,10 @@ func (s *jwtService) Middleware() func(next http.Handler) http.Handler {
 			tokenString, err := s.extractor.ExtractToken(r)
 			if err != nil {
 				if err == request.ErrNoTokenInRequest {
-					yrender.New(w, r, yerr.Unauthorised("JWT authentication required")).JSON()
+					yhttp.Render(w, r, fmt.Errorf("HTTP 401: JWT authentication required")).JSON()
 					return
 				}
-				yrender.New(w, r, yerr.Unauthorised("valid JWT token is required").Err(err)).JSON()
+				yhttp.Render(w, r, fmt.Errorf("HTTP 401: JWT token: %w", err)).JSON()
 				return
 			}
 
@@ -94,7 +94,7 @@ func (s *jwtService) Middleware() func(next http.Handler) http.Handler {
 
 			var claims Claims
 			if _, err := parser.ParseWithClaims(tokenString, &claims, s.keyFunc); err != nil {
-				yrender.New(w, r, yerr.Unauthorised("invalid JWT token: %s", err)).JSON()
+				yhttp.Render(w, r, fmt.Errorf("HTTP 401 JWT token: %w", err)).JSON()
 				return
 			}
 

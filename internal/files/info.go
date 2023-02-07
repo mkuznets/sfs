@@ -2,10 +2,10 @@ package files
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"github.com/h2non/filetype"
 	"io"
-	"mkuznets.com/go/sfs/ytils/yerr"
 )
 
 func Info(r io.ReadSeeker) (*FileInfo, error) {
@@ -15,7 +15,7 @@ func Info(r io.ReadSeeker) (*FileInfo, error) {
 	}
 
 	if fileType == filetype.Unknown {
-		return nil, yerr.Invalid("unknown file type")
+		return nil, errors.New("unknown file type")
 	}
 
 	if err := seekReset(r); err != nil {
@@ -72,7 +72,7 @@ type FileInfo struct {
 
 func seekReset(r io.ReadSeeker) error {
 	if pos, err := r.Seek(0, 0); err != nil || pos != 0 {
-		return yerr.New("seek error").Err(err)
+		return fmt.Errorf("seek reset: %w", err)
 	}
 	return nil
 }
