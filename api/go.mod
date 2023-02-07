@@ -9,7 +9,8 @@ require (
 	github.com/go-openapi/swag v0.22.3
 	github.com/go-openapi/validate v0.22.1
 	github.com/golang-jwt/jwt/v4 v4.4.3
-)
+	mkuznets.com/go/sfs v0.0.1
+	)
 
 require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
@@ -34,4 +35,5 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	mkuznets.com/go/sfs v0.0.1
 )
