@@ -13,8 +13,8 @@ import (
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/ycrypto"
-	"mkuznets.com/go/ytils/yerr"
 	"net/http"
 	"os"
 )
@@ -150,7 +150,7 @@ func validateObscured(x interface{}) error {
 }
 
 func validatePublicKey(x interface{}) error {
-	v := yerr.Must(ycrypto.Reveal(x.(string)))
+	v := y.Must(ycrypto.Reveal(x.(string)))
 	if _, err := jwt.ParseRSAPublicKeyFromPEM([]byte(v)); err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (c *RunCommand) Init(app *App) error {
 	var authService auth.Service
 	switch {
 	case c.AuthOpts.JwtOpts.Enabled:
-		publicKey := yerr.Must(ycrypto.Reveal(c.AuthOpts.JwtOpts.RsaPublicKey))
+		publicKey := y.Must(ycrypto.Reveal(c.AuthOpts.JwtOpts.RsaPublicKey))
 		authService = sjwt.New(publicKey)
 	default:
 		authService = &auth.NoAuth{}
@@ -178,8 +178,8 @@ func (c *RunCommand) Init(app *App) error {
 		fileStorage = files.NewS3Storage(
 			c.StorageOpts.S3Opts.EndpointUrl,
 			c.StorageOpts.S3Opts.Bucket,
-			yerr.Must(ycrypto.Reveal(c.StorageOpts.S3Opts.KeyID)),
-			yerr.Must(ycrypto.Reveal(c.StorageOpts.S3Opts.SecretKey)),
+			y.Must(ycrypto.Reveal(c.StorageOpts.S3Opts.KeyID)),
+			y.Must(ycrypto.Reveal(c.StorageOpts.S3Opts.SecretKey)),
 			c.StorageOpts.S3Opts.UrlTemplate,
 		)
 	case c.StorageOpts.LocalOpts.Enabled:
