@@ -7,6 +7,8 @@ import (
 	"github.com/uptrace/bun/migrate"
 	"golang.org/x/exp/slog"
 	"mkuznets.com/go/sfs/sql/sqlite"
+	"os"
+	"regexp"
 )
 
 type Migrator interface {
@@ -19,6 +21,8 @@ type Migrator interface {
 	Status(ctx context.Context) error
 	MarkApplied(ctx context.Context) error
 }
+
+var migrationNameRegex = regexp.MustCompile(`(up|down)\.sql$`)
 
 type migrator struct {
 	bm *migrate.Migrator
@@ -72,6 +76,15 @@ func (m *migrator) CreateSQLMigrations(ctx context.Context, name string) error {
 	files, err := m.bm.CreateSQLMigrations(ctx, name)
 	if err != nil {
 		return err
+	}
+
+	// Make sure all migrations are transactional.
+	for _, file := range files {
+		newPath := migrationNameRegex.ReplaceAllString(file.Path, "tx.$1.sql")
+		if err := os.Rename(file.Path, newPath); err != nil {
+			return fmt.Errorf("rename %s to %s: %w", file.Path, newPath, err)
+		}
+		file.Path = newPath
 	}
 
 	for _, mf := range files {
