@@ -76,6 +76,11 @@ definitions:
         example: https://example.com
         type: string
         x-order: "3"
+      published_at:
+        example: "2023-01-01T01:02:03.456Z"
+        format: date-time
+        type: string
+        x-order: "6"
       title:
         example: Bored Owls Online Radio
         type: string
@@ -217,6 +222,11 @@ definitions:
         example: https://example.com
         type: string
         x-order: "4"
+      published_at:
+        example: "2023-01-01T01:02:03.456Z"
+        format: date-time
+        type: string
+        x-order: "9"
       title:
         example: Bored Owls Online Radio
         type: string

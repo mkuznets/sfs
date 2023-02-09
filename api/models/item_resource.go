@@ -49,6 +49,11 @@ type ItemResource struct {
 	// Example: https://example.com
 	Link string `json:"link,omitempty"`
 
+	// published at
+	// Example: 2023-01-01T01:02:03.456Z
+	// Format: date-time
+	PublishedAt strfmt.DateTime `json:"published_at,omitempty"`
+
 	// title
 	// Example: Bored Owls Online Radio
 	Title string `json:"title,omitempty"`
@@ -68,6 +73,10 @@ func (m *ItemResource) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFile(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePublishedAt(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -96,6 +105,18 @@ func (m *ItemResource) validateCreatedAt(formats strfmt.Registry) error {
 func (m *ItemResource) validateFile(formats strfmt.Registry) error {
 	if swag.IsZero(m.File) { // not required
 		return nil
+	}
+
+	return nil
+}
+
+func (m *ItemResource) validatePublishedAt(formats strfmt.Registry) error {
+	if swag.IsZero(m.PublishedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("published_at", "body", "date-time", m.PublishedAt.String(), formats); err != nil {
+		return err
 	}
 
 	return nil

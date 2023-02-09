@@ -84,6 +84,7 @@ type ItemResource struct {
 	Description string            `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=6"`
 	CreatedAt   ytime.Time        `json:"created_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=7"`
 	UpdatedAt   ytime.Time        `json:"updated_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=8"`
+	PublishedAt ytime.Time        `json:"published_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=9"`
 } // @name ItemResource
 
 type ItemFileResource struct {
@@ -104,12 +105,13 @@ func (r *CreateItemsRequest) Validate() error {
 }
 
 type CreateItemsResource struct {
-	FileId      string `json:"file_id" example:"file_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
-	FeedId      string `json:"feed_id" example:"feed_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=1"`
-	Title       string `json:"title" example:"Bored Owls Online Radio" extensions:"x-order=2"`
-	Link        string `json:"link" example:"https://example.com" extensions:"x-order=3"`
-	Authors     string `json:"authors" example:"The Owl" extensions:"x-order=4"`
-	Description string `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=5"`
+	FileId      string     `json:"file_id" example:"file_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=0"`
+	FeedId      string     `json:"feed_id" example:"feed_2K9BWVNuo3sG4yM322fbP3mB6ls" extensions:"x-order=1"`
+	Title       string     `json:"title" example:"Bored Owls Online Radio" extensions:"x-order=2"`
+	Link        string     `json:"link" example:"https://example.com" extensions:"x-order=3"`
+	Authors     string     `json:"authors" example:"The Owl" extensions:"x-order=4"`
+	Description string     `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=5"`
+	PublishedAt ytime.Time `json:"published_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=6"`
 } // @name CreateItemsResource
 
 func (r *CreateItemsResource) Validate() error {

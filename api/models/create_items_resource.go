@@ -8,8 +8,10 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // CreateItemsResource create items resource
@@ -37,6 +39,11 @@ type CreateItemsResource struct {
 	// Example: https://example.com
 	Link string `json:"link,omitempty"`
 
+	// published at
+	// Example: 2023-01-01T01:02:03.456Z
+	// Format: date-time
+	PublishedAt strfmt.DateTime `json:"published_at,omitempty"`
+
 	// title
 	// Example: Bored Owls Online Radio
 	Title string `json:"title,omitempty"`
@@ -44,6 +51,27 @@ type CreateItemsResource struct {
 
 // Validate validates this create items resource
 func (m *CreateItemsResource) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validatePublishedAt(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *CreateItemsResource) validatePublishedAt(formats strfmt.Registry) error {
+	if swag.IsZero(m.PublishedAt) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("published_at", "body", "date-time", m.PublishedAt.String(), formats); err != nil {
+		return err
+	}
+
 	return nil
 }
 

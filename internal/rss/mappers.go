@@ -22,12 +22,17 @@ func FeedToPodcast(feed *store.Feed, items []*store.Item) *Podcast {
 	}
 
 	podcast.Channel.Items = yslice.Map(items, func(i *store.Item) *PodcastItem {
+		pubDate := i.PublishedAt
+		if pubDate.IsZero() {
+			pubDate = i.UpdatedAt
+		}
+
 		return &PodcastItem{
 			Guid: Guid{
 				IsPermaLink: false,
 				Text:        i.Id,
 			},
-			PubDate: i.CreatedAt.Format(time.RFC1123Z),
+			PubDate: pubDate.Format(time.RFC1123Z),
 			Title:   i.Title,
 			Link:    i.Link,
 			Description: &Description{

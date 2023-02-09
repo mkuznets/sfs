@@ -430,6 +430,12 @@ const docTemplate = `{
                     "type": "string",
                     "x-order": "5",
                     "example": "Bored owls talk about whatever happens to be on their minds"
+                },
+                "published_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-order": "6",
+                    "example": "2023-01-01T01:02:03.456Z"
                 }
             }
         },
@@ -631,6 +637,12 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time",
                     "x-order": "8",
+                    "example": "2023-01-01T01:02:03.456Z"
+                },
+                "published_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "x-order": "9",
                     "example": "2023-01-01T01:02:03.456Z"
                 }
             }

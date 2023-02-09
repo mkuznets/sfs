@@ -57,6 +57,7 @@ type Item struct {
 	CreatedAt   ytime.Time `bun:"created_at"`
 	UpdatedAt   ytime.Time `bun:"updated_at"`
 	DeletedAt   ytime.Time `bun:"deleted_at"`
+	PublishedAt ytime.Time `bun:"published_at"`
 }
 
 type File struct {

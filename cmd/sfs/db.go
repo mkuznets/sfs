@@ -10,6 +10,10 @@ type DbCommand struct {
 	m store.Migrator
 }
 
+func (c *DbCommand) Validate() error {
+	return nil
+}
+
 func (c *DbCommand) Init(app *App) error {
 	db, err := store.NewBunDb(app.DbOpts.Driver, app.DbOpts.Dsn)
 	if err != nil {

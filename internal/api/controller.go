@@ -172,6 +172,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 			Description: i.Description,
 			CreatedAt:   i.CreatedAt,
 			UpdatedAt:   i.UpdatedAt,
+			PublishedAt: i.PublishedAt,
 		}
 	})
 
@@ -226,6 +227,11 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 				return fmt.Errorf("HTTP 400: file already used")
 			}
 
+			publishedAt := i.PublishedAt
+			if publishedAt.IsZero() {
+				publishedAt = ytime.Now()
+			}
+
 			item := &store.Item{
 				Id:          c.idService.Item(ctxT),
 				FeedId:      i.FeedId,
@@ -237,6 +243,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 				FileId:      i.FileId,
 				CreatedAt:   ytime.Now(),
 				UpdatedAt:   ytime.Now(),
+				PublishedAt: publishedAt,
 			}
 			items = append(items, item)
 

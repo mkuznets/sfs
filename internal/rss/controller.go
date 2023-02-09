@@ -7,6 +7,7 @@ import (
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/ytils/ytime"
+	"sort"
 	"strings"
 )
 
@@ -44,6 +45,10 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 	if err != nil {
 		return err
 	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].PublishedAt.After(items[j].PublishedAt.Time)
+	})
 
 	var xmlModel any
 	switch feed.Type {
