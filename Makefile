@@ -1,4 +1,9 @@
-LDFLAGS := "-s -w"
+LDFLAGS := -s -w
+OS=$(shell uname -s)
+
+ifneq ($(OS),Darwin)
+	LDFLAGS += -extldflags "-static"
+endif
 
 build: sfs
 
@@ -6,7 +11,7 @@ sfs: swagger
 	make fmt tidy
 	mkdir -p bin
 	export CGO_ENABLED=1
-	go build -tags sqlite_omit_load_extension -ldflags=${LDFLAGS} -o bin/sfs mkuznets.com/go/sfs/cmd/sfs
+	go build -ldflags='${LDFLAGS}' -o bin/sfs mkuznets.com/go/sfs/cmd/sfs
 
 swagger:
 	swag init -g internal/api/api.go --output internal/api/swagger
