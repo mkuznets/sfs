@@ -23,9 +23,6 @@ type API interface {
 	/*
 	   GetFeeds gets feeds matching the given parameters*/
 	GetFeeds(ctx context.Context, params *GetFeedsParams) (*GetFeedsOK, error)
-	/*
-	   GetRss returns a response with the XML feed in XML format*/
-	GetRss(ctx context.Context, params *GetRssParams) (*GetRssOK, error)
 }
 
 // New creates a new feeds API client.
@@ -93,30 +90,5 @@ func (a *Client) GetFeeds(ctx context.Context, params *GetFeedsParams) (*GetFeed
 		return nil, err
 	}
 	return result.(*GetFeedsOK), nil
-
-}
-
-/*
-GetRss returns a response with the XML feed in XML format
-*/
-func (a *Client) GetRss(ctx context.Context, params *GetRssParams) (*GetRssOK, error) {
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "GetRss",
-		Method:             "GET",
-		PathPattern:        "/feeds/rss/{id}",
-		ProducesMediaTypes: []string{"text/xml"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &GetRssReader{formats: a.formats},
-		AuthInfo:           a.authInfo,
-		Context:            ctx,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*GetRssOK), nil
 
 }

@@ -21,7 +21,7 @@ type Handler interface {
 	GetItems(w http.ResponseWriter, r *http.Request)
 	CreateItems(w http.ResponseWriter, r *http.Request)
 	UploadFiles(w http.ResponseWriter, r *http.Request)
-	GetRss(w http.ResponseWriter, r *http.Request)
+	GetRssRedirect(w http.ResponseWriter, r *http.Request)
 }
 
 type handlerImpl struct {
@@ -145,15 +145,15 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *handlerImpl) GetRss(w http.ResponseWriter, r *http.Request) {
+func (h *handlerImpl) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "feedId")
 	usr := y.Must(user.Get(r))
 
-	response, err := h.c.GetRss(r.Context(), id, usr)
+	url, err := h.c.GetRssUrl(r.Context(), id, usr)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
 	}
 
-	yhttp.Render(w, r, response).XML()
+	http.Redirect(w, r, url, http.StatusFound)
 }

@@ -19,7 +19,7 @@ type Controller interface {
 	GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error)
 	CreateItems(ctx context.Context, req *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error)
 	UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error)
-	GetRss(ctx context.Context, feedId string, usr user.User) (string, error)
+	GetRssUrl(ctx context.Context, feedId string, usr user.User) (string, error)
 }
 
 type controllerImpl struct {
@@ -343,17 +343,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 	}, nil
 }
 
-// GetRss returns a response with the XML feed in XML format
-//
-//	@ID			GetRss
-//	@Summary	Returns a response with the XML feed in XML format
-//	@Tags		Feeds
-//	@Produce	xml
-//	@Param		id	path		string	true	"Feed ID"
-//	@Success	200	{object}	nil		"XML feed in XML format"
-//	@Router		/feeds/rss/{id} [get]
-//	@Security	Authentication
-func (c *controllerImpl) GetRss(ctx context.Context, feedId string, usr user.User) (string, error) {
+func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string, usr user.User) (string, error) {
 	filter := &store.FeedFilter{
 		Ids:     []string{feedId},
 		UserIds: []string{usr.Id()},
@@ -367,5 +357,5 @@ func (c *controllerImpl) GetRss(ctx context.Context, feedId string, usr user.Use
 		return "", fmt.Errorf("HTTP 404: no feed %s", feedId)
 	}
 
-	return feeds[0].RssContent, nil
+	return feeds[0].RssUrl, nil
 }

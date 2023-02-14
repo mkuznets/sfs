@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// GetRssReader is a Reader for the GetRss structure.
+// GetRssReader is a Reader for the GetRssRedirect structure.
 type GetRssReader struct {
 	formats strfmt.Registry
 }

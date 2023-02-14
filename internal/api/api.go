@@ -44,7 +44,6 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 		r.Use(a.auth.Middleware())
 
 		r.Route("/feeds", func(r chi.Router) {
-			r.Get("/rss/{feedId}", a.handler.GetRss)
 			r.Post("/get", a.handler.GetFeeds)
 			r.Post("/create", a.handler.CreateFeeds)
 		})
@@ -59,6 +58,7 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 
 		r.Get("/swagger.*", http.StripPrefix(prefix, swaggerSpecs).ServeHTTP)
 	})
+	r.Get("/rss/{feedId}", a.handler.GetRssRedirect)
 
 	swaggerUi := httpSwagger.Handler(
 		httpSwagger.URL(prefix+"/swagger.json"),
@@ -69,7 +69,7 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 			"defaultModelExpandDepth":  "5",
 			"displayRequestDuration":   "true",
 		}))
-	r.Mount("/swagger", swaggerUi)
+	r.Get("/swagger/*", swaggerUi)
 
 	return r
 }
