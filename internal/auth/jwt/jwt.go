@@ -94,7 +94,7 @@ func (s *jwtService) Middleware() func(next http.Handler) http.Handler {
 
 			var claims Claims
 			if _, err := parser.ParseWithClaims(tokenString, &claims, s.keyFunc); err != nil {
-				yhttp.Render(w, r, fmt.Errorf("HTTP 401 JWT token: %w", err)).JSON()
+				yhttp.Render(w, r, fmt.Errorf("HTTP 401: JWT token: %w", err)).JSON()
 				return
 			}
 
