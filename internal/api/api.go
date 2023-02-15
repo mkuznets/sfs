@@ -41,19 +41,22 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 		r.Use(yhttp.RequestIdMiddleware)
 		r.Use(yhttp.ContextLoggerMiddleware)
 		r.Use(yhttp.RequestLoggerMiddleware)
-		r.Use(a.auth.Middleware())
 
-		r.Route("/feeds", func(r chi.Router) {
-			r.Post("/get", a.handler.GetFeeds)
-			r.Post("/create", a.handler.CreateFeeds)
-		})
-		r.Route(`/items`, func(r chi.Router) {
-			r.Post(`/get`, a.handler.GetItems)
-			r.Post(`/create`, a.handler.CreateItems)
-		})
-		r.Route("/files", func(r chi.Router) {
-			r.With(middleware.AllowContentType("multipart/form-data")).
-				Post("/upload", a.handler.UploadFiles)
+		r.Group(func(r chi.Router) {
+			r.Use(a.auth.Middleware())
+
+			r.Route("/feeds", func(r chi.Router) {
+				r.Post("/get", a.handler.GetFeeds)
+				r.Post("/create", a.handler.CreateFeeds)
+			})
+			r.Route(`/items`, func(r chi.Router) {
+				r.Post(`/get`, a.handler.GetItems)
+				r.Post(`/create`, a.handler.CreateItems)
+			})
+			r.Route("/files", func(r chi.Router) {
+				r.With(middleware.AllowContentType("multipart/form-data")).
+					Post("/upload", a.handler.UploadFiles)
+			})
 		})
 
 		r.Get("/swagger.*", http.StripPrefix(prefix, swaggerSpecs).ServeHTTP)
@@ -70,6 +73,7 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 			"displayRequestDuration":   "true",
 		}))
 	r.Get("/swagger/*", swaggerUi)
+	r.Get("/swagger", http.RedirectHandler("/swagger/index.html", http.StatusMovedPermanently).ServeHTTP)
 
 	return r
 }
