@@ -1,6 +1,7 @@
 package rss
 
 import (
+	"bytes"
 	"context"
 	"encoding/xml"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/ytils/ytime"
 	"sort"
-	"strings"
 )
 
 type Controller interface {
@@ -63,11 +63,10 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 		return err
 	}
 
-	feed.RssContent = string(content)
 	feed.RssContentUpdatedAt = ytime.Now()
 
 	path := fmt.Sprintf("rss/%s.xml", feed.Id)
-	upload, err := c.fileStorage.Upload(ctx, path, strings.NewReader(feed.RssContent))
+	upload, err := c.fileStorage.Upload(ctx, path, bytes.NewReader(content))
 	if err != nil {
 		return fmt.Errorf("failed to upload RSS feed: %w", err)
 	}
