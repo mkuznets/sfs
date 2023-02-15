@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"mkuznets.com/go/sfs/internal/api"
 	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/auth/auth0"
 	sjwt "mkuznets.com/go/sfs/internal/auth/jwt"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
@@ -16,6 +17,7 @@ import (
 	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/ycrypto"
 	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -116,13 +118,15 @@ func (s3 *S3) Validate() error {
 }
 
 type Auth struct {
-	JwtOpts *Jwt `group:"JWT authentication" namespace:"jwt" env-namespace:"JWT" json:"JWT"`
+	JwtOpts   *Jwt   `group:"JWT authentication" namespace:"jwt" env-namespace:"JWT" json:"JWT"`
+	Auth0Opts *Auth0 `group:"Auth0 authentication" namespace:"auth0" env-namespace:"AUTH0" json:"AUTH0"`
 }
 
 func (a *Auth) Validate() error {
 	return validation.ValidateStruct(
 		a,
 		validation.Field(&a.JwtOpts),
+		validation.Field(&a.Auth0Opts),
 	)
 }
 
@@ -149,6 +153,23 @@ func validateObscured(x interface{}) error {
 	return nil
 }
 
+type Auth0 struct {
+	Enabled  bool   `long:"enabled" env:"ENABLED" description:"Enable Auth0 authentication" json:"ENABLED"`
+	Domain   string `long:"domain" env:"DOMAIN" description:"Auth0 domain" json:"DOMAIN"`
+	Audience string `long:"audience" env:"AUDIENCE" description:"Auth0 audience" json:"AUDIENCE"`
+}
+
+func (a *Auth0) Validate() error {
+	if a.Enabled {
+		return validation.ValidateStruct(
+			a,
+			validation.Field(&a.Domain, validation.Required, is.URL),
+			validation.Field(&a.Audience, validation.Required),
+		)
+	}
+	return nil
+}
+
 func validatePublicKey(x interface{}) error {
 	v := y.Must(ycrypto.Reveal(x.(string)))
 	if _, err := jwt.ParseRSAPublicKeyFromPEM([]byte(v)); err != nil {
@@ -168,6 +189,13 @@ func (c *RunCommand) Init(app *App) error {
 	case c.AuthOpts.JwtOpts.Enabled:
 		publicKey := y.Must(ycrypto.Reveal(c.AuthOpts.JwtOpts.RsaPublicKey))
 		authService = sjwt.New(publicKey)
+	case c.AuthOpts.Auth0Opts.Enabled:
+		opts := c.AuthOpts.Auth0Opts
+		issuerURL, err := url.Parse(fmt.Sprintf("https://%s/", opts.Domain))
+		if err != nil {
+			return fmt.Errorf("parse auth0 domain: %w", err)
+		}
+		authService = auth0.New(issuerURL, opts.Audience)
 	default:
 		authService = &auth.NoAuth{}
 	}
