@@ -147,9 +147,8 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlerImpl) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "feedId")
-	usr := y.Must(user.Get(r))
 
-	url, err := h.c.GetRssUrl(r.Context(), id, usr)
+	url, err := h.c.GetRssUrl(r.Context(), id)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return

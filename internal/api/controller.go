@@ -19,7 +19,7 @@ type Controller interface {
 	GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error)
 	CreateItems(ctx context.Context, req *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error)
 	UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error)
-	GetRssUrl(ctx context.Context, feedId string, usr user.User) (string, error)
+	GetRssUrl(ctx context.Context, feedId string) (string, error)
 }
 
 type controllerImpl struct {
@@ -343,10 +343,9 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 	}, nil
 }
 
-func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string, usr user.User) (string, error) {
+func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string) (string, error) {
 	filter := &store.FeedFilter{
-		Ids:     []string{feedId},
-		UserIds: []string{usr.Id()},
+		Ids: []string{feedId},
 	}
 
 	feeds, err := c.store.GetFeeds(ctx, filter)
