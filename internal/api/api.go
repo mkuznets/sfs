@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -34,9 +35,14 @@ func New(auth auth.Service, handler Handler) Api {
 func (a *apiImpl) Handler(prefix string) chi.Router {
 	r := chi.NewRouter()
 
-	swaggerSpecs := http.FileServer(http.FS(swagger.Specs))
-
 	r.Route(prefix, func(r chi.Router) {
+		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+			yhttp.Render(w, r, fmt.Errorf("HTTP 404: endpoint not found")).JSON()
+		})
+		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+			yhttp.Render(w, r, fmt.Errorf("HTTP 405: %s not allowed", r.Method)).JSON()
+		})
+
 		r.Use(middleware.Recoverer)
 		r.Use(yhttp.RequestIdMiddleware)
 		r.Use(yhttp.ContextLoggerMiddleware)
@@ -59,6 +65,7 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 			})
 		})
 
+		swaggerSpecs := http.FileServer(http.FS(swagger.Specs))
 		r.Get("/swagger.*", http.StripPrefix(prefix, swaggerSpecs).ServeHTTP)
 	})
 	r.Get("/rss/{feedId}", a.handler.GetRssRedirect)
