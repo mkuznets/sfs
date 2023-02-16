@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"crypto/rsa"
 	"fmt"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
@@ -21,9 +20,8 @@ func (j *oauthAuthenticator) AuthenticateRequest(req runtime.ClientRequest, _ st
 	return req.SetHeaderParam("Authorization", fmt.Sprintf("%s %s", t.Type(), t.AccessToken))
 }
 
-func NewOauthInfo(privateKey *rsa.PrivateKey, userId string) runtime.ClientAuthInfoWriter {
-	return &jwtAuthenticator{
-		userId: userId,
-		pk:     privateKey,
+func NewOauthInfo(source oauth2.TokenSource) runtime.ClientAuthInfoWriter {
+	return &oauthAuthenticator{
+		tokenSource: source,
 	}
 }
