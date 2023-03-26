@@ -11,10 +11,6 @@ import (
 	"net/http"
 )
 
-const (
-	maxFileSize = 512 * 1024 * 1024 // 512 MiB
-)
-
 type Handler interface {
 	GetFeeds(w http.ResponseWriter, r *http.Request)
 	CreateFeeds(w http.ResponseWriter, r *http.Request)
@@ -108,7 +104,7 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 	ctx := r.Context()
 
-	if err := r.ParseMultipartForm(maxFileSize); err != nil {
+	if err := r.ParseMultipartForm(0); err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
 	}
