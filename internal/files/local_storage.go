@@ -27,7 +27,7 @@ func (l *localStorage) ensurePath(path string) (string, error) {
 		return "", fmt.Errorf("get absolute path for %s: %w", absPath, err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
 		return "", fmt.Errorf("create target directory: %w", err)
 	}
 

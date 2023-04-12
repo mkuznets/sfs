@@ -3,18 +3,18 @@ package jwt
 import (
 	"crypto/rsa"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/golang-jwt/jwt/v4/request"
-	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/sfs/internal/user"
-	"mkuznets.com/go/ytils/yhttp"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/request"
+	"mkuznets.com/go/ytils/yhttp"
+
+	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/user"
 )
 
-var (
-	cookieName = "JWT"
-)
+var cookieName = "JWT"
 
 type jwtService struct {
 	privateKey string

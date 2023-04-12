@@ -2,9 +2,10 @@ package jwt
 
 import (
 	"errors"
-	"github.com/golang-jwt/jwt/v4"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var TimeFunc = time.Now

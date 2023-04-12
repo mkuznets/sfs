@@ -1,12 +1,14 @@
 package store_test
 
 import (
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
+
 	"mkuznets.com/go/sfs/internal/store"
-	"testing"
 )
 
 func mockedStore(t *testing.T) (store.Store, sqlmock.Sqlmock) {
@@ -16,7 +18,7 @@ func mockedStore(t *testing.T) (store.Store, sqlmock.Sqlmock) {
 	return store.NewBunStore(db), sqlMock
 }
 
-//var testTime = ytime.New(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
+// var testTime = ytime.New(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))
 
 //func Test_storeImpl_UpdateChannelFeeds(t *testing.T) {
 //	st, sqlMock := mockedStore(t)

@@ -2,13 +2,15 @@ package api
 
 import (
 	"fmt"
+	"mime/multipart"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/exp/slog"
-	"mime/multipart"
-	"mkuznets.com/go/sfs/internal/user"
 	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/yhttp"
-	"net/http"
+
+	"mkuznets.com/go/sfs/internal/user"
 )
 
 type Handler interface {

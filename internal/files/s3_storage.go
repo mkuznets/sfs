@@ -2,12 +2,13 @@ package files
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"html/template"
 	"io"
-	"mkuznets.com/go/ytils/y"
 	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"mkuznets.com/go/ytils/y"
 )
 
 type s3Storage struct {
@@ -17,7 +18,7 @@ type s3Storage struct {
 	accessKeySecret string
 	urlTemplate     string
 
-	//cachedAwsConfig *aws.Config
+	// cachedAwsConfig *aws.Config
 }
 
 type Object struct {

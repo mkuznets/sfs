@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"embed"
+
 	"github.com/uptrace/bun/migrate"
 )
 

@@ -1,9 +1,11 @@
 package rss
 
 import (
-	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/ytils/yslice"
 	"time"
+
+	"mkuznets.com/go/ytils/yslice"
+
+	"mkuznets.com/go/sfs/internal/store"
 )
 
 func FeedToPodcast(feed *store.Feed, items []*store.Item) *Podcast {

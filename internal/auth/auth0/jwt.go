@@ -2,15 +2,17 @@ package auth0
 
 import (
 	"fmt"
-	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
-	"github.com/auth0/go-jwt-middleware/v2/jwks"
-	"github.com/auth0/go-jwt-middleware/v2/validator"
-	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/sfs/internal/user"
-	"mkuznets.com/go/ytils/yhttp"
 	"net/http"
 	"net/url"
 	"time"
+
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/jwks"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"mkuznets.com/go/ytils/yhttp"
+
+	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/user"
 )
 
 type auth0Service struct {

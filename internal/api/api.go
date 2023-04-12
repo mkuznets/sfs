@@ -2,13 +2,15 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"mkuznets.com/go/ytils/yhttp"
+
 	"mkuznets.com/go/sfs/internal/api/swagger"
 	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/ytils/yhttp"
-	"net/http"
 )
 
 type Api interface {

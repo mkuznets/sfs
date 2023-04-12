@@ -4,9 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/golang-jwt/jwt/v4"
+	"mkuznets.com/go/ytils/y"
+	"mkuznets.com/go/ytils/ycrypto"
+
 	"mkuznets.com/go/sfs/internal/api"
 	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/auth/auth0"
@@ -14,11 +21,6 @@ import (
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
-	"mkuznets.com/go/ytils/y"
-	"mkuznets.com/go/ytils/ycrypto"
-	"net/http"
-	"net/url"
-	"os"
 )
 
 type RunCommand struct {
@@ -87,7 +89,7 @@ func (l *LocalStorage) Validate() error {
 
 func validateDirectory(x interface{}) error {
 	s := x.(string)
-	if err := os.MkdirAll(s, 0755); err != nil {
+	if err := os.MkdirAll(s, 0o755); err != nil {
 		return fmt.Errorf("invalid directory: %w", err)
 	}
 	return nil

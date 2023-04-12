@@ -4,8 +4,9 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"github.com/h2non/filetype"
 	"io"
+
+	"github.com/h2non/filetype"
 )
 
 func Info(r io.ReadSeeker) (*FileInfo, error) {

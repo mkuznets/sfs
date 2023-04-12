@@ -3,12 +3,14 @@ package store
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
+
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 	"golang.org/x/exp/slog"
+
 	"mkuznets.com/go/sfs/sql/sqlite"
-	"os"
-	"regexp"
 )
 
 type Migrator interface {

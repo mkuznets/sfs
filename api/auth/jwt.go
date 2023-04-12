@@ -3,11 +3,12 @@ package auth
 import (
 	"crypto/rsa"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 	"github.com/golang-jwt/jwt/v4"
-	"sync"
-	"time"
 )
 
 const (
