@@ -132,6 +132,9 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 				slog.Warn("close file", slog.ErrorKey, err)
 			}
 		}
+		if err := r.MultipartForm.RemoveAll(); err != nil {
+			slog.Warn("remove multipart tmp files", slog.ErrorKey, err)
+		}
 	}(files)
 
 	response, err := h.c.UploadFiles(ctx, files, usr)
