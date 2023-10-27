@@ -16,23 +16,24 @@ import (
 )
 
 type auth0Service struct {
-	issuerUrl *url.URL
-	audience  string
+	issuerUrl    *url.URL
+	audience     string
+	jwksProvider *jwks.CachingProvider
 }
 
 func New(issuerUrl *url.URL, audience string) auth.Service {
 	return &auth0Service{
-		issuerUrl: issuerUrl,
-		audience:  audience,
+		issuerUrl:    issuerUrl,
+		audience:     audience,
+		jwksProvider: jwks.NewCachingProvider(issuerUrl, 5*time.Minute),
 	}
 }
 
 func (s *auth0Service) Middleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			provider := jwks.NewCachingProvider(s.issuerUrl, 5*time.Minute)
 			jwtValidator, err := validator.New(
-				provider.KeyFunc,
+				s.jwksProvider.KeyFunc,
 				validator.RS256,
 				s.issuerUrl.String(),
 				[]string{s.audience},
