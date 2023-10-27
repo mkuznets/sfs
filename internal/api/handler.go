@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/exp/slog"
 	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/yhttp"
 
+	"mkuznets.com/go/sfs/internal/slogger"
 	"mkuznets.com/go/sfs/internal/user"
 )
 
@@ -127,13 +127,15 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func(fs []multipart.File) {
+		logger := slogger.FromContext(ctx)
+
 		for _, f := range fs {
 			if err := f.Close(); err != nil {
-				slog.Warn("close file", slog.ErrorKey, err)
+				logger.Warn("close file", "err", err)
 			}
 		}
 		if err := r.MultipartForm.RemoveAll(); err != nil {
-			slog.Warn("remove multipart tmp files", slog.ErrorKey, err)
+			logger.Warn("remove multipart tmp files", "err", err)
 		}
 	}(files)
 

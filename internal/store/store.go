@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/uptrace/bun"
-	"mkuznets.com/go/ytils/ytime"
+
+	"mkuznets.com/go/sfs/internal/mtime"
 )
 
 type Store interface {
@@ -35,12 +36,12 @@ type Feed struct {
 	Authors             string     `bun:"authors"`
 	Description         string     `bun:"description"`
 	RssContent          string     `bun:"rss_content"`
-	RssContentUpdatedAt ytime.Time `bun:"rss_content_updated_at"`
+	RssContentUpdatedAt mtime.Time `bun:"rss_content_updated_at"`
 	RssUrl              string     `bun:"rss_url"`
-	RssUrlUpdatedAt     ytime.Time `bun:"rss_url_updated_at"`
-	CreatedAt           ytime.Time `bun:"created_at"`
-	UpdatedAt           ytime.Time `bun:"updated_at"`
-	DeletedAt           ytime.Time `bun:"deleted_at"`
+	RssUrlUpdatedAt     mtime.Time `bun:"rss_url_updated_at"`
+	CreatedAt           mtime.Time `bun:"created_at"`
+	UpdatedAt           mtime.Time `bun:"updated_at"`
+	DeletedAt           mtime.Time `bun:"deleted_at"`
 }
 
 type Item struct {
@@ -55,10 +56,10 @@ type Item struct {
 	Description string     `bun:"description"`
 	Link        string     `bun:"link"`
 	Authors     string     `bun:"authors"`
-	CreatedAt   ytime.Time `bun:"created_at"`
-	UpdatedAt   ytime.Time `bun:"updated_at"`
-	DeletedAt   ytime.Time `bun:"deleted_at"`
-	PublishedAt ytime.Time `bun:"published_at"`
+	CreatedAt   mtime.Time `bun:"created_at"`
+	UpdatedAt   mtime.Time `bun:"updated_at"`
+	DeletedAt   mtime.Time `bun:"deleted_at"`
+	PublishedAt mtime.Time `bun:"published_at"`
 }
 
 type File struct {
@@ -72,9 +73,9 @@ type File struct {
 	Hash      string     `bun:"hash"`
 	UploadUrl string     `bun:"upload_url"`
 	UploadId  string     `bun:"upload_id"`
-	CreatedAt ytime.Time `bun:"created_at"`
-	UpdatedAt ytime.Time `bun:"updated_at"`
-	DeletedAt ytime.Time `bun:"deleted_at"`
+	CreatedAt mtime.Time `bun:"created_at"`
+	UpdatedAt mtime.Time `bun:"updated_at"`
+	DeletedAt mtime.Time `bun:"deleted_at"`
 }
 
 type FeedFilter struct {

@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"mkuznets.com/go/ytils/y"
 )
 
 type s3Storage struct {
@@ -48,9 +48,9 @@ func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*Uplo
 	}
 
 	_, err = s3client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:             y.Ptr(s.bucket),
-		Key:                y.Ptr(path),
-		ContentDisposition: y.Ptr("inline"),
+		Bucket:             aws.String(s.bucket),
+		Key:                aws.String(path),
+		ContentDisposition: aws.String("inline"),
 		Body:               r,
 	})
 	if err != nil {

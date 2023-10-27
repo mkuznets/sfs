@@ -7,9 +7,9 @@ import (
 	"mime/multipart"
 
 	"mkuznets.com/go/ytils/yslice"
-	"mkuznets.com/go/ytils/ytime"
 
 	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/mtime"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/sfs/internal/user"
@@ -109,8 +109,8 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 			Link:        i.Link,
 			Authors:     i.Authors,
 			Description: i.Description,
-			CreatedAt:   ytime.Now(),
-			UpdatedAt:   ytime.Now(),
+			CreatedAt:   mtime.Now(),
+			UpdatedAt:   mtime.Now(),
 		}
 		if err := c.rssController.BuildRss(ctx, feed); err != nil {
 			return nil, fmt.Errorf("HTTP 500: build rss: %w", err)
@@ -231,7 +231,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 
 			publishedAt := i.PublishedAt
 			if publishedAt.IsZero() {
-				publishedAt = ytime.Now()
+				publishedAt = mtime.Now()
 			}
 
 			item := &store.Item{
@@ -243,8 +243,8 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 				Authors:     i.Authors,
 				Description: i.Description,
 				FileId:      i.FileId,
-				CreatedAt:   ytime.Now(),
-				UpdatedAt:   ytime.Now(),
+				CreatedAt:   mtime.Now(),
+				UpdatedAt:   mtime.Now(),
 				PublishedAt: publishedAt,
 			}
 			items = append(items, item)
@@ -340,8 +340,8 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 		Size:      info.Size,
 		Hash:      info.Hash.String(),
 		MimeType:  info.Mime.Value,
-		CreatedAt: ytime.Now(),
-		UpdatedAt: ytime.Now(),
+		CreatedAt: mtime.Now(),
+		UpdatedAt: mtime.Now(),
 	}, nil
 }
 

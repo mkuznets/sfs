@@ -3,8 +3,8 @@ package api
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"mkuznets.com/go/ytils/ytime"
 
+	"mkuznets.com/go/sfs/internal/mtime"
 	"mkuznets.com/go/sfs/internal/rss"
 )
 
@@ -27,8 +27,8 @@ type FeedResource struct {
 	Link        string     `json:"link" example:"https://example.com" extensions:"x-order=3"`
 	Authors     string     `json:"authors" example:"The Owl" extensions:"x-order=4"`
 	Description string     `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=5"`
-	CreatedAt   ytime.Time `json:"created_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=6"`
-	UpdatedAt   ytime.Time `json:"updated_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=7"`
+	CreatedAt   mtime.Time `json:"created_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=6"`
+	UpdatedAt   mtime.Time `json:"updated_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=7"`
 } // @name FeedResource
 
 type CreateFeedsRequest struct {
@@ -83,9 +83,9 @@ type ItemResource struct {
 	Link        string            `json:"link" example:"https://example.com" extensions:"x-order=4"`
 	Authors     string            `json:"authors" example:"The Owl" extensions:"x-order=5"`
 	Description string            `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=6"`
-	CreatedAt   ytime.Time        `json:"created_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=7"`
-	UpdatedAt   ytime.Time        `json:"updated_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=8"`
-	PublishedAt ytime.Time        `json:"published_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=9"`
+	CreatedAt   mtime.Time        `json:"created_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=7"`
+	UpdatedAt   mtime.Time        `json:"updated_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=8"`
+	PublishedAt mtime.Time        `json:"published_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=9"`
 } // @name ItemResource
 
 type ItemFileResource struct {
@@ -112,7 +112,7 @@ type CreateItemsResource struct {
 	Link        string     `json:"link" example:"https://example.com" extensions:"x-order=3"`
 	Authors     string     `json:"authors" example:"The Owl" extensions:"x-order=4"`
 	Description string     `json:"description" example:"Bored owls talk about whatever happens to be on their minds" extensions:"x-order=5"`
-	PublishedAt ytime.Time `json:"published_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=6"`
+	PublishedAt mtime.Time `json:"published_at" swaggertype:"string" format:"date-time" example:"2023-01-01T01:02:03.456Z" extensions:"x-order=6"`
 } // @name CreateItemsResource
 
 func (r *CreateItemsResource) Validate() error {

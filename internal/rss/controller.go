@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"sort"
 
-	"mkuznets.com/go/ytils/ytime"
-
 	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/mtime"
 	"mkuznets.com/go/sfs/internal/store"
 )
 
@@ -65,7 +64,7 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 		return err
 	}
 
-	feed.RssContentUpdatedAt = ytime.Now()
+	feed.RssContentUpdatedAt = mtime.Now()
 
 	path := fmt.Sprintf("rss/%s.xml", feed.Id)
 	upload, err := c.fileStorage.Upload(ctx, path, bytes.NewReader(content))
@@ -74,9 +73,9 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 	}
 
 	feed.RssUrl = upload.Url
-	feed.RssUrlUpdatedAt = ytime.Now()
+	feed.RssUrlUpdatedAt = mtime.Now()
 
-	feed.UpdatedAt = ytime.Now()
+	feed.UpdatedAt = mtime.Now()
 
 	return nil
 }

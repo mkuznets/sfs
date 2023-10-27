@@ -8,7 +8,7 @@ import (
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
-	"golang.org/x/exp/slog"
+	"log/slog"
 
 	"mkuznets.com/go/sfs/sql/sqlite"
 )

@@ -1,16 +1,11 @@
 package store
 
 import (
-	"context"
 	"database/sql"
-	"errors"
 	"net/url"
-	"time"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
-	"golang.org/x/exp/slog"
-	"mkuznets.com/go/ytils/ylog"
 
 	// Required to load "sqlite" driver
 	_ "github.com/mattn/go-sqlite3"
@@ -27,7 +22,6 @@ func NewBunDb(driver, dsn string) (*bun.DB, error) {
 		return nil, err
 	}
 	db := bun.NewDB(sqldb, sqlitedialect.New())
-	db.AddQueryHook(&bunHook{})
 
 	return db, nil
 }
@@ -48,29 +42,4 @@ func prepareDsn(driver, dsn string) (string, error) {
 	u.RawQuery = query.Encode()
 
 	return u.String(), nil
-}
-
-type bunHook struct{}
-
-func (h *bunHook) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
-	return ctx
-}
-
-func (h *bunHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
-	dur := time.Since(event.StartTime)
-
-	logAttrs := []slog.Attr{
-		slog.Duration("duration", dur),
-		slog.String("query", event.Query),
-	}
-	if event.Err != nil {
-		logAttrs = append(logAttrs, slog.Any(slog.ErrorKey, event.Err))
-	}
-	level := slog.LevelInfo
-
-	if event.Err != nil && !errors.Is(event.Err, sql.ErrNoRows) {
-		level = slog.LevelError
-	}
-
-	ylog.Ctx(ctx).LogAttrs(level, "QUERY", logAttrs...)
 }

@@ -46,9 +46,9 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 		})
 
 		r.Use(middleware.Recoverer)
-		r.Use(yhttp.RequestIdMiddleware)
-		r.Use(yhttp.ContextLoggerMiddleware)
-		r.Use(yhttp.RequestLoggerMiddleware)
+		r.Use(AddRequestIdMiddleware)
+		r.Use(AddContextLoggerMiddleware)
+		r.Use(LogRequestMiddleware)
 
 		r.Group(func(r chi.Router) {
 			r.Use(a.auth.Middleware())

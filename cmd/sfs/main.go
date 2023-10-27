@@ -3,7 +3,8 @@ package main
 import (
 	"github.com/joho/godotenv"
 	"mkuznets.com/go/ytils/ycli"
-	"mkuznets.com/go/ytils/ylog"
+
+	"mkuznets.com/go/sfs/internal/slogger"
 )
 
 // Global is a group of common flags for all subcommands.
@@ -22,11 +23,8 @@ type App struct {
 	RunCmd *RunCommand `command:"run" description:"Start the service"`
 }
 
-func init() {
-	ylog.Setup()
-}
-
 func main() {
 	_ = godotenv.Load()
+	slogger.Init()
 	ycli.Main[App]()
 }
