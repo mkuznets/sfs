@@ -157,5 +157,5 @@ func (h *handlerImpl) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, url, http.StatusFound)
+	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
