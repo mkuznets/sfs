@@ -5,37 +5,34 @@ ifneq ($(OS),Darwin)
 	LDFLAGS += -extldflags "-static"
 endif
 
-build: sfs
-
-sfs: swagger
-	make fmt tidy
+.PHONY: build
+build:
 	mkdir -p bin
 	export CGO_ENABLED=1
 	go build -ldflags='${LDFLAGS}' -o bin/sfs mkuznets.com/go/sfs/cmd/sfs
 
-swagger:
-	swag init -g internal/api/api.go --output internal/api/swagger
-	swagger generate client --template=stratoscale --spec internal/api/swagger/swagger.json --name SimpleFeedService --strict-responders --target ./api
+.PHONY: generate
+generate:
+	./scripts/make-generate.sh
 
+.PHONY: fmt
 fmt:
-	go fmt ./...
-	swag fmt --exclude internal/api/resources.go
+	./scripts/make-fmt.sh
 
+.PHONY: tidy
 tidy:
 	go mod tidy
 	(cd api && go mod tidy)
 
-run: sfs
+.PHONY: run
+run: build
 	mkdir -p data
 	bin/sfs run
 
+.PHONY: test
 test:
 	go test -v ./...
 
+.PHONY: distclean
 distclean:
 	rm -rf bin data
-
-precommit:
-	make swagger fmt tidy test
-
-.PHONY: sfs build swagger web distclean test tidy fmt precommit

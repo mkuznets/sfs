@@ -10,6 +10,7 @@
 !/.pre-commit-config.yaml
 
 !*.go
+!*.sh
 !*.sql
 !*.json
 !*.yaml
