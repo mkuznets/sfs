@@ -23,3 +23,5 @@ go generate ./...
 go mod tidy
 
 swag fmt --exclude internal/api/resources.go
+
+$SCRIPT_DIR/make-fmt.sh
