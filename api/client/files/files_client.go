@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/go-openapi/runtime"
-
 	strfmt "github.com/go-openapi/strfmt"
 )
 
@@ -44,7 +43,6 @@ type Client struct {
 UploadFiles uploads new audio files
 */
 func (a *Client) UploadFiles(ctx context.Context, params *UploadFilesParams) (*UploadFilesOK, error) {
-
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "UploadFiles",
 		Method:             "POST",
@@ -62,5 +60,4 @@ func (a *Client) UploadFiles(ctx context.Context, params *UploadFilesParams) (*U
 		return nil, err
 	}
 	return result.(*UploadFilesOK), nil
-
 }

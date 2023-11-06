@@ -104,7 +104,6 @@ func (o *CreateItemsOK) GetPayload() *models.CreateItemsResponse {
 }
 
 func (o *CreateItemsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.CreateItemsResponse)
 
 	// response payload
@@ -167,7 +166,6 @@ func (o *CreateItemsBadRequest) GetPayload() *models.ErrorResponse {
 }
 
 func (o *CreateItemsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload
@@ -230,7 +228,6 @@ func (o *CreateItemsUnauthorized) GetPayload() *models.ErrorResponse {
 }
 
 func (o *CreateItemsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload
@@ -293,7 +290,6 @@ func (o *CreateItemsInternalServerError) GetPayload() *models.ErrorResponse {
 }
 
 func (o *CreateItemsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload

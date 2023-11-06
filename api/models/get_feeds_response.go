@@ -18,7 +18,6 @@ import (
 //
 // swagger:model GetFeedsResponse
 type GetFeedsResponse struct {
-
 	// data
 	Data []*FeedResource `json:"data"`
 }
@@ -78,9 +77,7 @@ func (m *GetFeedsResponse) ContextValidate(ctx context.Context, formats strfmt.R
 }
 
 func (m *GetFeedsResponse) contextValidateData(ctx context.Context, formats strfmt.Registry) error {
-
 	for i := 0; i < len(m.Data); i++ {
-
 		if m.Data[i] != nil {
 			if err := m.Data[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
@@ -91,7 +88,6 @@ func (m *GetFeedsResponse) contextValidateData(ctx context.Context, formats strf
 				return err
 			}
 		}
-
 	}
 
 	return nil

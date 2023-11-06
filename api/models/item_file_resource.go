@@ -16,7 +16,6 @@ import (
 //
 // swagger:model ItemFileResource
 type ItemFileResource struct {
-
 	// content type
 	// Example: audio/mpeg
 	ContentType string `json:"content_type,omitempty"`

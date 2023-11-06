@@ -16,7 +16,6 @@ import (
 //
 // swagger:model CreateItemResultResource
 type CreateItemResultResource struct {
-
 	// id
 	// Example: item_2K9BWVNuo3sG4yM322fbP3mB6ls
 	ID string `json:"id,omitempty"`

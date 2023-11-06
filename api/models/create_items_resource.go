@@ -18,7 +18,6 @@ import (
 //
 // swagger:model CreateItemsResource
 type CreateItemsResource struct {
-
 	// authors
 	// Example: The Owl
 	Authors string `json:"authors,omitempty"`

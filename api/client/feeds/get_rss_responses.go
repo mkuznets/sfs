@@ -41,8 +41,7 @@ GetRssOK describes a response with status code 200, with default header values.
 
 XML feed in XML format
 */
-type GetRssOK struct {
-}
+type GetRssOK struct{}
 
 // IsSuccess returns true when this get rss o k response has a 2xx status code
 func (o *GetRssOK) IsSuccess() bool {
@@ -78,6 +77,5 @@ func (o *GetRssOK) String() string {
 }
 
 func (o *GetRssOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	return nil
 }

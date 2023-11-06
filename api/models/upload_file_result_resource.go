@@ -16,7 +16,6 @@ import (
 //
 // swagger:model UploadFileResultResource
 type UploadFileResultResource struct {
-
 	// error
 	// Example: invalid file format
 	Error string `json:"error,omitempty"`

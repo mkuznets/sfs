@@ -16,7 +16,6 @@ import (
 //
 // swagger:model ErrorResponse
 type ErrorResponse struct {
-
 	// error
 	Error string `json:"error,omitempty"`
 

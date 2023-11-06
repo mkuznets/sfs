@@ -18,7 +18,6 @@ import (
 //
 // swagger:model CreateItemsResponse
 type CreateItemsResponse struct {
-
 	// data
 	Data []*CreateItemResultResource `json:"data"`
 }
@@ -78,9 +77,7 @@ func (m *CreateItemsResponse) ContextValidate(ctx context.Context, formats strfm
 }
 
 func (m *CreateItemsResponse) contextValidateData(ctx context.Context, formats strfmt.Registry) error {
-
 	for i := 0; i < len(m.Data); i++ {
-
 		if m.Data[i] != nil {
 			if err := m.Data[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
@@ -91,7 +88,6 @@ func (m *CreateItemsResponse) contextValidateData(ctx context.Context, formats s
 				return err
 			}
 		}
-
 	}
 
 	return nil

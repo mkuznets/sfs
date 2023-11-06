@@ -104,7 +104,6 @@ func (o *UploadFilesOK) GetPayload() *models.UploadFilesResponse {
 }
 
 func (o *UploadFilesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.UploadFilesResponse)
 
 	// response payload
@@ -167,7 +166,6 @@ func (o *UploadFilesBadRequest) GetPayload() *models.ErrorResponse {
 }
 
 func (o *UploadFilesBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload
@@ -230,7 +228,6 @@ func (o *UploadFilesUnauthorized) GetPayload() *models.ErrorResponse {
 }
 
 func (o *UploadFilesUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload
@@ -293,7 +290,6 @@ func (o *UploadFilesInternalServerError) GetPayload() *models.ErrorResponse {
 }
 
 func (o *UploadFilesInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload

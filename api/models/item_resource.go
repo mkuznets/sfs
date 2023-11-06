@@ -18,7 +18,6 @@ import (
 //
 // swagger:model ItemResource
 type ItemResource struct {
-
 	// authors
 	// Example: The Owl
 	Authors string `json:"authors,omitempty"`
@@ -149,7 +148,6 @@ func (m *ItemResource) ContextValidate(ctx context.Context, formats strfmt.Regis
 }
 
 func (m *ItemResource) contextValidateFile(ctx context.Context, formats strfmt.Registry) error {
-
 	return nil
 }
 

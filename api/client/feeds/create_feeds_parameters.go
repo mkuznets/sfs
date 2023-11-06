@@ -62,7 +62,6 @@ CreateFeedsParams contains all the parameters to send to the API endpoint
 	Typically these are written to a http.Request.
 */
 type CreateFeedsParams struct {
-
 	/* Request.
 
 	   CreateFeeds request
@@ -135,7 +134,6 @@ func (o *CreateFeedsParams) SetRequest(request *models.CreateFeedsRequest) {
 
 // WriteToRequest writes these params to a swagger request
 func (o *CreateFeedsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
-
 	if err := r.SetTimeout(o.timeout); err != nil {
 		return err
 	}

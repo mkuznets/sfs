@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/go-openapi/runtime"
-
 	strfmt "github.com/go-openapi/strfmt"
 )
 
@@ -47,7 +46,6 @@ type Client struct {
 CreateFeeds creates new feeds
 */
 func (a *Client) CreateFeeds(ctx context.Context, params *CreateFeedsParams) (*CreateFeedsOK, error) {
-
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "CreateFeeds",
 		Method:             "POST",
@@ -65,14 +63,12 @@ func (a *Client) CreateFeeds(ctx context.Context, params *CreateFeedsParams) (*C
 		return nil, err
 	}
 	return result.(*CreateFeedsOK), nil
-
 }
 
 /*
 GetFeeds gets feeds matching the given parameters
 */
 func (a *Client) GetFeeds(ctx context.Context, params *GetFeedsParams) (*GetFeedsOK, error) {
-
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "GetFeeds",
 		Method:             "POST",
@@ -90,5 +86,4 @@ func (a *Client) GetFeeds(ctx context.Context, params *GetFeedsParams) (*GetFeed
 		return nil, err
 	}
 	return result.(*GetFeedsOK), nil
-
 }

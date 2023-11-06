@@ -16,7 +16,6 @@ import (
 //
 // swagger:model GetItemsRequest
 type GetItemsRequest struct {
-
 	// feed ids
 	FeedIds []string `json:"feed_ids"`
 

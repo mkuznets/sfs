@@ -98,7 +98,6 @@ func (o *GetFeedsOK) GetPayload() *models.GetFeedsResponse {
 }
 
 func (o *GetFeedsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.GetFeedsResponse)
 
 	// response payload
@@ -161,7 +160,6 @@ func (o *GetFeedsUnauthorized) GetPayload() *models.ErrorResponse {
 }
 
 func (o *GetFeedsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload
@@ -224,7 +222,6 @@ func (o *GetFeedsInternalServerError) GetPayload() *models.ErrorResponse {
 }
 
 func (o *GetFeedsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
 	o.Payload = new(models.ErrorResponse)
 
 	// response payload

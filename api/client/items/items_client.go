@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/go-openapi/runtime"
-
 	strfmt "github.com/go-openapi/strfmt"
 )
 
@@ -47,7 +46,6 @@ type Client struct {
 CreateItems creates new items and returns a response with their i ds
 */
 func (a *Client) CreateItems(ctx context.Context, params *CreateItemsParams) (*CreateItemsOK, error) {
-
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "CreateItems",
 		Method:             "POST",
@@ -65,14 +63,12 @@ func (a *Client) CreateItems(ctx context.Context, params *CreateItemsParams) (*C
 		return nil, err
 	}
 	return result.(*CreateItemsOK), nil
-
 }
 
 /*
 GetItems gets items matching the given parameters
 */
 func (a *Client) GetItems(ctx context.Context, params *GetItemsParams) (*GetItemsOK, error) {
-
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "GetItems",
 		Method:             "POST",
@@ -90,5 +86,4 @@ func (a *Client) GetItems(ctx context.Context, params *GetItemsParams) (*GetItem
 		return nil, err
 	}
 	return result.(*GetItemsOK), nil
-
 }

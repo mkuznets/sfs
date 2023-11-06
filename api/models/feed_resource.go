@@ -18,7 +18,6 @@ import (
 //
 // swagger:model FeedResource
 type FeedResource struct {
-
 	// authors
 	// Example: The Owl
 	Authors string `json:"authors,omitempty"`

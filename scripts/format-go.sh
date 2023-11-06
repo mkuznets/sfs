@@ -11,4 +11,4 @@ for path in "$@"; do
   fi
 done
 
-gci write "$@" -s standard -s 'prefix(github.com/mkuznets/sfs)' -s default -s blank -s dot
+gci write "$@" -s standard -s 'prefix(mkuznets.com/go/sfs)' -s default -s blank -s dot
