@@ -22,6 +22,7 @@ require (
 	github.com/uptrace/bun v1.1.10
 	github.com/uptrace/bun/dialect/sqlitedialect v1.1.10
 	mkuznets.com/go/ytils v0.0.1
+	ytils.dev/sqlite-migrator v0.1.0
 )
 
 require (

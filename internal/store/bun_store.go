@@ -7,6 +7,10 @@ import (
 	"fmt"
 
 	"github.com/uptrace/bun"
+	"log/slog"
+	migrator "ytils.dev/sqlite-migrator"
+
+	"mkuznets.com/go/sfs/sql/sqlite"
 )
 
 type contextKey int
@@ -35,14 +39,11 @@ func (s *bunStore) ctxDb(ctx context.Context) bun.IDB {
 }
 
 func (s *bunStore) Init(ctx context.Context) error {
-	m := NewBunMigrator(s.db)
-	if err := m.Init(ctx); err != nil {
-		return err
-	}
-	if err := m.Migrate(ctx); err != nil {
-		return err
-	}
-	return nil
+	m := migrator.New(s.db.DB, sqlite.FS)
+	m.WithLogFunc(func(msg string, args ...interface{}) {
+		slog.Info(msg, args...)
+	})
+	return m.Migrate(ctx)
 }
 
 func (s *bunStore) Tx(ctx context.Context, fn func(ctx context.Context) error) error {
