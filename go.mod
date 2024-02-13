@@ -10,7 +10,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.30.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
-	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/h2non/filetype v1.1.3
 	github.com/joho/godotenv v1.4.0
 	github.com/mattn/go-isatty v0.0.17

@@ -10,16 +10,12 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/golang-jwt/jwt/v4"
 	"log/slog"
-	"mkuznets.com/go/ytils/y"
-	"mkuznets.com/go/ytils/ycrypto"
 	"ytils.dev/cli"
 
 	"mkuznets.com/go/sfs/internal/api"
 	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/auth/auth0"
-	sjwt "mkuznets.com/go/sfs/internal/auth/jwt"
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
@@ -128,39 +124,14 @@ func (s3 *S3) Validate() error {
 }
 
 type Auth struct {
-	JwtOpts   *Jwt   `group:"JWT authentication" namespace:"jwt" env-namespace:"JWT" json:"JWT"`
 	Auth0Opts *Auth0 `group:"Auth0 authentication" namespace:"auth0" env-namespace:"AUTH0" json:"AUTH0"`
 }
 
 func (a *Auth) Validate() error {
 	return validation.ValidateStruct(
 		a,
-		validation.Field(&a.JwtOpts),
 		validation.Field(&a.Auth0Opts),
 	)
-}
-
-type Jwt struct {
-	Enabled      bool   `long:"enabled" env:"ENABLED" description:"Enable JWT authentication" json:"ENABLED"`
-	RsaPublicKey string `long:"rsa-public-key" env:"RSA_PUBLIC_KEY" json:"RSA_PUBLIC_KEY" description:"RSA public key"`
-}
-
-func (j *Jwt) Validate() error {
-	if j.Enabled {
-		return validation.ValidateStruct(
-			j,
-			validation.Field(&j.RsaPublicKey, validation.Required, validation.By(validateObscured), validation.By(validatePublicKey)),
-		)
-	}
-	return nil
-}
-
-func validateObscured(x interface{}) error {
-	s := x.(string)
-	if _, err := ycrypto.Reveal(s); err != nil {
-		return fmt.Errorf("could not de-obscure: %w", err)
-	}
-	return nil
 }
 
 type Auth0 struct {
@@ -180,14 +151,6 @@ func (a *Auth0) Validate() error {
 	return nil
 }
 
-func validatePublicKey(x interface{}) error {
-	v := y.Must(ycrypto.Reveal(x.(string)))
-	if _, err := jwt.ParseRSAPublicKeyFromPEM([]byte(v)); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (c *RunCommand) Init(app *App) error {
 	db, err := store.NewBunDb(app.DbOpts.Driver, app.DbOpts.Dsn)
 	if err != nil {
@@ -196,9 +159,6 @@ func (c *RunCommand) Init(app *App) error {
 
 	var authService auth.Service
 	switch {
-	case c.AuthOpts.JwtOpts.Enabled:
-		publicKey := y.Must(ycrypto.Reveal(c.AuthOpts.JwtOpts.RsaPublicKey))
-		authService = sjwt.New(publicKey)
 	case c.AuthOpts.Auth0Opts.Enabled:
 		opts := c.AuthOpts.Auth0Opts
 		issuerURL, err := url.Parse(fmt.Sprintf("https://%s/", opts.Domain))
