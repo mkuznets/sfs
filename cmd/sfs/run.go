@@ -208,8 +208,8 @@ func (c *RunCommand) Init(app *App) error {
 		fileStorage = files.NewS3Storage(
 			c.StorageOpts.S3Opts.EndpointUrl,
 			c.StorageOpts.S3Opts.Bucket,
-			y.Must(ycrypto.Reveal(c.StorageOpts.S3Opts.KeyID)),
-			y.Must(ycrypto.Reveal(c.StorageOpts.S3Opts.SecretKey)),
+			c.StorageOpts.S3Opts.KeyID,
+			c.StorageOpts.S3Opts.SecretKey,
 			c.StorageOpts.S3Opts.UrlTemplate,
 		)
 	case c.StorageOpts.LocalOpts.Enabled:
