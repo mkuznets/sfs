@@ -105,8 +105,6 @@ type S3 struct {
 }
 
 func (s3 *S3) Validate() error {
-	fmt.Println("validate")
-
 	if s3.Enabled {
 		return validation.ValidateStruct(
 			s3,
