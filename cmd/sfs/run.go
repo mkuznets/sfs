@@ -105,13 +105,15 @@ type S3 struct {
 }
 
 func (s3 *S3) Validate() error {
+	fmt.Println("validate")
+
 	if s3.Enabled {
 		return validation.ValidateStruct(
 			s3,
 			validation.Field(&s3.EndpointUrl, validation.Required, is.URL),
 			validation.Field(&s3.EndpointUrl, validation.Required),
-			validation.Field(&s3.KeyID, validation.Required, validation.By(validateObscured)),
-			validation.Field(&s3.SecretKey, validation.Required, validation.By(validateObscured)),
+			validation.Field(&s3.KeyID, validation.Required),
+			validation.Field(&s3.SecretKey, validation.Required),
 			validation.Field(&s3.Bucket, validation.Required),
 			validation.Field(&s3.UrlTemplate, validation.Required),
 		)
