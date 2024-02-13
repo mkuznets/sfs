@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -57,70 +55,29 @@ func (s *Server) Validate() error {
 }
 
 type Storage struct {
-	S3Opts    *S3           `group:"S3" namespace:"s3" env-namespace:"S3" json:"S3"`
-	LocalOpts *LocalStorage `group:"Local storage" namespace:"local" env-namespace:"LOCAL" json:"LOCAL"`
+	S3Opts *S3 `group:"S3" namespace:"s3" env-namespace:"S3" json:"S3"`
 }
 
 func (s *Storage) Validate() error {
-	if s.S3Opts.Enabled && s.LocalOpts.Enabled {
-		return errors.New("only one storage type can be enabled")
-	}
-	if !s.S3Opts.Enabled && !s.LocalOpts.Enabled {
-		return errors.New("at least one storage type must be enabled")
-	}
-
 	return validation.ValidateStruct(
 		s,
 		validation.Field(&s.S3Opts),
-		validation.Field(&s.LocalOpts),
 	)
 }
 
-type LocalStorage struct {
-	Enabled bool   `long:"enabled" env:"ENABLED" description:"Enable local storage" json:"ENABLED"`
-	Path    string `long:"path" env:"PATH" description:"Path to the local file storage directory" json:"PATH"`
-}
-
-func (l *LocalStorage) Validate() error {
-	if l.Enabled {
-		return validation.ValidateStruct(
-			l,
-			validation.Field(&l.Path, validation.Required, validation.By(validateDirectory)),
-		)
-	}
-	return nil
-}
-
-func validateDirectory(x interface{}) error {
-	s := x.(string)
-	if err := os.MkdirAll(s, 0o755); err != nil {
-		return fmt.Errorf("invalid directory: %w", err)
-	}
-	return nil
-}
-
 type S3 struct {
-	Enabled     bool   `long:"enabled" env:"ENABLED" description:"Enable S3 storage" json:"ENABLED"`
-	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" json:"ENDPOINT_URL"`
-	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" json:"ACCESS_KEY_ID"`
-	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" json:"SECRET_ACCESS_KEY"`
-	Bucket      string `long:"bucket" env:"BUCKET" description:"S3 bucket name" json:"BUCKET"`
-	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a publically available URL of the uploaded object" json:"URL_TEMPLATE"`
+	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" json:"ENDPOINT_URL" required:"true"`
+	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" json:"ACCESS_KEY_ID" required:"true"`
+	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" json:"SECRET_ACCESS_KEY" required:"true"`
+	Bucket      string `long:"bucket" env:"BUCKET" description:"S3 bucket name" json:"BUCKET" required:"true"`
+	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a public URL of the uploaded object" json:"URL_TEMPLATE" required:"true"`
 }
 
 func (s3 *S3) Validate() error {
-	if s3.Enabled {
-		return validation.ValidateStruct(
-			s3,
-			validation.Field(&s3.EndpointUrl, validation.Required, is.URL),
-			validation.Field(&s3.EndpointUrl, validation.Required),
-			validation.Field(&s3.KeyID, validation.Required),
-			validation.Field(&s3.SecretKey, validation.Required),
-			validation.Field(&s3.Bucket, validation.Required),
-			validation.Field(&s3.UrlTemplate, validation.Required),
-		)
-	}
-	return nil
+	return validation.ValidateStruct(
+		s3,
+		validation.Field(&s3.EndpointUrl, validation.Required, is.URL),
+	)
 }
 
 type Auth struct {
@@ -170,19 +127,13 @@ func (c *RunCommand) Init(app *App) error {
 		authService = &auth.NoAuth{}
 	}
 
-	var fileStorage files.Storage
-	switch {
-	case c.StorageOpts.S3Opts.Enabled:
-		fileStorage = files.NewS3Storage(
-			c.StorageOpts.S3Opts.EndpointUrl,
-			c.StorageOpts.S3Opts.Bucket,
-			c.StorageOpts.S3Opts.KeyID,
-			c.StorageOpts.S3Opts.SecretKey,
-			c.StorageOpts.S3Opts.UrlTemplate,
-		)
-	case c.StorageOpts.LocalOpts.Enabled:
-		fileStorage = files.NewLocalStorage(c.StorageOpts.LocalOpts.Path, c.ServerOpts.UrlPrefix)
-	}
+	fileStorage := files.NewS3Storage(
+		c.StorageOpts.S3Opts.EndpointUrl,
+		c.StorageOpts.S3Opts.Bucket,
+		c.StorageOpts.S3Opts.KeyID,
+		c.StorageOpts.S3Opts.SecretKey,
+		c.StorageOpts.S3Opts.UrlTemplate,
+	)
 
 	bunStore := store.NewBunStore(db)
 	if err := bunStore.Init(context.Background()); err != nil {

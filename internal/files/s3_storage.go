@@ -17,8 +17,6 @@ type s3Storage struct {
 	accessKeyId     string
 	accessKeySecret string
 	urlTemplate     string
-
-	// cachedAwsConfig *aws.Config
 }
 
 type Object struct {
