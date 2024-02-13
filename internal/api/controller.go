@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 
+	"github.com/segmentio/ksuid"
 	"mkuznets.com/go/ytils/yslice"
 
 	"mkuznets.com/go/sfs/internal/files"
@@ -27,15 +28,13 @@ type Controller interface {
 type controllerImpl struct {
 	fileStorage   files.Storage
 	store         store.Store
-	idService     IdService
 	rssController rss.Controller
 }
 
-func NewController(store store.Store, fileStorage files.Storage, idService IdService, feedController rss.Controller) Controller {
+func NewController(store store.Store, fileStorage files.Storage, feedController rss.Controller) Controller {
 	return &controllerImpl{
 		store:         store,
 		fileStorage:   fileStorage,
-		idService:     idService,
 		rssController: feedController,
 	}
 }
@@ -102,7 +101,7 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 	feeds := make([]*store.Feed, 0)
 	for _, i := range r.Data {
 		feed := &store.Feed{
-			Id:          c.idService.Feed(ctx),
+			Id:          newID("feed_"),
 			UserId:      usr.Id(),
 			Type:        "podcast",
 			Title:       i.Title,
@@ -235,7 +234,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			}
 
 			item := &store.Item{
-				Id:          c.idService.Item(ctxT),
+				Id:          newID("item_"),
 				FeedId:      i.FeedId,
 				UserId:      usr.Id(),
 				Title:       i.Title,
@@ -324,7 +323,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 		return nil, fmt.Errorf("unsupported file type: %s", info.Mime.Value)
 	}
 
-	fileId := c.idService.File(ctx)
+	fileId := newID("file_")
 
 	path := fmt.Sprintf("files/%s/%s/%s.%s", info.Hash.Digest[:2], info.Hash.Digest[2:4], fileId, info.Extension)
 	upload, err := c.fileStorage.Upload(ctx, path, f)
@@ -359,4 +358,8 @@ func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string) (string, 
 	}
 
 	return feeds[0].RssUrl, nil
+}
+
+func newID(prefix string) string {
+	return prefix + ksuid.New().String()
 }

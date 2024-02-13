@@ -13,20 +13,7 @@ import (
 	"mkuznets.com/go/sfs/internal/auth"
 )
 
-type Api interface {
-	Handler(prefix string) chi.Router
-}
-
-type apiImpl struct {
-	auth    auth.Service
-	handler Handler
-}
-
-func New(auth auth.Service, handler Handler) Api {
-	return &apiImpl{auth, handler}
-}
-
-// Handler ...
+// NewRouter ...
 //
 //	@title						Simple Feed Service HTTP API
 //	@version					0.1
@@ -34,7 +21,7 @@ func New(auth auth.Service, handler Handler) Api {
 //	@securityDefinitions.apikey	Authentication
 //	@in							header
 //	@name						Authorization
-func (a *apiImpl) Handler(prefix string) chi.Router {
+func NewRouter(prefix string, authService auth.Service, apiService Service) chi.Router {
 	r := chi.NewRouter()
 
 	r.Route(prefix, func(r chi.Router) {
@@ -51,26 +38,26 @@ func (a *apiImpl) Handler(prefix string) chi.Router {
 		r.Use(LogRequestMiddleware)
 
 		r.Group(func(r chi.Router) {
-			r.Use(a.auth.Middleware())
+			r.Use(authService.Middleware())
 
 			r.Route("/feeds", func(r chi.Router) {
-				r.Post("/get", a.handler.GetFeeds)
-				r.Post("/create", a.handler.CreateFeeds)
+				r.Post("/get", apiService.GetFeeds)
+				r.Post("/create", apiService.CreateFeeds)
 			})
 			r.Route(`/items`, func(r chi.Router) {
-				r.Post(`/get`, a.handler.GetItems)
-				r.Post(`/create`, a.handler.CreateItems)
+				r.Post(`/get`, apiService.GetItems)
+				r.Post(`/create`, apiService.CreateItems)
 			})
 			r.Route("/files", func(r chi.Router) {
 				r.With(middleware.AllowContentType("multipart/form-data")).
-					Post("/upload", a.handler.UploadFiles)
+					Post("/upload", apiService.UploadFiles)
 			})
 		})
 
 		swaggerSpecs := http.FileServer(http.FS(swagger.Specs))
 		r.Get("/swagger.*", http.StripPrefix(prefix, swaggerSpecs).ServeHTTP)
 	})
-	r.Get("/rss/{feedId}", a.handler.GetRssRedirect)
+	r.Get("/rss/{feedId}", apiService.GetRssRedirect)
 
 	swaggerUi := httpSwagger.Handler(
 		httpSwagger.URL(prefix+"/swagger.json"),

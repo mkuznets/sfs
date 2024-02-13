@@ -21,7 +21,7 @@ var _ cli.Commander = (*RunCommand)(nil)
 
 type RunCommand struct {
 	DB      *DB      `group:"Database" namespace:"db" env-namespace:"DB"`
-	Server  *Server  `group:"Server" namespace:"server" env-namespace:"SERVER" json:"SERVER"`
+	Server  *Server  `group:"Service" namespace:"server" env-namespace:"SERVER" json:"SERVER"`
 	Storage *Storage `group:"File storage" namespace:"storage" env-namespace:"STORAGE" json:"STORAGE"`
 	Auth    *Auth    `group:"Authentication" namespace:"auth" env-namespace:"AUTH" json:"AUTH"`
 }
@@ -90,13 +90,13 @@ func (c *RunCommand) Execute([]string) error {
 	}
 
 	rssController := rss.NewController(bunStore, fileStorage)
-	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), rssController)
+	apiController := api.NewController(bunStore, fileStorage, rssController)
 
-	a := api.New(authService, api.NewHandler(apiController))
+	apiService := api.NewService(apiController)
 
-	handler := a.Handler("/api")
+	router := api.NewRouter("/api", authService, apiService)
 
 	slog.Info("starting server", "addr", c.Server.Addr)
 
-	return http.ListenAndServe(c.Server.Addr, handler)
+	return http.ListenAndServe(c.Server.Addr, router)
 }

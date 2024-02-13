@@ -13,7 +13,7 @@ import (
 	"mkuznets.com/go/sfs/internal/user"
 )
 
-type Handler interface {
+type Service interface {
 	GetFeeds(w http.ResponseWriter, r *http.Request)
 	CreateFeeds(w http.ResponseWriter, r *http.Request)
 	GetItems(w http.ResponseWriter, r *http.Request)
@@ -26,7 +26,7 @@ type handlerImpl struct {
 	c Controller
 }
 
-func NewHandler(c Controller) Handler {
+func NewService(c Controller) Service {
 	return &handlerImpl{c}
 }
 
