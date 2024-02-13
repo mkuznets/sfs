@@ -11,8 +11,10 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/golang-jwt/jwt/v4"
+	"log/slog"
 	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/ycrypto"
+	"ytils.dev/cli"
 
 	"mkuznets.com/go/sfs/internal/api"
 	"mkuznets.com/go/sfs/internal/auth"
@@ -21,6 +23,12 @@ import (
 	"mkuznets.com/go/sfs/internal/files"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/store"
+)
+
+var (
+	_ cli.Commander   = (*RunCommand)(nil)
+	_ cli.Validator   = (*RunCommand)(nil)
+	_ cli.Initer[App] = (*RunCommand)(nil)
 )
 
 type RunCommand struct {
@@ -230,5 +238,8 @@ func (c *RunCommand) Init(app *App) error {
 
 func (c *RunCommand) Execute([]string) error {
 	handler := c.api.Handler("/api")
+
+	slog.Info("starting server", "addr", c.ServerOpts.Addr)
+
 	return http.ListenAndServe(c.ServerOpts.Addr, handler)
 }

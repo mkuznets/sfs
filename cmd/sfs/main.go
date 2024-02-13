@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"mkuznets.com/go/ytils/ycli"
+	"ytils.dev/cli"
 
 	"mkuznets.com/go/sfs/internal/slogger"
 )
@@ -21,5 +21,5 @@ type App struct {
 func main() {
 	_ = godotenv.Load()
 	slogger.Init()
-	ycli.Main[App]()
+	cli.ParseExecute[App]()
 }

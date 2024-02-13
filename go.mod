@@ -22,6 +22,7 @@ require (
 	github.com/uptrace/bun v1.1.10
 	github.com/uptrace/bun/dialect/sqlitedialect v1.1.10
 	mkuznets.com/go/ytils v0.0.1
+	ytils.dev/cli v0.0.1
 	ytils.dev/sqlite-migrator v0.1.0
 )
 
@@ -56,7 +57,7 @@ require (
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
