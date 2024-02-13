@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 
-	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"log/slog"
 	"ytils.dev/cli"
 
@@ -19,27 +17,17 @@ import (
 	"mkuznets.com/go/sfs/internal/store"
 )
 
-var (
-	_ cli.Commander   = (*RunCommand)(nil)
-	_ cli.Validator   = (*RunCommand)(nil)
-	_ cli.Initer[App] = (*RunCommand)(nil)
-)
+var _ cli.Commander = (*RunCommand)(nil)
 
 type RunCommand struct {
-	ServerOpts  *Server  `group:"Server options" namespace:"server" env-namespace:"SERVER" json:"SERVER"`
-	StorageOpts *Storage `group:"File storage" namespace:"storage" env-namespace:"STORAGE" json:"STORAGE"`
-	AuthOpts    *Auth    `group:"Authentication options" namespace:"auth" env-namespace:"AUTH" json:"AUTH"`
-
-	api api.Api
+	DB      *DB      `group:"Database" namespace:"db" env-namespace:"DB"`
+	Server  *Server  `group:"Server" namespace:"server" env-namespace:"SERVER" json:"SERVER"`
+	Storage *Storage `group:"File storage" namespace:"storage" env-namespace:"STORAGE" json:"STORAGE"`
+	Auth    *Auth    `group:"Authentication" namespace:"auth" env-namespace:"AUTH" json:"AUTH"`
 }
 
-func (c *RunCommand) Validate() error {
-	return validation.ValidateStruct(
-		c,
-		validation.Field(&c.ServerOpts),
-		validation.Field(&c.StorageOpts),
-		validation.Field(&c.AuthOpts),
-	)
+type DB struct {
+	Dsn string `long:"dsn" env:"DSN" description:"Database DSN" required:"true"`
 }
 
 type Server struct {
@@ -47,22 +35,8 @@ type Server struct {
 	UrlPrefix string `long:"url-prefix" env:"URL_PREFIX" json:"URL_PREFIX" description:"URL prefix to the service" required:"true"`
 }
 
-func (s *Server) Validate() error {
-	return validation.ValidateStruct(
-		s,
-		validation.Field(&s.UrlPrefix, validation.Required, is.URL),
-	)
-}
-
 type Storage struct {
 	S3Opts *S3 `group:"S3" namespace:"s3" env-namespace:"S3" json:"S3"`
-}
-
-func (s *Storage) Validate() error {
-	return validation.ValidateStruct(
-		s,
-		validation.Field(&s.S3Opts),
-	)
 }
 
 type S3 struct {
@@ -73,22 +47,8 @@ type S3 struct {
 	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a public URL of the uploaded object" json:"URL_TEMPLATE" required:"true"`
 }
 
-func (s3 *S3) Validate() error {
-	return validation.ValidateStruct(
-		s3,
-		validation.Field(&s3.EndpointUrl, validation.Required, is.URL),
-	)
-}
-
 type Auth struct {
 	Auth0Opts *Auth0 `group:"Auth0 authentication" namespace:"auth0" env-namespace:"AUTH0" json:"AUTH0"`
-}
-
-func (a *Auth) Validate() error {
-	return validation.ValidateStruct(
-		a,
-		validation.Field(&a.Auth0Opts),
-	)
 }
 
 type Auth0 struct {
@@ -97,27 +57,16 @@ type Auth0 struct {
 	Audience string `long:"audience" env:"AUDIENCE" description:"Auth0 audience" json:"AUDIENCE"`
 }
 
-func (a *Auth0) Validate() error {
-	if a.Enabled {
-		return validation.ValidateStruct(
-			a,
-			validation.Field(&a.Domain, validation.Required, is.URL),
-			validation.Field(&a.Audience, validation.Required),
-		)
-	}
-	return nil
-}
-
-func (c *RunCommand) Init(app *App) error {
-	db, err := store.NewBunDb(app.DbOpts.Driver, app.DbOpts.Dsn)
+func (c *RunCommand) Execute([]string) error {
+	db, err := store.NewBunDb("sqlite3", c.DB.Dsn)
 	if err != nil {
 		return err
 	}
 
 	var authService auth.Service
 	switch {
-	case c.AuthOpts.Auth0Opts.Enabled:
-		opts := c.AuthOpts.Auth0Opts
+	case c.Auth.Auth0Opts.Enabled:
+		opts := c.Auth.Auth0Opts
 		issuerURL, err := url.Parse(fmt.Sprintf("https://%s/", opts.Domain))
 		if err != nil {
 			return fmt.Errorf("parse auth0 domain: %w", err)
@@ -128,11 +77,11 @@ func (c *RunCommand) Init(app *App) error {
 	}
 
 	fileStorage := files.NewS3Storage(
-		c.StorageOpts.S3Opts.EndpointUrl,
-		c.StorageOpts.S3Opts.Bucket,
-		c.StorageOpts.S3Opts.KeyID,
-		c.StorageOpts.S3Opts.SecretKey,
-		c.StorageOpts.S3Opts.UrlTemplate,
+		c.Storage.S3Opts.EndpointUrl,
+		c.Storage.S3Opts.Bucket,
+		c.Storage.S3Opts.KeyID,
+		c.Storage.S3Opts.SecretKey,
+		c.Storage.S3Opts.UrlTemplate,
 	)
 
 	bunStore := store.NewBunStore(db)
@@ -142,15 +91,12 @@ func (c *RunCommand) Init(app *App) error {
 
 	rssController := rss.NewController(bunStore, fileStorage)
 	apiController := api.NewController(bunStore, fileStorage, api.NewIdService(), rssController)
-	c.api = api.New(authService, api.NewHandler(apiController))
 
-	return nil
-}
+	a := api.New(authService, api.NewHandler(apiController))
 
-func (c *RunCommand) Execute([]string) error {
-	handler := c.api.Handler("/api")
+	handler := a.Handler("/api")
 
-	slog.Info("starting server", "addr", c.ServerOpts.Addr)
+	slog.Info("starting server", "addr", c.Server.Addr)
 
-	return http.ListenAndServe(c.ServerOpts.Addr, handler)
+	return http.ListenAndServe(c.Server.Addr, handler)
 }
