@@ -33,6 +33,7 @@ func NewRouter(prefix string, authService auth.Service, apiService *Service) chi
 		})
 
 		r.Use(middleware.Recoverer)
+		r.Use(middleware.RealIP)
 		r.Use(AddRequestIdMiddleware)
 		r.Use(AddContextLoggerMiddleware)
 		r.Use(LogRequestMiddleware)

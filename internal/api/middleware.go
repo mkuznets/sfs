@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -16,6 +18,12 @@ import (
 const RequestIDHeader = "X-Request-Id"
 
 type ctxRequestIdKey struct{}
+
+var sensitiveHeaders = map[string]struct{}{
+	"authorization": {},
+	"cookie":        {},
+	"x-csrf-token":  {},
+}
 
 func RequestId(r *http.Request) string {
 	if reqID, ok := r.Context().Value(ctxRequestIdKey{}).(string); ok {
@@ -50,23 +58,43 @@ func AddContextLoggerMiddleware(next http.Handler) http.Handler {
 
 func LogRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		method := r.Method
-		requestURI := r.RequestURI
+		logAttrs := []slog.Attr{
+			slog.String("method", r.Method),
+			slog.String("request_uri", r.RequestURI),
+			slog.String("proto", r.Proto),
+			slog.String("host", r.Host),
+			slog.String("remote_addr", r.RemoteAddr),
+			slog.Int64("content_length", r.ContentLength),
+		}
+
+		for key, values := range r.Header {
+			key = strings.ToLower(key)
+			if _, ok := sensitiveHeaders[key]; ok {
+				values = []string{"[redacted]"}
+			}
+			attrKey := fmt.Sprintf("headers.%s", key)
+			var attrValue any
+			if len(values) == 1 {
+				attrValue = values[0]
+			} else {
+				attrValue = values
+			}
+			logAttrs = append(logAttrs, slog.Any(attrKey, attrValue))
+		}
 
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
-		start := time.Now()
+		t1 := time.Now()
 		defer func() {
-			ctx := r.Context()
-			logger := slogger.FromContext(ctx)
-
-			logger.LogAttrs(ctx, slog.LevelInfo, "API",
-				slog.String("method", method),
-				slog.String("path", requestURI),
-				slog.Duration("duration", time.Since(start)),
-				slog.Int("status", ww.Status()),
-				slog.Int("size", ww.BytesWritten()),
+			logAttrs = append(logAttrs,
+				slog.Duration("duration", time.Since(t1)),
+				slog.Int("response_status", ww.Status()),
+				slog.Int("response_size", ww.BytesWritten()),
 			)
+
+			ctx := r.Context()
+			lgr := slogger.FromContext(ctx)
+			lgr.LogAttrs(ctx, slog.LevelInfo, "API", logAttrs...)
 		}()
 
 		next.ServeHTTP(ww, r)
