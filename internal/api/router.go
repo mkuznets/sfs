@@ -21,7 +21,7 @@ import (
 //	@securityDefinitions.apikey	Authentication
 //	@in							header
 //	@name						Authorization
-func NewRouter(prefix string, authService auth.Service, apiService Service) chi.Router {
+func NewRouter(prefix string, authService auth.Service, apiService *Service) chi.Router {
 	r := chi.NewRouter()
 
 	r.Route(prefix, func(r chi.Router) {

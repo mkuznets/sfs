@@ -13,24 +13,15 @@ import (
 	"mkuznets.com/go/sfs/internal/user"
 )
 
-type Service interface {
-	GetFeeds(w http.ResponseWriter, r *http.Request)
-	CreateFeeds(w http.ResponseWriter, r *http.Request)
-	GetItems(w http.ResponseWriter, r *http.Request)
-	CreateItems(w http.ResponseWriter, r *http.Request)
-	UploadFiles(w http.ResponseWriter, r *http.Request)
-	GetRssRedirect(w http.ResponseWriter, r *http.Request)
-}
-
-type handlerImpl struct {
+type Service struct {
 	c Controller
 }
 
-func NewService(c Controller) Service {
-	return &handlerImpl{c}
+func NewService(c Controller) *Service {
+	return &Service{c}
 }
 
-func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
+func (h *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[GetFeedsRequest](r.Body)
@@ -48,7 +39,7 @@ func (h *handlerImpl) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
+func (h *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[CreateFeedsRequest](r.Body)
@@ -66,7 +57,7 @@ func (h *handlerImpl) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
+func (h *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[GetItemsRequest](r.Body)
@@ -84,7 +75,7 @@ func (h *handlerImpl) GetItems(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *handlerImpl) CreateItems(w http.ResponseWriter, r *http.Request) {
+func (h *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[CreateItemsRequest](r.Body)
@@ -102,7 +93,7 @@ func (h *handlerImpl) CreateItems(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
+func (h *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 	ctx := r.Context()
 
@@ -148,7 +139,7 @@ func (h *handlerImpl) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *handlerImpl) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
+func (h *Service) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "feedId")
 
 	url, err := h.c.GetRssUrl(r.Context(), id)

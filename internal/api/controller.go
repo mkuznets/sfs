@@ -64,20 +64,22 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 		return nil, fmt.Errorf("HTTP 500: get feeds: %w", err)
 	}
 
-	results := yslice.Map(feeds, func(f *feedstore.Feed) *FeedResource {
-		return &FeedResource{
-			Id:          f.Id,
-			RssUrl:      f.RssUrl,
-			Title:       f.Title,
-			Link:        f.Link,
-			Authors:     f.Authors,
-			Description: f.Description,
-			CreatedAt:   f.CreatedAt,
-			UpdatedAt:   f.UpdatedAt,
-		}
-	})
+	feedResources := make([]*FeedResource, 0, len(feeds))
 
-	return &GetFeedsResponse{Data: results}, nil
+	for _, feed := range feeds {
+		feedResources = append(feedResources, &FeedResource{
+			Id:          feed.Id,
+			RssUrl:      feed.RssUrl,
+			Title:       feed.Title,
+			Link:        feed.Link,
+			Authors:     feed.Authors,
+			Description: feed.Description,
+			CreatedAt:   feed.CreatedAt,
+			UpdatedAt:   feed.UpdatedAt,
+		})
+	}
+
+	return &GetFeedsResponse{Data: feedResources}, nil
 }
 
 // CreateFeeds creates new feeds with the given parameters.
@@ -158,27 +160,28 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 		return nil, fmt.Errorf("HTTP 500: get items: %w", err)
 	}
 
-	results := yslice.Map(items, func(i *feedstore.Item) *ItemResource {
-		return &ItemResource{
-			Id: i.Id,
+	itemResources := make([]*ItemResource, 0, len(items))
+	for _, item := range items {
+		itemResources = append(itemResources, &ItemResource{
+			Id: item.Id,
 			File: &ItemFileResource{
-				Id:          i.File.Id,
-				Url:         i.File.UploadUrl,
-				Size:        i.File.Size,
-				ContentType: i.File.MimeType,
+				Id:          item.File.Id,
+				Url:         item.File.UploadUrl,
+				Size:        item.File.Size,
+				ContentType: item.File.MimeType,
 			},
-			FeedId:      i.FeedId,
-			Title:       i.Title,
-			Link:        i.Link,
-			Authors:     i.Authors,
-			Description: i.Description,
-			CreatedAt:   i.CreatedAt,
-			UpdatedAt:   i.UpdatedAt,
-			PublishedAt: i.PublishedAt,
-		}
-	})
+			FeedId:      item.FeedId,
+			Title:       item.Title,
+			Link:        item.Link,
+			Authors:     item.Authors,
+			Description: item.Description,
+			CreatedAt:   item.CreatedAt,
+			UpdatedAt:   item.UpdatedAt,
+			PublishedAt: item.PublishedAt,
+		})
+	}
 
-	return &GetItemsResponse{Data: results}, nil
+	return &GetItemsResponse{Data: itemResources}, nil
 }
 
 // CreateItems creates new items and returns a response with their IDs.

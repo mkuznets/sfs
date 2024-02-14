@@ -3,8 +3,6 @@ package rss
 import (
 	"time"
 
-	"mkuznets.com/go/ytils/yslice"
-
 	"mkuznets.com/go/sfs/internal/feedstore"
 )
 
@@ -23,31 +21,35 @@ func FeedToPodcast(feed *feedstore.Feed, items []*feedstore.Item) *Podcast {
 		},
 	}
 
-	podcast.Channel.Items = yslice.Map(items, func(i *feedstore.Item) *PodcastItem {
-		pubDate := i.PublishedAt
+	podcastItems := make([]*PodcastItem, 0, len(items))
+
+	for _, item := range items {
+		pubDate := item.PublishedAt
 		if pubDate.IsZero() {
-			pubDate = i.UpdatedAt
+			pubDate = item.UpdatedAt
 		}
 
-		return &PodcastItem{
+		podcastItems = append(podcastItems, &PodcastItem{
 			Guid: Guid{
 				IsPermaLink: false,
-				Text:        i.Id,
+				Text:        item.Id,
 			},
 			PubDate: pubDate.Format(time.RFC1123Z),
-			Title:   i.Title,
-			Link:    i.Link,
+			Title:   item.Title,
+			Link:    item.Link,
 			Description: &Description{
-				Text: i.Description,
+				Text: item.Description,
 			},
-			IAuthor: i.Authors,
+			IAuthor: item.Authors,
 			Enclosure: &Enclosure{
-				URL:    i.File.UploadUrl,
-				Length: i.File.Size,
-				Type:   i.File.MimeType,
+				URL:    item.File.UploadUrl,
+				Length: item.File.Size,
+				Type:   item.File.MimeType,
 			},
-		}
-	})
+		})
+	}
+
+	podcast.Channel.Items = podcastItems
 
 	return podcast
 }
