@@ -14,14 +14,14 @@ import (
 )
 
 type Service struct {
-	c Controller
+	controller Controller
 }
 
 func NewService(c Controller) *Service {
-	return &Service{c}
+	return &Service{controller: c}
 }
 
-func (h *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[GetFeedsRequest](r.Body)
@@ -30,7 +30,7 @@ func (h *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.c.GetFeeds(r.Context(), &req, usr)
+	response, err := s.controller.GetFeeds(r.Context(), &req, usr)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
@@ -39,7 +39,7 @@ func (h *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
+func (s *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[CreateFeedsRequest](r.Body)
@@ -48,7 +48,7 @@ func (h *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.c.CreateFeeds(r.Context(), &req, usr)
+	response, err := s.controller.CreateFeeds(r.Context(), &req, usr)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
@@ -57,7 +57,7 @@ func (h *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *Service) GetItems(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[GetItemsRequest](r.Body)
@@ -66,7 +66,7 @@ func (h *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.c.GetItems(r.Context(), &req, usr)
+	response, err := s.controller.GetItems(r.Context(), &req, usr)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
@@ -75,7 +75,7 @@ func (h *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
+func (s *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 
 	req, err := yhttp.DecodeJson[CreateItemsRequest](r.Body)
@@ -84,7 +84,7 @@ func (h *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.c.CreateItems(r.Context(), &req, usr)
+	response, err := s.controller.CreateItems(r.Context(), &req, usr)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
@@ -93,7 +93,7 @@ func (h *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
+func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	usr := y.Must(user.Get(r))
 	ctx := r.Context()
 
@@ -130,7 +130,7 @@ func (h *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}(files)
 
-	response, err := h.c.UploadFiles(ctx, files, usr)
+	response, err := s.controller.UploadFiles(ctx, files, usr)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return
@@ -139,10 +139,10 @@ func (h *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	yhttp.Render(w, r, response).JSON()
 }
 
-func (h *Service) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "feedId")
 
-	url, err := h.c.GetRssUrl(r.Context(), id)
+	url, err := s.controller.GetRssUrl(r.Context(), id)
 	if err != nil {
 		yhttp.Render(w, r, err).JSON()
 		return

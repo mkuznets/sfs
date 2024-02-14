@@ -28,13 +28,13 @@ type Controller interface {
 
 type controllerImpl struct {
 	fileStore     filestore.FileStore
-	store         feedstore.FeedStore
+	feedStore     feedstore.FeedStore
 	rssController rss.Controller
 }
 
 func NewController(store feedstore.FeedStore, fileStorage filestore.FileStore, feedController rss.Controller) Controller {
 	return &controllerImpl{
-		store:         store,
+		feedStore:     store,
 		fileStore:     fileStorage,
 		rssController: feedController,
 	}
@@ -59,7 +59,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 		UserIds: []string{usr.Id()},
 	}
 
-	feeds, err := c.store.GetFeeds(ctx, &filter)
+	feeds, err := c.feedStore.GetFeeds(ctx, &filter)
 	if err != nil {
 		return nil, fmt.Errorf("HTTP 500: get feeds: %w", err)
 	}
@@ -120,7 +120,7 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 		feeds = append(feeds, feed)
 	}
 
-	if err := c.store.CreateFeeds(ctx, feeds); err != nil {
+	if err := c.feedStore.CreateFeeds(ctx, feeds); err != nil {
 		return nil, fmt.Errorf("HTTP 500: create feeds: %w", err)
 	}
 
@@ -155,7 +155,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 		filter.UserIds = []string{usr.Id()}
 	}
 
-	items, err := c.store.GetItems(ctx, &filter)
+	items, err := c.feedStore.GetItems(ctx, &filter)
 	if err != nil {
 		return nil, fmt.Errorf("HTTP 500: get items: %w", err)
 	}
@@ -205,10 +205,10 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 
 	items := make([]*feedstore.Item, 0)
 
-	err := c.store.Tx(ctx, func(ctxT context.Context) error {
+	err := c.feedStore.Tx(ctx, func(ctxT context.Context) error {
 		var fs []*feedstore.File
 
-		feeds, err := c.store.GetFeeds(ctxT, &feedstore.FeedFilter{
+		feeds, err := c.feedStore.GetFeeds(ctxT, &feedstore.FeedFilter{
 			Ids: yslice.UniqueMap(r.Data, func(v *CreateItemsResource) string { return v.FeedId }),
 		})
 		if err != nil {
@@ -221,7 +221,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 				return fmt.Errorf("HTTP 404: no feed %s", i.FeedId)
 			}
 
-			file, err := c.store.GetFileById(ctxT, i.FileId)
+			file, err := c.feedStore.GetFileById(ctxT, i.FileId)
 			if err != nil {
 				if err == feedstore.ErrNotFound {
 					return fmt.Errorf("HTTP 404: no file %s", i.FileId)
@@ -256,10 +256,10 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			fs = append(fs, file)
 		}
 
-		if err := c.store.CreateItems(ctxT, items); err != nil {
+		if err := c.feedStore.CreateItems(ctxT, items); err != nil {
 			return fmt.Errorf("HTTP 500: create items: %w", err)
 		}
-		if err := c.store.UpdateFiles(ctxT, fs, "item_id"); err != nil {
+		if err := c.feedStore.UpdateFiles(ctxT, fs, "item_id"); err != nil {
 			return fmt.Errorf("HTTP 500: update files: %w", err)
 		}
 
@@ -307,7 +307,7 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 			result.Error = err.Error()
 			continue
 		}
-		if err := c.store.CreateFile(ctx, model); err != nil {
+		if err := c.feedStore.CreateFile(ctx, model); err != nil {
 			result.Error = err.Error()
 			continue
 		}
@@ -353,7 +353,7 @@ func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string) (string, 
 		Ids: []string{feedId},
 	}
 
-	feeds, err := c.store.GetFeeds(ctx, filter)
+	feeds, err := c.feedStore.GetFeeds(ctx, filter)
 	if err != nil {
 		return "", fmt.Errorf("HTTP 500: get feed: %w", err)
 	}
