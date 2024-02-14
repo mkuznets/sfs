@@ -1,4 +1,4 @@
-package files
+package filestore
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type s3Storage struct {
+type S3FileStore struct {
 	endpointUrl     string
 	bucket          string
 	accessKeyId     string
@@ -24,8 +24,8 @@ type Object struct {
 	Key    string
 }
 
-func NewS3Storage(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate string) Storage {
-	return &s3Storage{
+func NewS3FileStore(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate string) *S3FileStore {
+	return &S3FileStore{
 		endpointUrl:     endpointUrl,
 		bucket:          bucket,
 		accessKeyId:     accessKeyId,
@@ -34,7 +34,7 @@ func NewS3Storage(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate
 	}
 }
 
-func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*UploadResult, error) {
+func (s *S3FileStore) Upload(ctx context.Context, path string, body io.Reader) (*UploadResult, error) {
 	s3client := s3.New(s3.Options{
 		Credentials:      credentials.NewStaticCredentialsProvider(s.accessKeyId, s.accessKeySecret, ""),
 		EndpointResolver: s3.EndpointResolverFromURL(s.endpointUrl),
@@ -49,7 +49,7 @@ func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*Uplo
 		Bucket:             aws.String(s.bucket),
 		Key:                aws.String(path),
 		ContentDisposition: aws.String("inline"),
-		Body:               r,
+		Body:               body,
 	})
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s *s3Storage) Upload(ctx context.Context, path string, r io.Reader) (*Uplo
 	}
 
 	return &UploadResult{
-		Id:  path,
-		Url: urlB.String(),
+		ID:  path,
+		URL: urlB.String(),
 	}, nil
 }

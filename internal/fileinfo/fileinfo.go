@@ -1,4 +1,4 @@
-package files
+package fileinfo
 
 import (
 	"crypto/sha256"
@@ -9,7 +9,7 @@ import (
 	"github.com/h2non/filetype"
 )
 
-func Info(r io.ReadSeeker) (*FileInfo, error) {
+func Get(r io.ReadSeeker) (*FileInfo, error) {
 	fileType, err := filetype.MatchReader(r)
 	if err != nil {
 		return nil, err

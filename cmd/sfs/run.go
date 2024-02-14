@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,9 +13,11 @@ import (
 	"mkuznets.com/go/sfs/internal/api"
 	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/auth/auth0"
-	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/feedstore"
+	"mkuznets.com/go/sfs/internal/filestore"
 	"mkuznets.com/go/sfs/internal/rss"
-	"mkuznets.com/go/sfs/internal/store"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var _ cli.Commander = (*RunCommand)(nil)
@@ -58,11 +61,6 @@ type Auth0 struct {
 }
 
 func (c *RunCommand) Execute([]string) error {
-	db, err := store.NewBunDb("sqlite3", c.DB.Dsn)
-	if err != nil {
-		return err
-	}
-
 	var authService auth.Service
 	switch {
 	case c.Auth.Auth0Opts.Enabled:
@@ -76,7 +74,7 @@ func (c *RunCommand) Execute([]string) error {
 		authService = &auth.NoAuth{}
 	}
 
-	fileStorage := files.NewS3Storage(
+	fileStorage := filestore.NewS3FileStore(
 		c.Storage.S3Opts.EndpointUrl,
 		c.Storage.S3Opts.Bucket,
 		c.Storage.S3Opts.KeyID,
@@ -84,13 +82,23 @@ func (c *RunCommand) Execute([]string) error {
 		c.Storage.S3Opts.UrlTemplate,
 	)
 
-	bunStore := store.NewBunStore(db)
-	if err := bunStore.Init(context.Background()); err != nil {
+	dbDSN, err := prepareDSN(c.DB.Dsn)
+	if err != nil {
 		return err
 	}
 
-	rssController := rss.NewController(bunStore, fileStorage)
-	apiController := api.NewController(bunStore, fileStorage, rssController)
+	sqlDB, err := sql.Open("sqlite3", dbDSN)
+	if err != nil {
+		return err
+	}
+
+	feedStore := feedstore.NewSQLiteStore(sqlDB)
+	if err := feedStore.Init(context.Background()); err != nil {
+		return err
+	}
+
+	rssController := rss.NewController(feedStore, fileStorage)
+	apiController := api.NewController(feedStore, fileStorage, rssController)
 
 	apiService := api.NewService(apiController)
 
@@ -99,4 +107,19 @@ func (c *RunCommand) Execute([]string) error {
 	slog.Info("starting server", "addr", c.Server.Addr)
 
 	return http.ListenAndServe(c.Server.Addr, router)
+}
+
+func prepareDSN(dsn string) (string, error) {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "", err
+	}
+	query := u.Query()
+	query.Add("_journal_mode", "WAL")
+	query.Add("_synchronous", "NORMAL")
+	query.Add("_writable_schema", "0")
+	query.Add("_foreign_keys", "1")
+	u.RawQuery = query.Encode()
+
+	return u.String(), nil
 }

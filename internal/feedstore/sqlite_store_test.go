@@ -1,21 +1,18 @@
-package store_test
+package feedstore_test
 
 import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/sqlitedialect"
 
-	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/feedstore"
 )
 
-func mockedStore(t *testing.T) (store.Store, sqlmock.Sqlmock) {
+func mockedStore(t *testing.T) (feedstore.FeedStore, sqlmock.Sqlmock) {
 	sqldb, sqlMock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
-	db := bun.NewDB(sqldb, sqlitedialect.New())
-	return store.NewBunStore(db), sqlMock
+	return feedstore.NewSQLiteStore(sqldb), sqlMock
 }
 
 // var testTime = ytime.New(time.Date(2022, 1, 1, 11, 12, 13, 14000, time.UTC))

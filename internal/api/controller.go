@@ -9,10 +9,11 @@ import (
 	"github.com/segmentio/ksuid"
 	"mkuznets.com/go/ytils/yslice"
 
-	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/feedstore"
+	"mkuznets.com/go/sfs/internal/fileinfo"
+	"mkuznets.com/go/sfs/internal/filestore"
 	"mkuznets.com/go/sfs/internal/mtime"
 	"mkuznets.com/go/sfs/internal/rss"
-	"mkuznets.com/go/sfs/internal/store"
 	"mkuznets.com/go/sfs/internal/user"
 )
 
@@ -26,15 +27,15 @@ type Controller interface {
 }
 
 type controllerImpl struct {
-	fileStorage   files.Storage
-	store         store.Store
+	fileStore     filestore.FileStore
+	store         feedstore.FeedStore
 	rssController rss.Controller
 }
 
-func NewController(store store.Store, fileStorage files.Storage, feedController rss.Controller) Controller {
+func NewController(store feedstore.FeedStore, fileStorage filestore.FileStore, feedController rss.Controller) Controller {
 	return &controllerImpl{
 		store:         store,
-		fileStorage:   fileStorage,
+		fileStore:     fileStorage,
 		rssController: feedController,
 	}
 }
@@ -53,7 +54,7 @@ func NewController(store store.Store, fileStorage files.Storage, feedController 
 //	@Router		/feeds/get [post]
 //	@Security	Authentication
 func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error) {
-	filter := store.FeedFilter{
+	filter := feedstore.FeedFilter{
 		Ids:     req.Ids,
 		UserIds: []string{usr.Id()},
 	}
@@ -63,7 +64,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 		return nil, fmt.Errorf("HTTP 500: get feeds: %w", err)
 	}
 
-	results := yslice.Map(feeds, func(f *store.Feed) *FeedResource {
+	results := yslice.Map(feeds, func(f *feedstore.Feed) *FeedResource {
 		return &FeedResource{
 			Id:          f.Id,
 			RssUrl:      f.RssUrl,
@@ -98,9 +99,9 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 		return nil, fmt.Errorf("HTTP 400: %w", err)
 	}
 
-	feeds := make([]*store.Feed, 0)
+	feeds := make([]*feedstore.Feed, 0)
 	for _, i := range r.Data {
-		feed := &store.Feed{
+		feed := &feedstore.Feed{
 			Id:          newID("feed_"),
 			UserId:      usr.Id(),
 			Type:        "podcast",
@@ -143,7 +144,7 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 //	@Router		/items/get [post]
 //	@Security	Authentication
 func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error) {
-	filter := store.ItemFilter{
+	filter := feedstore.ItemFilter{
 		Ids:     req.Ids,
 		FeedIds: req.FeedIds,
 		UserIds: []string{usr.Id()},
@@ -157,7 +158,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 		return nil, fmt.Errorf("HTTP 500: get items: %w", err)
 	}
 
-	results := yslice.Map(items, func(i *store.Item) *ItemResource {
+	results := yslice.Map(items, func(i *feedstore.Item) *ItemResource {
 		return &ItemResource{
 			Id: i.Id,
 			File: &ItemFileResource{
@@ -199,18 +200,18 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 		return nil, fmt.Errorf("HTTP 400: %w", err)
 	}
 
-	items := make([]*store.Item, 0)
+	items := make([]*feedstore.Item, 0)
 
 	err := c.store.Tx(ctx, func(ctxT context.Context) error {
-		var fs []*store.File
+		var fs []*feedstore.File
 
-		feeds, err := c.store.GetFeeds(ctxT, &store.FeedFilter{
+		feeds, err := c.store.GetFeeds(ctxT, &feedstore.FeedFilter{
 			Ids: yslice.UniqueMap(r.Data, func(v *CreateItemsResource) string { return v.FeedId }),
 		})
 		if err != nil {
 			return fmt.Errorf("HTTP 500: get feeds: %w", err)
 		}
-		feedsById := yslice.MapByKey(feeds, func(v *store.Feed) string { return v.Id })
+		feedsById := yslice.MapByKey(feeds, func(v *feedstore.Feed) string { return v.Id })
 
 		for _, i := range r.Data {
 			if _, ok := feedsById[i.FeedId]; !ok {
@@ -219,7 +220,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 
 			file, err := c.store.GetFileById(ctxT, i.FileId)
 			if err != nil {
-				if err == store.ErrNotFound {
+				if err == feedstore.ErrNotFound {
 					return fmt.Errorf("HTTP 404: no file %s", i.FileId)
 				}
 				return fmt.Errorf("HTTP 500: get file: %w", err)
@@ -233,7 +234,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 				publishedAt = mtime.Now()
 			}
 
-			item := &store.Item{
+			item := &feedstore.Item{
 				Id:          newID("item_"),
 				FeedId:      i.FeedId,
 				UserId:      usr.Id(),
@@ -314,8 +315,8 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 	return &UploadFilesResponse{Data: results}, nil
 }
 
-func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*store.File, error) {
-	info, err := files.Info(f)
+func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*feedstore.File, error) {
+	info, err := fileinfo.Get(f)
 	if err != nil {
 		return nil, fmt.Errorf("read filetype: %w", err)
 	}
@@ -326,16 +327,16 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 	fileId := newID("file_")
 
 	path := fmt.Sprintf("files/%s/%s/%s.%s", info.Hash.Digest[:2], info.Hash.Digest[2:4], fileId, info.Extension)
-	upload, err := c.fileStorage.Upload(ctx, path, f)
+	upload, err := c.fileStore.Upload(ctx, path, f)
 	if err != nil {
 		return nil, fmt.Errorf("upload file: %w", err)
 	}
 
-	return &store.File{
+	return &feedstore.File{
 		Id:        fileId,
 		UserId:    usr.Id(),
-		UploadUrl: upload.Url,
-		UploadId:  upload.Id,
+		UploadUrl: upload.URL,
+		UploadId:  upload.ID,
 		Size:      info.Size,
 		Hash:      info.Hash.String(),
 		MimeType:  info.Mime.Value,
@@ -345,7 +346,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 }
 
 func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string) (string, error) {
-	filter := &store.FeedFilter{
+	filter := &feedstore.FeedFilter{
 		Ids: []string{feedId},
 	}
 

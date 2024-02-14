@@ -7,42 +7,42 @@ import (
 	"fmt"
 	"sort"
 
-	"mkuznets.com/go/sfs/internal/files"
+	"mkuznets.com/go/sfs/internal/feedstore"
+	"mkuznets.com/go/sfs/internal/filestore"
 	"mkuznets.com/go/sfs/internal/mtime"
-	"mkuznets.com/go/sfs/internal/store"
 )
 
 type Controller interface {
-	UpdateFeeds(ctx context.Context, feeds []*store.Feed) error
-	BuildRss(ctx context.Context, feed *store.Feed) error
+	UpdateFeeds(ctx context.Context, feeds []*feedstore.Feed) error
+	BuildRss(ctx context.Context, feed *feedstore.Feed) error
 }
 
 type controllerImpl struct {
-	store       store.Store
-	fileStorage files.Storage
+	feedStore feedstore.FeedStore
+	fileStore filestore.FileStore
 }
 
-func NewController(store store.Store, fileStorage files.Storage) Controller {
+func NewController(store feedstore.FeedStore, fileStorage filestore.FileStore) Controller {
 	return &controllerImpl{
-		store:       store,
-		fileStorage: fileStorage,
+		feedStore: store,
+		fileStore: fileStorage,
 	}
 }
 
-func (c *controllerImpl) UpdateFeeds(ctx context.Context, feeds []*store.Feed) error {
+func (c *controllerImpl) UpdateFeeds(ctx context.Context, feeds []*feedstore.Feed) error {
 	for _, feed := range feeds {
 		if err := c.BuildRss(ctx, feed); err != nil {
 			return err
 		}
 	}
-	if err := c.store.UpdateFeeds(ctx, feeds, "rss_content", "rss_content_updated_at", "rss_url", "rss_url_updated_at", "updated_at"); err != nil {
+	if err := c.feedStore.UpdateFeeds(ctx, feeds, "rss_content", "rss_content_updated_at", "rss_url", "rss_url_updated_at", "updated_at"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
-	items, err := c.store.GetItems(ctx, &store.ItemFilter{FeedIds: []string{feed.Id}})
+func (c *controllerImpl) BuildRss(ctx context.Context, feed *feedstore.Feed) error {
+	items, err := c.feedStore.GetItems(ctx, &feedstore.ItemFilter{FeedIds: []string{feed.Id}})
 	if err != nil {
 		return err
 	}
@@ -67,12 +67,12 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *store.Feed) error {
 	feed.RssContentUpdatedAt = mtime.Now()
 
 	path := fmt.Sprintf("rss/%s.xml", feed.Id)
-	upload, err := c.fileStorage.Upload(ctx, path, bytes.NewReader(content))
+	upload, err := c.fileStore.Upload(ctx, path, bytes.NewReader(content))
 	if err != nil {
 		return fmt.Errorf("failed to upload RSS feed: %w", err)
 	}
 
-	feed.RssUrl = upload.Url
+	feed.RssUrl = upload.URL
 	feed.RssUrlUpdatedAt = mtime.Now()
 
 	feed.UpdatedAt = mtime.Now()

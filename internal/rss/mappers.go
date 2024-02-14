@@ -5,10 +5,10 @@ import (
 
 	"mkuznets.com/go/ytils/yslice"
 
-	"mkuznets.com/go/sfs/internal/store"
+	"mkuznets.com/go/sfs/internal/feedstore"
 )
 
-func FeedToPodcast(feed *store.Feed, items []*store.Item) *Podcast {
+func FeedToPodcast(feed *feedstore.Feed, items []*feedstore.Item) *Podcast {
 	//goland:noinspection HttpUrlsUsage
 	podcast := &Podcast{
 		Version: "2.0",
@@ -23,7 +23,7 @@ func FeedToPodcast(feed *store.Feed, items []*store.Item) *Podcast {
 		},
 	}
 
-	podcast.Channel.Items = yslice.Map(items, func(i *store.Item) *PodcastItem {
+	podcast.Channel.Items = yslice.Map(items, func(i *feedstore.Item) *PodcastItem {
 		pubDate := i.PublishedAt
 		if pubDate.IsZero() {
 			pubDate = i.UpdatedAt

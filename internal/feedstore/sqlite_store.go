@@ -1,4 +1,4 @@
-package store
+package feedstore
 
 import (
 	"context"
@@ -7,8 +7,9 @@ import (
 	"fmt"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"log/slog"
-	migrator "ytils.dev/sqlite-migrator"
+	"ytils.dev/sqlite-migrator"
 
 	"mkuznets.com/go/sfs/sql/sqlite"
 )
@@ -19,18 +20,19 @@ var ctxTxKey = contextKey(0x54)
 
 var ErrNotFound = errors.New("not found")
 
-// bunStore implements the Store interface.
-type bunStore struct {
+// SQLiteStore implements the FeedStore interface.
+type SQLiteStore struct {
 	db *bun.DB
 }
 
-func NewBunStore(db *bun.DB) Store {
-	return &bunStore{
-		db: db,
+func NewSQLiteStore(db *sql.DB) *SQLiteStore {
+	bunDB := bun.NewDB(db, sqlitedialect.New())
+	return &SQLiteStore{
+		db: bunDB,
 	}
 }
 
-func (s *bunStore) ctxDb(ctx context.Context) bun.IDB {
+func (s *SQLiteStore) ctxDb(ctx context.Context) bun.IDB {
 	tx := ctx.Value(ctxTxKey)
 	if tx != nil {
 		return tx.(bun.Tx)
@@ -38,7 +40,7 @@ func (s *bunStore) ctxDb(ctx context.Context) bun.IDB {
 	return s.db
 }
 
-func (s *bunStore) Init(ctx context.Context) error {
+func (s *SQLiteStore) Init(ctx context.Context) error {
 	m := migrator.New(s.db.DB, sqlite.FS)
 	m.WithLogFunc(func(msg string, args ...interface{}) {
 		slog.Info(msg, args...)
@@ -46,13 +48,13 @@ func (s *bunStore) Init(ctx context.Context) error {
 	return m.Migrate(ctx)
 }
 
-func (s *bunStore) Tx(ctx context.Context, fn func(ctx context.Context) error) error {
+func (s *SQLiteStore) Tx(ctx context.Context, fn func(ctx context.Context) error) error {
 	return s.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		return fn(context.WithValue(ctx, ctxTxKey, tx))
 	})
 }
 
-func (s *bunStore) GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, error) {
+func (s *SQLiteStore) GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, error) {
 	feeds := make([]*Feed, 0)
 	q := s.ctxDb(ctx).NewSelect().Model(&feeds)
 
@@ -70,7 +72,7 @@ func (s *bunStore) GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, e
 	return feeds, nil
 }
 
-func (s *bunStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
+func (s *SQLiteStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
 	if len(feeds) == 0 {
 		return errors.New("no feeds to create")
 	}
@@ -78,7 +80,7 @@ func (s *bunStore) CreateFeeds(ctx context.Context, feeds []*Feed) error {
 	return err
 }
 
-func (s *bunStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, error) {
+func (s *SQLiteStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, error) {
 	items := make([]*Item, 0)
 
 	q := s.ctxDb(ctx).NewSelect().Model(&items).Relation("File")
@@ -101,7 +103,7 @@ func (s *bunStore) GetItems(ctx context.Context, filter *ItemFilter) ([]*Item, e
 	return items, nil
 }
 
-func (s *bunStore) CreateItems(ctx context.Context, items []*Item) error {
+func (s *SQLiteStore) CreateItems(ctx context.Context, items []*Item) error {
 	if len(items) == 0 {
 		return errors.New("no items to create")
 	}
@@ -109,12 +111,12 @@ func (s *bunStore) CreateItems(ctx context.Context, items []*Item) error {
 	return err
 }
 
-func (s *bunStore) CreateFile(ctx context.Context, file *File) error {
+func (s *SQLiteStore) CreateFile(ctx context.Context, file *File) error {
 	_, err := s.ctxDb(ctx).NewInsert().Model(file).Returning("id").Exec(ctx)
 	return err
 }
 
-func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...string) error {
+func (s *SQLiteStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...string) error {
 	if len(feeds) == 0 {
 		return errors.New("no feeds to update")
 	}
@@ -135,7 +137,7 @@ func (s *bunStore) UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...str
 	return err
 }
 
-func (s *bunStore) UpdateFiles(ctx context.Context, files []*File, fields ...string) error {
+func (s *SQLiteStore) UpdateFiles(ctx context.Context, files []*File, fields ...string) error {
 	if len(files) == 0 {
 		return errors.New("no files to update")
 	}
@@ -156,7 +158,7 @@ func (s *bunStore) UpdateFiles(ctx context.Context, files []*File, fields ...str
 	return err
 }
 
-func (s *bunStore) GetFileById(ctx context.Context, id string) (*File, error) {
+func (s *SQLiteStore) GetFileById(ctx context.Context, id string) (*File, error) {
 	var file File
 	err := s.ctxDb(ctx).NewSelect().Model(&file).Where("id = ?", id).Scan(ctx)
 	if err != nil {

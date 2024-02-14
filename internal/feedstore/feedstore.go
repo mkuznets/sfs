@@ -1,4 +1,4 @@
-package store
+package feedstore
 
 import (
 	"context"
@@ -8,9 +8,7 @@ import (
 	"mkuznets.com/go/sfs/internal/mtime"
 )
 
-type Store interface {
-	Init(ctx context.Context) error
-
+type FeedStore interface {
 	GetFeeds(ctx context.Context, filter *FeedFilter) ([]*Feed, error)
 	CreateFeeds(ctx context.Context, feeds []*Feed) error
 	UpdateFeeds(ctx context.Context, feeds []*Feed, fields ...string) error
