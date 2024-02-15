@@ -24,6 +24,14 @@ import (
 func NewRouter(prefix string, authService auth.Service, apiService *Service) chi.Router {
 	r := chi.NewRouter()
 
+	r.Use(middleware.Recoverer)
+
+	r.Use(AddContextLoggerMiddleware)
+	r.Use(LogRequestMiddleware)
+
+	r.Use(middleware.RealIP)
+	r.Use(AddRequestIDMiddleware)
+
 	r.Route(prefix, func(r chi.Router) {
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 			yhttp.Render(w, r, fmt.Errorf("HTTP 404: endpoint not found")).JSON()
@@ -31,12 +39,6 @@ func NewRouter(prefix string, authService auth.Service, apiService *Service) chi
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 			yhttp.Render(w, r, fmt.Errorf("HTTP 405: %s not allowed", r.Method)).JSON()
 		})
-
-		r.Use(middleware.Recoverer)
-		r.Use(middleware.RealIP)
-		r.Use(AddRequestIdMiddleware)
-		r.Use(AddContextLoggerMiddleware)
-		r.Use(LogRequestMiddleware)
 
 		r.Group(func(r chi.Router) {
 			r.Use(authService.Middleware())

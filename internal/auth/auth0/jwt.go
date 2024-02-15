@@ -9,9 +9,11 @@ import (
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"log/slog"
 	"mkuznets.com/go/ytils/yhttp"
 
 	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/slogger"
 	"mkuznets.com/go/sfs/internal/user"
 )
 
@@ -63,6 +65,8 @@ func (s *auth0Service) Middleware() func(next http.Handler) http.Handler {
 
 			u := User{id: claims.RegisteredClaims.Subject}
 			ctx := user.Ctx(r.Context(), &u)
+			slogger.With(ctx, slog.String("user_id", u.Id()))
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

@@ -14,6 +14,7 @@ import (
 	"mkuznets.com/go/sfs/internal/filestore"
 	"mkuznets.com/go/sfs/internal/mtime"
 	"mkuznets.com/go/sfs/internal/rss"
+	"mkuznets.com/go/sfs/internal/slogger"
 	"mkuznets.com/go/sfs/internal/user"
 )
 
@@ -296,7 +297,9 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 //	@Router		/files/upload [post]
 //	@Security	Authentication
 func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error) {
-	results := make([]*UploadFileResultResource, 0)
+	logger := slogger.FromContext(ctx)
+
+	results := make([]*UploadFileResultResource, 0, len(fs))
 
 	for _, f := range fs {
 		result := &UploadFileResultResource{}
@@ -304,6 +307,7 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 
 		model, err := c.uploadFile(ctx, f, usr)
 		if err != nil {
+			logger.Error("could not upload file", "err", err)
 			result.Error = err.Error()
 			continue
 		}
