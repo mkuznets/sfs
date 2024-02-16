@@ -9,6 +9,7 @@ import (
 	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/yhttp"
 
+	"mkuznets.com/go/sfs/internal/render"
 	"mkuznets.com/go/sfs/internal/slogger"
 	"mkuznets.com/go/sfs/internal/user"
 )
@@ -27,18 +28,18 @@ func (s *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	req, err := yhttp.DecodeJson[GetFeedsRequest](r.Body)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
 	response, err := s.controller.GetFeeds(r.Context(), &req, usr)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
-	yhttp.Render(w, r, response).JSON()
+	render.New(w, r, response).JSON()
 }
 
 func (s *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
@@ -47,18 +48,18 @@ func (s *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 	req, err := yhttp.DecodeJson[CreateFeedsRequest](r.Body)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
 	response, err := s.controller.CreateFeeds(r.Context(), &req, usr)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
-	yhttp.Render(w, r, response).JSON()
+	render.New(w, r, response).JSON()
 }
 
 func (s *Service) GetItems(w http.ResponseWriter, r *http.Request) {
@@ -67,18 +68,18 @@ func (s *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 	req, err := yhttp.DecodeJson[GetItemsRequest](r.Body)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
 	response, err := s.controller.GetItems(r.Context(), &req, usr)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
-	yhttp.Render(w, r, response).JSON()
+	render.New(w, r, response).JSON()
 }
 
 func (s *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
@@ -87,18 +88,18 @@ func (s *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 	req, err := yhttp.DecodeJson[CreateItemsRequest](r.Body)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
 	response, err := s.controller.CreateItems(r.Context(), &req, usr)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
-	yhttp.Render(w, r, response).JSON()
+	render.New(w, r, response).JSON()
 }
 
 func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +108,7 @@ func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseMultipartForm(0); err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
@@ -116,14 +117,14 @@ func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 		file, err := fileHeader.Open()
 		if err != nil {
 			slogger.WithError(r.Context(), err)
-			yhttp.Render(w, r, err).JSON()
+			render.New(w, r, err).JSON()
 			return
 		}
 		files = append(files, file)
 	}
 
 	if len(files) == 0 {
-		yhttp.Render(w, r, fmt.Errorf("HTTP 400: no files provided")).JSON()
+		render.New(w, r, fmt.Errorf("HTTP 400: no files provided")).JSON()
 		return
 	}
 
@@ -143,11 +144,11 @@ func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	response, err := s.controller.UploadFiles(ctx, files, usr)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
-	yhttp.Render(w, r, response).JSON()
+	render.New(w, r, response).JSON()
 }
 
 func (s *Service) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +157,7 @@ func (s *Service) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 	url, err := s.controller.GetRssUrl(r.Context(), id)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
-		yhttp.Render(w, r, err).JSON()
+		render.New(w, r, err).JSON()
 		return
 	}
 
