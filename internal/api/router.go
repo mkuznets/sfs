@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -11,6 +12,7 @@ import (
 	"mkuznets.com/go/sfs/internal/api/swagger"
 	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/render"
+	"mkuznets.com/go/sfs/internal/slogger"
 )
 
 // NewRouter ...
@@ -41,7 +43,14 @@ func NewRouter(prefix string, authService auth.Service, apiService *Service) chi
 		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(authService.Middleware())
+			r.Use(authService.Middleware(func(w http.ResponseWriter, r *http.Request, err error) {
+				slogger.WithError(r.Context(), err)
+				status := 500
+				if errors.Is(err, auth.ErrValidation) {
+					status = 401
+				}
+				render.New(w, r, err).Status(status).JSON()
+			}))
 			r.Use(LogUserMiddleware)
 
 			r.Route("/feeds", func(r chi.Router) {

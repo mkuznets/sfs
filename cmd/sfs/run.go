@@ -12,7 +12,6 @@ import (
 
 	"mkuznets.com/go/sfs/internal/api"
 	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/sfs/internal/auth/auth0"
 	"mkuznets.com/go/sfs/internal/feedstore"
 	"mkuznets.com/go/sfs/internal/filestore"
 	"mkuznets.com/go/sfs/internal/rss"
@@ -69,7 +68,7 @@ func (c *RunCommand) Execute([]string) error {
 		if err != nil {
 			return fmt.Errorf("parse auth0 domain: %w", err)
 		}
-		authService = auth0.New(issuerURL, opts.Audience)
+		authService = auth.NewOIDCService(issuerURL, opts.Audience)
 	default:
 		authService = &auth.NoAuth{}
 	}

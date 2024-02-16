@@ -35,7 +35,19 @@ func (r *Response) Status(status int) *Response {
 func (r *Response) JSON() {
 	switch value := r.value.(type) {
 	case error:
-		renderJSONError(r.writer, value)
+		fallbackStatus := http.StatusInternalServerError
+		if r.status != http.StatusOK {
+			fallbackStatus = r.status
+		}
+		code, msg := extractStatus(value, fallbackStatus)
+		if code >= 500 {
+			msg = "Internal Server Error"
+		}
+
+		renderJSON(r.writer, code, errorResponse{
+			Error:   http.StatusText(code),
+			Message: msg,
+		})
 	default:
 		renderJSON(r.writer, r.status, r.value)
 	}
@@ -64,26 +76,14 @@ func renderJSON(w http.ResponseWriter, status int, v interface{}) {
 	_, _ = w.Write(buf.Bytes())
 }
 
-func extractStatus(err error) (int, string) {
+func extractStatus(err error, fallback int) (int, string) {
 	msg := err.Error()
 	if matches := statusCodeRegex.FindStringSubmatch(msg); matches != nil {
 		statusCode, _ := strconv.Atoi(matches[1])
 		msg = matches[2]
 		return statusCode, msg
 	}
-	return http.StatusInternalServerError, msg
-}
-
-func renderJSONError(w http.ResponseWriter, err error) {
-	code, msg := extractStatus(err)
-	if code >= 500 {
-		msg = "Internal Server Error"
-	}
-
-	renderJSON(w, code, errorResponse{
-		Error:   http.StatusText(code),
-		Message: msg,
-	})
+	return fallback, msg
 }
 
 type errorResponse struct {
