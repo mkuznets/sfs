@@ -7,10 +7,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"mkuznets.com/go/ytils/yhttp"
 
 	"mkuznets.com/go/sfs/internal/api/swagger"
 	"mkuznets.com/go/sfs/internal/auth"
+	"mkuznets.com/go/sfs/internal/render"
 )
 
 // NewRouter ...
@@ -34,14 +34,15 @@ func NewRouter(prefix string, authService auth.Service, apiService *Service) chi
 
 	r.Route(prefix, func(r chi.Router) {
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-			yhttp.Render(w, r, fmt.Errorf("HTTP 404: endpoint not found")).JSON()
+			render.New(w, r, fmt.Errorf("HTTP 404: endpoint not found")).JSON()
 		})
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
-			yhttp.Render(w, r, fmt.Errorf("HTTP 405: %s not allowed", r.Method)).JSON()
+			render.New(w, r, fmt.Errorf("HTTP 405: %s not allowed", r.Method)).JSON()
 		})
 
 		r.Group(func(r chi.Router) {
 			r.Use(authService.Middleware())
+			r.Use(LogUserMiddleware)
 
 			r.Route("/feeds", func(r chi.Router) {
 				r.Post("/get", apiService.GetFeeds)

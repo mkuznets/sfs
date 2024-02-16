@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-
-	"mkuznets.com/go/ytils/yerr"
 )
 
 var statusCodeRegex = regexp.MustCompile(`^HTTP (\d{3}):\s*(.+)`)
@@ -69,7 +67,7 @@ func renderJSON(w http.ResponseWriter, status int, v interface{}) {
 func extractStatus(err error) (int, string) {
 	msg := err.Error()
 	if matches := statusCodeRegex.FindStringSubmatch(msg); matches != nil {
-		statusCode := yerr.Must(strconv.Atoi(matches[1]))
+		statusCode, _ := strconv.Atoi(matches[1])
 		msg = matches[2]
 		return statusCode, msg
 	}

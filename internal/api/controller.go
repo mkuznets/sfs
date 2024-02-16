@@ -9,21 +9,21 @@ import (
 	"github.com/segmentio/ksuid"
 	"mkuznets.com/go/ytils/yslice"
 
+	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/feedstore"
 	"mkuznets.com/go/sfs/internal/fileinfo"
 	"mkuznets.com/go/sfs/internal/filestore"
 	"mkuznets.com/go/sfs/internal/mtime"
 	"mkuznets.com/go/sfs/internal/rss"
 	"mkuznets.com/go/sfs/internal/slogger"
-	"mkuznets.com/go/sfs/internal/user"
 )
 
 type Controller interface {
-	GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error)
-	CreateFeeds(ctx context.Context, req *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error)
-	GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error)
-	CreateItems(ctx context.Context, req *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error)
-	UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error)
+	GetFeeds(ctx context.Context, req *GetFeedsRequest, user auth.User) (*GetFeedsResponse, error)
+	CreateFeeds(ctx context.Context, req *CreateFeedsRequest, user auth.User) (*CreateFeedsResponse, error)
+	GetItems(ctx context.Context, req *GetItemsRequest, user auth.User) (*GetItemsResponse, error)
+	CreateItems(ctx context.Context, req *CreateItemsRequest, user auth.User) (*CreateItemsResponse, error)
+	UploadFiles(ctx context.Context, fs []multipart.File, user auth.User) (*UploadFilesResponse, error)
 	GetRssUrl(ctx context.Context, feedId string) (string, error)
 }
 
@@ -54,10 +54,10 @@ func NewController(store feedstore.FeedStore, fileStorage filestore.FileStore, f
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/feeds/get [post]
 //	@Security	Authentication
-func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr user.User) (*GetFeedsResponse, error) {
+func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, user auth.User) (*GetFeedsResponse, error) {
 	filter := feedstore.FeedFilter{
 		Ids:     req.Ids,
-		UserIds: []string{usr.Id()},
+		UserIds: []string{user.ID()},
 	}
 
 	feeds, err := c.feedStore.GetFeeds(ctx, &filter)
@@ -97,7 +97,7 @@ func (c *controllerImpl) GetFeeds(ctx context.Context, req *GetFeedsRequest, usr
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/feeds/create [post]
 //	@Security	Authentication
-func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest, usr user.User) (*CreateFeedsResponse, error) {
+func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest, user auth.User) (*CreateFeedsResponse, error) {
 	if err := r.Validate(); err != nil {
 		return nil, fmt.Errorf("HTTP 400: %w", err)
 	}
@@ -106,7 +106,7 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 	for _, i := range r.Data {
 		feed := &feedstore.Feed{
 			Id:          newID("feed_"),
-			UserId:      usr.Id(),
+			UserId:      user.ID(),
 			Type:        "podcast",
 			Title:       i.Title,
 			Link:        i.Link,
@@ -146,14 +146,14 @@ func (c *controllerImpl) CreateFeeds(ctx context.Context, r *CreateFeedsRequest,
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/items/get [post]
 //	@Security	Authentication
-func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr user.User) (*GetItemsResponse, error) {
+func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, user auth.User) (*GetItemsResponse, error) {
 	filter := feedstore.ItemFilter{
 		Ids:     req.Ids,
 		FeedIds: req.FeedIds,
-		UserIds: []string{usr.Id()},
+		UserIds: []string{user.ID()},
 	}
 	if len(filter.UserIds) == 0 {
-		filter.UserIds = []string{usr.Id()}
+		filter.UserIds = []string{user.ID()}
 	}
 
 	items, err := c.feedStore.GetItems(ctx, &filter)
@@ -199,7 +199,7 @@ func (c *controllerImpl) GetItems(ctx context.Context, req *GetItemsRequest, usr
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/items/create [post]
 //	@Security	Authentication
-func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest, usr user.User) (*CreateItemsResponse, error) {
+func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest, user auth.User) (*CreateItemsResponse, error) {
 	if err := r.Validate(); err != nil {
 		return nil, fmt.Errorf("HTTP 400: %w", err)
 	}
@@ -241,7 +241,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 			item := &feedstore.Item{
 				Id:          newID("item_"),
 				FeedId:      i.FeedId,
-				UserId:      usr.Id(),
+				UserId:      user.ID(),
 				Title:       i.Title,
 				Link:        i.Link,
 				Authors:     i.Authors,
@@ -296,7 +296,7 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 //	@Failure	500		{object}	ErrorResponse
 //	@Router		/files/upload [post]
 //	@Security	Authentication
-func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, usr user.User) (*UploadFilesResponse, error) {
+func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, user auth.User) (*UploadFilesResponse, error) {
 	logger := slogger.FromContext(ctx)
 
 	results := make([]*UploadFileResultResource, 0, len(fs))
@@ -305,7 +305,7 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 		result := &UploadFileResultResource{}
 		results = append(results, result)
 
-		model, err := c.uploadFile(ctx, f, usr)
+		model, err := c.uploadFile(ctx, f, user)
 		if err != nil {
 			logger.Error("could not upload file", "err", err)
 			result.Error = err.Error()
@@ -322,7 +322,7 @@ func (c *controllerImpl) UploadFiles(ctx context.Context, fs []multipart.File, u
 	return &UploadFilesResponse{Data: results}, nil
 }
 
-func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr user.User) (*feedstore.File, error) {
+func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, user auth.User) (*feedstore.File, error) {
 	info, err := fileinfo.Get(f)
 	if err != nil {
 		return nil, fmt.Errorf("read filetype: %w", err)
@@ -341,7 +341,7 @@ func (c *controllerImpl) uploadFile(ctx context.Context, f io.ReadSeeker, usr us
 
 	return &feedstore.File{
 		Id:        fileId,
-		UserId:    usr.Id(),
+		UserId:    user.ID(),
 		UploadUrl: upload.URL,
 		UploadId:  upload.ID,
 		Size:      info.Size,

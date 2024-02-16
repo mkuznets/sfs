@@ -6,12 +6,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"mkuznets.com/go/ytils/y"
 	"mkuznets.com/go/ytils/yhttp"
 
+	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/render"
 	"mkuznets.com/go/sfs/internal/slogger"
-	"mkuznets.com/go/sfs/internal/user"
 )
 
 type Service struct {
@@ -23,7 +22,7 @@ func NewService(c Controller) *Service {
 }
 
 func (s *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
-	usr := y.Must(user.Get(r))
+	user := auth.UserFromContext(r.Context())
 
 	req, err := yhttp.DecodeJson[GetFeedsRequest](r.Body)
 	if err != nil {
@@ -32,7 +31,7 @@ func (s *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := s.controller.GetFeeds(r.Context(), &req, usr)
+	response, err := s.controller.GetFeeds(r.Context(), &req, user)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
 		render.New(w, r, err).JSON()
@@ -43,7 +42,7 @@ func (s *Service) GetFeeds(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
-	usr := y.Must(user.Get(r))
+	user := auth.UserFromContext(r.Context())
 
 	req, err := yhttp.DecodeJson[CreateFeedsRequest](r.Body)
 	if err != nil {
@@ -52,7 +51,7 @@ func (s *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := s.controller.CreateFeeds(r.Context(), &req, usr)
+	response, err := s.controller.CreateFeeds(r.Context(), &req, user)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
 		render.New(w, r, err).JSON()
@@ -63,7 +62,7 @@ func (s *Service) CreateFeeds(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetItems(w http.ResponseWriter, r *http.Request) {
-	usr := y.Must(user.Get(r))
+	user := auth.UserFromContext(r.Context())
 
 	req, err := yhttp.DecodeJson[GetItemsRequest](r.Body)
 	if err != nil {
@@ -72,7 +71,7 @@ func (s *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := s.controller.GetItems(r.Context(), &req, usr)
+	response, err := s.controller.GetItems(r.Context(), &req, user)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
 		render.New(w, r, err).JSON()
@@ -83,7 +82,7 @@ func (s *Service) GetItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
-	usr := y.Must(user.Get(r))
+	user := auth.UserFromContext(r.Context())
 
 	req, err := yhttp.DecodeJson[CreateItemsRequest](r.Body)
 	if err != nil {
@@ -92,7 +91,7 @@ func (s *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := s.controller.CreateItems(r.Context(), &req, usr)
+	response, err := s.controller.CreateItems(r.Context(), &req, user)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
 		render.New(w, r, err).JSON()
@@ -103,7 +102,7 @@ func (s *Service) CreateItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
-	usr := y.Must(user.Get(r))
+	user := auth.UserFromContext(r.Context())
 	ctx := r.Context()
 
 	if err := r.ParseMultipartForm(0); err != nil {
@@ -141,7 +140,7 @@ func (s *Service) UploadFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}(files)
 
-	response, err := s.controller.UploadFiles(ctx, files, usr)
+	response, err := s.controller.UploadFiles(ctx, files, user)
 	if err != nil {
 		slogger.WithError(r.Context(), err)
 		render.New(w, r, err).JSON()

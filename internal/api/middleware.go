@@ -11,6 +11,7 @@ import (
 	"github.com/segmentio/ksuid"
 	"log/slog"
 
+	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/slogger"
 )
 
@@ -69,6 +70,14 @@ func AddContextLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := slogger.NewContext(r.Context(), slog.Default())
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func LogUserMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := auth.UserFromContext(r.Context())
+		slogger.With(r.Context(), slog.String("user_id", user.ID()))
+		next.ServeHTTP(w, r)
 	})
 }
 

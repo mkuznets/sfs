@@ -9,12 +9,9 @@ import (
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
-	"log/slog"
-	"mkuznets.com/go/ytils/yhttp"
 
 	"mkuznets.com/go/sfs/internal/auth"
-	"mkuznets.com/go/sfs/internal/slogger"
-	"mkuznets.com/go/sfs/internal/user"
+	"mkuznets.com/go/sfs/internal/render"
 )
 
 type auth0Service struct {
@@ -42,30 +39,29 @@ func (s *auth0Service) Middleware() func(next http.Handler) http.Handler {
 				validator.WithAllowedClockSkew(30*time.Second),
 			)
 			if err != nil {
-				yhttp.Render(w, r, fmt.Errorf("HTTP 500: JWT validator error: %w", err)).JSON()
+				render.New(w, r, fmt.Errorf("HTTP 500: JWT validator error: %w", err)).JSON()
 				return
 			}
 
 			token, err := jwtmiddleware.AuthHeaderTokenExtractor(r)
 			if err != nil {
-				yhttp.Render(w, r, fmt.Errorf("HTTP 401: auth token error: %w", err)).JSON()
+				render.New(w, r, fmt.Errorf("HTTP 401: auth token error: %w", err)).JSON()
 				return
 			}
 			if token == "" {
-				yhttp.Render(w, r, fmt.Errorf("HTTP 401: auth token is empty")).JSON()
+				render.New(w, r, fmt.Errorf("HTTP 401: auth token is empty")).JSON()
 				return
 			}
 
 			cs, err := jwtValidator.ValidateToken(r.Context(), token)
 			if err != nil {
-				yhttp.Render(w, r, fmt.Errorf("HTTP 401: auth token validation error: %w", err)).JSON()
+				render.New(w, r, fmt.Errorf("HTTP 401: auth token validation error: %w", err)).JSON()
 				return
 			}
 			claims := cs.(*validator.ValidatedClaims)
 
 			u := User{id: claims.RegisteredClaims.Subject}
-			ctx := user.Ctx(r.Context(), &u)
-			slogger.With(ctx, slog.String("user_id", u.Id()))
+			ctx := auth.NewUserContext(r.Context(), &u)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

@@ -4,6 +4,6 @@ type User struct {
 	id string
 }
 
-func (c *User) Id() string {
+func (c *User) ID() string {
 	return c.id
 }
