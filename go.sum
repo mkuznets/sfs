@@ -179,8 +179,6 @@ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-mkuznets.com/go/ytils v0.0.1 h1:J7PqdhBl1rsmWOY6bxWsQvzr+l82c2AZO30N/oklMSA=
-mkuznets.com/go/ytils v0.0.1/go.mod h1:ioWfE4tplKNbHfNlfEFfqWxVziNjzGrsqzngUBNmizY=
 ytils.dev/cli v0.0.1 h1:DAsePnMP7hpe6jFAwZXR564Je7eXyLiN/GZ8CrPIQt0=
 ytils.dev/cli v0.0.1/go.mod h1:i0pNTsd3BbXj9MQ3c+rvHVYEqpSMn6T4TuHBViV4bwo=
 ytils.dev/sqlite-migrator v0.1.0 h1:KXIZuujTPsohfpAsX3EnCRdsyP8NKhxdKXIi2sHkxmQ=

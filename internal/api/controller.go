@@ -7,7 +7,7 @@ import (
 	"mime/multipart"
 
 	"github.com/segmentio/ksuid"
-	"mkuznets.com/go/ytils/yslice"
+	"slices"
 
 	"mkuznets.com/go/sfs/internal/auth"
 	"mkuznets.com/go/sfs/internal/feedstore"
@@ -209,13 +209,24 @@ func (c *controllerImpl) CreateItems(ctx context.Context, r *CreateItemsRequest,
 	err := c.feedStore.Tx(ctx, func(ctxT context.Context) error {
 		var fs []*feedstore.File
 
+		feedIDs := make([]string, 0, len(r.Data))
+		for _, i := range r.Data {
+			feedIDs = append(feedIDs, i.FeedId)
+		}
+		slices.Sort(feedIDs)
+		feedIDs = slices.Compact(feedIDs)
+
 		feeds, err := c.feedStore.GetFeeds(ctxT, &feedstore.FeedFilter{
-			Ids: yslice.UniqueMap(r.Data, func(v *CreateItemsResource) string { return v.FeedId }),
+			Ids: feedIDs,
 		})
 		if err != nil {
 			return fmt.Errorf("HTTP 500: get feeds: %w", err)
 		}
-		feedsById := yslice.MapByKey(feeds, func(v *feedstore.Feed) string { return v.Id })
+
+		feedsById := make(map[string]*feedstore.Feed, len(feeds))
+		for _, feed := range feeds {
+			feedsById[feed.Id] = feed
+		}
 
 		for _, i := range r.Data {
 			if _, ok := feedsById[i.FeedId]; !ok {

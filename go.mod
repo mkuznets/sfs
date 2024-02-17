@@ -20,7 +20,6 @@ require (
 	github.com/swaggo/swag v1.16.2
 	github.com/uptrace/bun v1.1.10
 	github.com/uptrace/bun/dialect/sqlitedialect v1.1.10
-	mkuznets.com/go/ytils v0.0.1
 	ytils.dev/cli v0.0.1
 	ytils.dev/sqlite-migrator v0.1.0
 )
