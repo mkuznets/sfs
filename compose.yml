@@ -1,0 +1,17 @@
+name: sfs
+
+services:
+  sfs:
+    image: sfs:latest
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data
+    networks:
+      dev:
+
+networks:
+  dev:

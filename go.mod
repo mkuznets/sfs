@@ -15,7 +15,7 @@ require (
 	github.com/h2non/filetype v1.1.3
 	github.com/joho/godotenv v1.4.0
 	github.com/mattn/go-isatty v0.0.17
-	github.com/mattn/go-sqlite3 v1.14.16
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/http-swagger v1.3.3

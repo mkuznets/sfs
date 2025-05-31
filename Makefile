@@ -25,9 +25,8 @@ tidy:
 	(cd api && go mod tidy)
 
 .PHONY: run
-run: build
-	mkdir -p data
-	bin/sfs run
+run:
+	docker compose up --build
 
 .PHONY: test
 test:

@@ -1,10 +1,10 @@
-FROM golang:1.21-alpine3.18 as build
+FROM golang:1.24-alpine3.22 AS build
 
 ENV \
     CGO_ENABLED=1
 
-RUN apk add --no-cache --update ca-certificates git gcc musl-dev bash curl make file jq && \
-    rm -rf /var/cache/apk/*
+RUN --mount=type=cache,target=/var/cache/apk/ \
+    apk add --no-cache --update ca-certificates git gcc musl-dev bash curl make file jq
 
 RUN go version && \
     mkdir -p "/build" && \
@@ -13,16 +13,21 @@ RUN go version && \
     curl -o /usr/local/bin/swagger -L'#' $(curl -s https://api.github.com/repos/go-swagger/go-swagger/releases/latest | jq -r '.assets[] | select(.name | contains("'"$(uname | tr '[:upper:]' '[:lower:]')"'_amd64")) | .browser_download_url') && \
     chmod +x /usr/local/bin/swagger
 
-WORKDIR /build
-ADD . /build
-ADD go.sum go.mod /build/
-RUN go mod download && \
-    git config --global --add safe.directory /build
+WORKDIR /src
+ADD go.sum go.mod /src/
 
-RUN make build
+RUN --mount=type=cache,target=/go/pkg/mod/ \
+    go mod download -x
 
-FROM alpine:3.17.2
+ADD . /src/
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod/ \
+    make build
+
+FROM alpine:3.22
 RUN apk add --no-cache --update ca-certificates && \
     rm -rf /var/cache/apk/*
 
-COPY --from=build /build/bin/sfs /srv/sfs
+COPY --from=build /src/bin/sfs /srv/sfs
+
+CMD ["/srv/sfs", "run"]
