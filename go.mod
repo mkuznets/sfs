@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/auth0/go-jwt-middleware/v2 v2.1.0
+	github.com/auth0/go-jwt-middleware/v2 v2.3.0
 	github.com/aws/aws-sdk-go-v2 v1.17.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.8
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.30.0
@@ -17,7 +17,7 @@ require (
 	github.com/mattn/go-isatty v0.0.17
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/segmentio/ksuid v1.0.4
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.3
 	github.com/swaggo/swag v1.16.2
 	github.com/uptrace/bun v1.1.10
@@ -47,7 +47,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/swaggo/files v1.0.0 // indirect
@@ -56,8 +55,9 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
