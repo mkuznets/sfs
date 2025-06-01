@@ -162,3 +162,19 @@ func (s *Service) GetRssRedirect(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
+
+func (s *Service) GetFeedContent(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "feedId")
+
+	feedContent, err := s.controller.GetFeedContent(r.Context(), id)
+	if err != nil {
+		slogger.WithError(r.Context(), err)
+		render.New(w, r, err).JSON()
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/rss+xml; charset=utf-8")
+	w.Header().Set("ETag", fmt.Sprintf(`"%s"`, feedContent.ETag))
+
+	http.ServeContent(w, r, "feed.xml", feedContent.LastModified, feedContent.Reader)
+}

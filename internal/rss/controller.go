@@ -3,9 +3,12 @@ package rss
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"sort"
+	"time"
 
 	"mkuznets.com/go/sfs/internal/feedstore"
 	"mkuznets.com/go/sfs/internal/filestore"
@@ -15,8 +18,8 @@ import (
 type Controller interface {
 	UpdateFeeds(ctx context.Context, feeds []*feedstore.Feed) error
 	BuildRss(ctx context.Context, feed *feedstore.Feed) error
+	GetFeedContent(ctx context.Context, feed *feedstore.Feed) (*FeedContent, error)
 }
-
 type controllerImpl struct {
 	feedStore feedstore.FeedStore
 	fileStore filestore.FileStore
@@ -78,4 +81,46 @@ func (c *controllerImpl) BuildRss(ctx context.Context, feed *feedstore.Feed) err
 	feed.UpdatedAt = mtime.Now()
 
 	return nil
+}
+
+type FeedContent struct {
+	LastModified time.Time
+	ETag         string
+	Reader       io.ReadSeeker
+}
+
+func (c *controllerImpl) GetFeedContent(ctx context.Context, feed *feedstore.Feed) (*FeedContent, error) {
+	items, err := c.feedStore.GetItems(ctx, &feedstore.ItemFilter{FeedIds: []string{feed.Id}})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].PublishedAt.After(items[j].PublishedAt.Time)
+	})
+
+	var xmlModel any
+	switch feed.Type {
+	case "podcast":
+		xmlModel = FeedToPodcast(feed, items)
+	default:
+		return nil, fmt.Errorf("%s has invalid feed type: %s", feed.Id, feed.Type)
+	}
+
+	content, err := xml.MarshalIndent(xmlModel, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	h := sha256.New()
+	h.Write(content)
+	etag := fmt.Sprintf("%x", h.Sum(nil))
+
+	result := &FeedContent{
+		LastModified: feed.UpdatedAt.Time,
+		ETag:         etag,
+		Reader:       bytes.NewReader(content),
+	}
+
+	return result, nil
 }

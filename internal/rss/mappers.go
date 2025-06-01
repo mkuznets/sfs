@@ -15,7 +15,7 @@ func FeedToPodcast(feed *feedstore.Feed, items []*feedstore.Item) *Podcast {
 			Title:         feed.Title,
 			Link:          feed.Link,
 			Description:   feed.Description,
-			LastBuildDate: time.Now().Format(time.RFC1123Z),
+			LastBuildDate: feed.UpdatedAt.Format(time.RFC1123Z),
 			PubDate:       feed.UpdatedAt.Format(time.RFC1123Z),
 			IAuthor:       feed.Authors,
 		},

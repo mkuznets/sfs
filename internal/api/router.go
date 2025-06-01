@@ -70,7 +70,8 @@ func NewRouter(prefix string, authService auth.Service, apiService *Service) chi
 		swaggerSpecs := http.FileServer(http.FS(swagger.Specs))
 		r.Get("/swagger.*", http.StripPrefix(prefix, swaggerSpecs).ServeHTTP)
 	})
-	r.Get("/rss/{feedId}", apiService.GetRssRedirect)
+
+	r.Get("/rss/{feedId}", apiService.GetFeedContent)
 
 	swaggerUi := httpSwagger.Handler(
 		httpSwagger.URL(prefix+"/swagger.json"),

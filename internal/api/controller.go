@@ -25,6 +25,7 @@ type Controller interface {
 	CreateItems(ctx context.Context, req *CreateItemsRequest, user auth.User) (*CreateItemsResponse, error)
 	UploadFiles(ctx context.Context, fs []multipart.File, user auth.User) (*UploadFilesResponse, error)
 	GetRssUrl(ctx context.Context, feedId string) (string, error)
+	GetFeedContent(ctx context.Context, feedId string) (*rss.FeedContent, error)
 }
 
 type controllerImpl struct {
@@ -381,4 +382,25 @@ func (c *controllerImpl) GetRssUrl(ctx context.Context, feedId string) (string, 
 
 func newID(prefix string) string {
 	return prefix + ksuid.New().String()
+}
+
+func (c *controllerImpl) GetFeedContent(ctx context.Context, feedId string) (*rss.FeedContent, error) {
+	filter := &feedstore.FeedFilter{
+		Ids: []string{feedId},
+	}
+
+	feeds, err := c.feedStore.GetFeeds(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("HTTP 500: get feed: %w", err)
+	}
+	if len(feeds) == 0 {
+		return nil, fmt.Errorf("HTTP 404: no feed %s", feedId)
+	}
+
+	content, err := c.rssController.GetFeedContent(ctx, feeds[0])
+	if err != nil {
+		return nil, fmt.Errorf("HTTP 500: get rss content: %w", err)
+	}
+
+	return content, nil
 }

@@ -62,4 +62,3 @@ Content-Type: application/json
 
 ### Get RSS feed
 GET {{base_url}}/rss/feed_2xuWD2nHXv5wi2rv9Pr8rAEPfRF
-Authorization: Bearer {{$auth.token("oauth")}}
