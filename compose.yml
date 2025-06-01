@@ -7,9 +7,22 @@ services:
     ports:
       - "8080:8080"
     env_file:
+      - dev.env
       - .env
     volumes:
       - ./data:/data
+    networks:
+      dev:
+
+  s3:
+    image: minio/minio:latest
+    volumes:
+      - ./data/s3:/data
+    entrypoint: /bin/sh
+    command: -c 'mkdir -p /data/sfs && /usr/bin/docker-entrypoint.sh server /data --console-address :9001'
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     networks:
       dev:
 

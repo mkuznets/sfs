@@ -42,11 +42,12 @@ type Storage struct {
 }
 
 type S3 struct {
-	EndpointUrl string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" json:"ENDPOINT_URL" required:"true"`
-	KeyID       string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" json:"ACCESS_KEY_ID" required:"true"`
-	SecretKey   string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" json:"SECRET_ACCESS_KEY" required:"true"`
-	Bucket      string `long:"bucket" env:"BUCKET" description:"S3 bucket name" json:"BUCKET" required:"true"`
-	UrlTemplate string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a public URL of the uploaded object" json:"URL_TEMPLATE" required:"true"`
+	EndpointUrl  string `long:"endpoint-url" env:"ENDPOINT_URL" description:"endpoint url" json:"ENDPOINT_URL" required:"true"`
+	KeyID        string `long:"access-key-id" env:"ACCESS_KEY_ID" description:"access id" json:"ACCESS_KEY_ID" required:"true"`
+	SecretKey    string `long:"secret-access-key" env:"SECRET_ACCESS_KEY" description:"access secret" json:"SECRET_ACCESS_KEY" required:"true"`
+	Bucket       string `long:"bucket" env:"BUCKET" description:"S3 bucket name" json:"BUCKET" required:"true"`
+	UrlTemplate  string `long:"url-template" env:"URL_TEMPLATE" description:"Template of a public URL of the uploaded object" json:"URL_TEMPLATE" required:"true"`
+	UsePathStyle bool   `long:"use-path-style" env:"USE_PATH_STYLE" description:"Use path style endpoint URL for S3" json:"USE_PATH_STYLE"`
 }
 
 type Auth struct {
@@ -79,6 +80,7 @@ func (c *RunCommand) Execute([]string) error {
 		c.Storage.S3Opts.KeyID,
 		c.Storage.S3Opts.SecretKey,
 		c.Storage.S3Opts.UrlTemplate,
+		c.Storage.S3Opts.UsePathStyle,
 	)
 
 	dbDSN, err := prepareDSN(c.DB.Dsn)

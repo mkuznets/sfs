@@ -17,6 +17,7 @@ type S3FileStore struct {
 	accessKeyId     string
 	accessKeySecret string
 	urlTemplate     string
+	usePathStyle    bool
 }
 
 type Object struct {
@@ -24,13 +25,14 @@ type Object struct {
 	Key    string
 }
 
-func NewS3FileStore(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate string) *S3FileStore {
+func NewS3FileStore(endpointUrl, bucket, accessKeyId, accessKeySecret, urlTemplate string, usePathStyle bool) *S3FileStore {
 	return &S3FileStore{
 		endpointUrl:     endpointUrl,
 		bucket:          bucket,
 		accessKeyId:     accessKeyId,
 		accessKeySecret: accessKeySecret,
 		urlTemplate:     urlTemplate,
+		usePathStyle:    usePathStyle,
 	}
 }
 
@@ -38,6 +40,7 @@ func (s *S3FileStore) Upload(ctx context.Context, path string, body io.Reader) (
 	s3client := s3.New(s3.Options{
 		Credentials:      credentials.NewStaticCredentialsProvider(s.accessKeyId, s.accessKeySecret, ""),
 		EndpointResolver: s3.EndpointResolverFromURL(s.endpointUrl),
+		UsePathStyle:     s.usePathStyle,
 	})
 
 	urlTpl, err := template.New("url").Parse(s.urlTemplate)
