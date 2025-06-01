@@ -25,3 +25,5 @@ data
 
 # Go workspace file
 go.work
+
+*.private.env.json

@@ -11,3 +11,5 @@
 *.html text eol=lf
 
 # Binary files: should not be modified
+
+*.mp3 binary

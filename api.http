@@ -1,0 +1,65 @@
+### Retrieve the list of feeds
+POST {{base_url}}/api/feeds/get
+Authorization: Bearer {{$auth.token("oauth")}}
+Content-Type: application/json
+
+{
+  "ids": []
+}
+
+### Create a new feed
+POST {{base_url}}/api/feeds/create
+Authorization: Bearer {{$auth.token("oauth")}}
+Content-Type: application/json
+
+{
+  "data": [
+    {
+      "title": "ATP",
+      "authors": "Marco Arment, Casey Liss, John Siracusa",
+      "link": "https://atp.fm"
+    }
+  ]
+}
+
+### Upload a new file
+POST {{base_url}}/api/files/upload
+Authorization: Bearer {{$auth.token("oauth")}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="file.mp3"
+
+< ./fixtures/example.mp3
+
+### Retrieve the list of items
+POST {{base_url}}/api/items/get
+Authorization: Bearer {{$auth.token("oauth")}}
+Content-Type: application/json
+
+{
+  "ids": []
+}
+
+### Create a new item
+POST {{base_url}}/api/items/create
+Authorization: Bearer {{$auth.token("oauth")}}
+Content-Type: application/json
+
+
+{
+  "data": [
+    {
+      "title": "641: We're Saving That for the Egg",
+      "authors": "Marco Arment, Casey Liss, John Siracusa",
+      "link": "https://atp.fm/641",
+      "file_id": "file_2xuWF0cxS16fcZ48QzKUkrCNcNN",
+      "feed_id": "feed_2xuWD2nHXv5wi2rv9Pr8rAEPfRF",
+      "published_at": "2023-01-26T18:17:18.015Z"
+    }
+  ]
+}
+
+### Get RSS feed
+GET {{base_url}}/rss/feed_2xuWD2nHXv5wi2rv9Pr8rAEPfRF
+Authorization: Bearer {{$auth.token("oauth")}}
