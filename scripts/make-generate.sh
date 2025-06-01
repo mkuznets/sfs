@@ -12,7 +12,7 @@ cd "$SCRIPT_DIR/.."  # back to root
 go install github.com/swaggo/swag/cmd/swag@v1.16.2
 go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.3
 
-swag init -g internal/api/api.go --output internal/api/swagger
+swag init -g internal/api/router.go --output internal/api/swagger
 
 # Add newline if it's missing
 [ -n "$(tail -c1 internal/api/swagger/swagger.json)" ] && echo >> internal/api/swagger/swagger.json
